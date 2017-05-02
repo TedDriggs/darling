@@ -10,7 +10,7 @@ use syn::parse_derive_input;
 
 use darling_core::{options, codegen};
 
-#[proc_macro_derive(AttrDeserialize, attributes(darling))]
+#[proc_macro_derive(FromMetaItem, attributes(darling))]
 pub fn derive(input: TokenStream) -> TokenStream {
     let ast = parse_derive_input(&input.to_string()).unwrap();
     
