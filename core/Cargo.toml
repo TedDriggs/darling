@@ -4,10 +4,11 @@ version = "0.1.0"
 authors = ["Ted Driggs <ted.driggs@outlook.com>"]
 
 [features]
+# temporary hack to make Racer autocomplete work; it requires a 3-part version
+# number and doesn't allow for any feature declarations.
 default = ["syn/full"]
 
 [dependencies]
-# syn = {version = "0.11.11", features = ["full"] }
 lazy_static = "0.2.8"
 syn = "0.11.11"
 quote = "0.3.12"
