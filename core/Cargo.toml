@@ -1,0 +1,13 @@
+[package]
+name = "attr_deserialize_core"
+version = "0.1.0"
+authors = ["Ted Driggs <ted.driggs@outlook.com>"]
+
+[features]
+default = ["syn/full"]
+
+[dependencies]
+# syn = {version = "0.11.11", features = ["full"] }
+lazy_static = "0.2.8"
+syn = "0.11.11"
+quote = "0.3.12"

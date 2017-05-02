@@ -1,0 +1,12 @@
+[package]
+name = "attr_deserialize_macro"
+version = "0.1.0"
+authors = ["Ted Driggs <ted.driggs@outlook.com>"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "0.3.8"
+syn = "0.11.11"
+attr_deserialize_core = { version = "0.1", path = "../core" }
