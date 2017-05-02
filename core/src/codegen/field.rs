@@ -34,7 +34,7 @@ impl<'a> ToTokens for FieldVar<'a> {
         let ty = self.0.ty;
 
         tokens.append(quote!(
-            let mut #name_in_struct: ::attr_deserialize::export::Option<#ty> = None;
+            let mut #name_in_struct: ::darling::export::Option<#ty> = None;
         ));
     }
 }
@@ -51,9 +51,9 @@ impl<'a> ToTokens for MatchArm<'a> {
         tokens.append(quote!(
             #name_str => {  
                 if #name_in_struct.is_none() {
-                    #name_in_struct = ::attr_deserialize::export::Some(#with_path(__inner)?);
+                    #name_in_struct = ::darling::export::Some(#with_path(__inner)?);
                 } else {
-                    return ::attr_deserialize::export::Err(::attr_deserialize::Error::duplicate_field(#name_str));
+                    return ::darling::export::Err(::darling::Error::duplicate_field(#name_str));
                 }
             }
         ));
@@ -69,14 +69,14 @@ impl<'a> ToTokens for Initializer<'a> {
         let name_in_struct = self.0.name_in_struct;
         if let Some(ref expr) = self.0.default_expression {
             tokens.append(quote!(#name_in_struct: match #name_in_struct {
-                ::attr_deserialize::export::Some(__val) => __val,
-                ::attr_deserialize::export::None => #expr,
+                ::darling::export::Some(__val) => __val,
+                ::darling::export::None => #expr,
             }));
         } else {
             tokens.append(quote!(#name_in_struct: match #name_in_struct {
-                ::attr_deserialize::export::Some(__val) => __val,
-                ::attr_deserialize::export::None => 
-                    return ::attr_deserialize::export::Err(::attr_deserialize::Error::missing_field(#name_str))
+                ::darling::export::Some(__val) => __val,
+                ::darling::export::None => 
+                    return ::darling::export::Err(::darling::Error::missing_field(#name_str))
             }));
         }
     }

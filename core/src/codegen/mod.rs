@@ -25,7 +25,7 @@ impl<'a> ToTokens for DefaultExpression<'a> {
                 quote!(#dsn.#ident)
             },
             DefaultExpression::Explicit(path) => quote!(#path()),
-            DefaultExpression::Trait => quote!(::attr_deserialize_export::Default::default()),
+            DefaultExpression::Trait => quote!(::darling_export::Default::default()),
         });
     }
 }

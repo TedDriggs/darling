@@ -25,9 +25,9 @@ impl<'a> ToTokens for TraitImpl<'a> {
         });
 
         tokens.append(quote!(
-            impl #impl_generics ::attr_deserialize::FromMetaItem for #ty_ident #ty_generics 
+            impl #impl_generics ::darling::FromMetaItem for #ty_ident #ty_generics 
                 #where_clause {
-                fn from_list(__items: Vec<syn::NestedMetaItem>) -> ::attr_deserialize::Result<Self> {
+                fn from_list(__items: Vec<syn::NestedMetaItem>) -> ::darling::Result<Self> {
                     #(#decls)*
 
                     for __item in __items {
@@ -36,7 +36,7 @@ impl<'a> ToTokens for TraitImpl<'a> {
                             let __name = __inner.name().to_string();
                             match __name.as_str() {
                                 #(#arms)*
-                                __other => return ::attr_deserialize::export::Err(::attr_deserialize::Error::unknown_field(__other))
+                                __other => return ::darling::export::Err(::darling::Error::unknown_field(__other))
                             }
                         }
                     }

@@ -1,15 +1,15 @@
 extern crate core;
-extern crate attr_deserialize_core;
+extern crate darling_core;
 #[macro_use]
-extern crate attr_deserialize_macro;
+extern crate darling_macro;
 
 
-pub use attr_deserialize_macro::*;
+pub use darling_macro::*;
 
 #[doc(inline)]
-pub use attr_deserialize_core::FromMetaItem;
+pub use darling_core::FromMetaItem;
 
-pub use attr_deserialize_core::{Result, Error};
+pub use darling_core::{Result, Error};
 
 #[doc(hidden)]
 pub mod export {

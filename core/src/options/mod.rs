@@ -1,6 +1,6 @@
 use syn;
 
-use codegen;
+use {FromMetaItem, Result};
 
 mod container;
 mod field;
@@ -15,4 +15,17 @@ pub enum DefaultExpression {
     InheritFromStruct,
     Explicit(syn::Path),
     Trait,
+}
+
+impl FromMetaItem for DefaultExpression {
+    fn from_word() -> Result<Self> {
+        Ok(DefaultExpression::Trait)
+    }
+
+    fn from_value(lit: syn::Lit) -> Result<Self> {
+        match lit {
+            syn::Lit::Str(s, _) => Ok(DefaultExpression::Explicit(syn::parse_path(&s).unwrap())),
+            _ => panic!("Don't support non-strings in defaults"),
+        }
+    }
 }

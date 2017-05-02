@@ -3,14 +3,14 @@ extern crate proc_macro;
 extern crate quote;
 extern crate syn;
 
-extern crate attr_deserialize_core;
+extern crate darling_core;
 
 use proc_macro::TokenStream;
 use syn::parse_derive_input;
 
-use attr_deserialize_core::{options, codegen};
+use darling_core::{options, codegen};
 
-#[proc_macro_derive(AttrDeserialize, attributes(attire))]
+#[proc_macro_derive(AttrDeserialize, attributes(darling))]
 pub fn derive(input: TokenStream) -> TokenStream {
     let ast = parse_derive_input(&input.to_string()).unwrap();
     

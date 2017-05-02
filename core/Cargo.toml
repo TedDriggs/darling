@@ -1,5 +1,5 @@
 [package]
-name = "attr_deserialize_core"
+name = "darling_core"
 version = "0.1.0"
 authors = ["Ted Driggs <ted.driggs@outlook.com>"]
 
