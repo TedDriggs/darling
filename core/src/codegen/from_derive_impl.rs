@@ -27,7 +27,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
         let decls = self.struct_impl.local_declarations();
         let core_loop = self.struct_impl.core_loop();
         let default = if let Some(true) = self.from_ident {
-            quote!(let __default: Self = ::std::convert::From(#input.ident.clone()))
+            quote!(let __default: Self = ::std::convert::From(#input.ident.clone());)
         } else {
             let tmp = self.struct_impl.default.as_ref().map(DefaultExpression::as_declaration);
             quote!(#tmp)
