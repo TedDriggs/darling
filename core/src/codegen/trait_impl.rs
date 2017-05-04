@@ -93,7 +93,7 @@ pub struct FromDeriveInputImpl<'a>(&'a TraitImpl<'a>);
 
 impl<'a> ToTokens for FromDeriveInputImpl<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
-        let attrs = "darling";
+        let attrs = quote!("darling" | "darling_demo");
         let passed_ident = quote!(ident);
         let passed_vis = quote!(vis);
         let passed_generics = quote!(generics);

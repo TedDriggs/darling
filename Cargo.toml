@@ -13,5 +13,8 @@ license = "MIT"
 darling_core = { version = "=0.1.0", path = "core" }
 darling_macro = { version = "=0.1.0", path = "macro" }
 
+[dev-dependencies]
+syn = "0.11"
+
 [workspace]
 members = ["macro", "core"]

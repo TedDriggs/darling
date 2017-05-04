@@ -37,6 +37,8 @@ impl Container {
 impl ParseAttribute for Container {
     fn parse_nested(&mut self, mi: &syn::MetaItem) -> Result<()> {
         match mi.name() {
+            // DANGER: Removing this causes a stack overflow.
+            // "default" => { self.default = Some(FromMetaItem::from_meta_item(mi)?); Ok(()) }
             "rename_all" => { self.rename_rule = FromMetaItem::from_meta_item(mi)?; Ok(()) },
             n => Err(Error::unknown_field(n))
         }
