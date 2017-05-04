@@ -8,94 +8,17 @@ extern crate quote;
 
 extern crate syn;
 
-use syn::{NestedMetaItem, MetaItem, Lit};
+extern crate serde_case;
 
 pub mod codegen;
 mod errors;
+mod from_derive_input;
+mod from_meta_item;
 pub mod options;
 
 pub use errors::{Result, Error};
-
-/// Create an instance from an item in an attribute declaration.
-pub trait FromMetaItem: Sized {
-    fn from_nested_meta_item(item: NestedMetaItem) -> Result<Self> {
-        match item {
-            NestedMetaItem::Literal(lit) => Self::from_value(lit),
-            NestedMetaItem::MetaItem(mi) => Self::from_meta_item(mi),
-        }
-    }
-
-    /// Create an instance from a `syn::MetaItem` by dispatching to the format-appropriate
-    /// trait function. This generally should not be overridden by implementers.
-    fn from_meta_item(item: MetaItem) -> Result<Self> {
-        match item {
-            MetaItem::Word(_) => Self::from_word(),
-            MetaItem::List(_, items) => Self::from_list(items),
-            MetaItem::NameValue(_, val) => Self::from_value(val),
-        }
-    }
-
-    fn from_word() -> Result<Self> {
-        Err(Error::unsupported_format("word"))
-    }
-
-    #[allow(unused_variables)]
-    fn from_list(items: Vec<NestedMetaItem>) -> Result<Self> {
-        Err(Error::unsupported_format("list"))
-    }
-
-    #[allow(unused_variables)]
-    fn from_value(value: Lit) -> Result<Self> {
-        Err(Error::unsupported_format("value"))
-    }
-}
-
-impl FromMetaItem for bool {
-    fn from_word() -> Result<Self> {
-        Ok(true)
-    }
-
-    fn from_value(value: Lit) -> Result<Self> {
-        match value {
-            Lit::Bool(b) => Ok(b),
-            Lit::Str(s, _) => Ok(s.parse().unwrap()),
-            _ => panic!("Only bools and strings can parse to bools"),
-        }
-    }
-}
-
-impl FromMetaItem for String {
-    fn from_value(value: Lit) -> Result<Self> {
-        match value {
-            Lit::Str(s, _) => Ok(s),
-            _ => unimplemented!()
-        }
-    }
-}
-
-impl FromMetaItem for syn::Ident {
-    fn from_value(value: Lit) -> Result<Self> {
-        match value {
-            Lit::Str(s, _) => Ok(syn::Ident::new(s)),
-            _ => unimplemented!(),
-        }
-    }
-}
-
-impl FromMetaItem for syn::Path {
-    fn from_value(value: Lit) -> Result<Self> {
-        match value {
-            Lit::Str(ref k, _) => Ok(syn::parse_path(k).unwrap()),
-            _ => unimplemented!(),
-        }
-    }
-}
-
-impl<T: FromMetaItem> FromMetaItem for Option<T> {
-    fn from_meta_item(item: MetaItem) -> Result<Self> {
-        Ok(Some(FromMetaItem::from_meta_item(item)?))
-    }
-}
+pub use from_derive_input::FromDeriveInput;
+pub use from_meta_item::{ApplyMetaItem, FromMetaItem};
 
 #[cfg(test)]
 mod tests {
@@ -105,7 +28,7 @@ mod tests {
     fn do_things() {
         let foo = options::Field {
             target_name: syn::parse_ident("lorem").unwrap(),
-            attr_name: Some(syn::parse_ident("ipsum").unwrap()),
+            attr_name: Some("ipsum".to_string()),
             ty: syn::parse_type("bool").unwrap(),
             default: None,
             with: None,
@@ -123,6 +46,7 @@ mod tests {
             ident: syn::parse_ident("Foo").unwrap(),
             generics: Default::default(),
             default: None,
+            rename_rule: serde_case::RenameRule::None,
         };
 
         let derive_tgt = codegen::TraitImpl {

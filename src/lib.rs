@@ -5,12 +5,13 @@ extern crate darling_core;
 #[macro_use]
 extern crate darling_macro;
 
-
+#[doc(hidden)]
 pub use darling_macro::*;
 
 #[doc(inline)]
-pub use darling_core::FromMetaItem;
+pub use darling_core::{ApplyMetaItem, FromMetaItem, FromDeriveInput};
 
+#[doc(inline)]
 pub use darling_core::{Result, Error};
 
 #[doc(hidden)]

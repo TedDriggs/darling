@@ -1,10 +1,12 @@
 use syn;
 
-use ::{FromMetaItem, Result};
+use ::{FromMetaItem, Error, Result};
 use codegen;
-use options::DefaultExpression;
+use options::{Container, DefaultExpression, ParseAttribute};
 
 lazy_static! {
+    /// The default path for extracting data from a meta item. This can be overridden
+    /// using the `with` attribute.
     static ref FROM_META_ITEM: syn::Path = {
         syn::parse_path("::darling::FromMetaItem::from_meta_item").unwrap()
     };
@@ -12,7 +14,7 @@ lazy_static! {
 
 pub struct Field {
     pub target_name: syn::Ident,
-    pub attr_name: Option<syn::Ident>,
+    pub attr_name: Option<String>,
     pub ty: syn::Ty,
     pub default: Option<DefaultExpression>,
     pub with: Option<syn::Path>,
@@ -22,7 +24,7 @@ impl Field {
     pub fn as_codegen_field<'a>(&'a self) -> codegen::Field<'a> {
         codegen::Field {
             name_in_struct: &self.target_name,
-            name_in_attr: self.attr_name.as_ref().unwrap_or(&self.target_name).as_ref(),
+            name_in_attr: self.attr_name.as_ref().map(|n| n.as_str()).unwrap_or(self.target_name.as_ref()),
             ty: &self.ty,
             default_expression: self.as_codegen_default(),
             with_path: self.with.as_ref().unwrap_or(&FROM_META_ITEM),
@@ -39,58 +41,41 @@ impl Field {
         })
     }
 
-    pub fn from_field(f: syn::Field) -> Result<Self> {
+    pub fn from_field(f: syn::Field, parent: Option<&Container>) -> Result<Self> {
         let target_name = f.ident.unwrap();
         let ty = f.ty;
-        let base = Field {
+        let base = (Field {
             target_name,
             ty,
             attr_name: None,
             default: None,
             with: None,
-        };
+        }).parse_attributes(&f.attrs)?;
         
-        base.parse_attributes(f.attrs)
+        if let Some(container) = parent {
+            base.with_inherited(container)
+        } else {
+            Ok(base)
+        }
     }
 
-    fn parse_attributes(mut self, attrs: Vec<syn::Attribute>) -> Result<Self> {
-        for attr in attrs {
-            if attr.name() == "darling" {
-                self.parse_attr(attr)?;
-            }
+    fn with_inherited(mut self, parent: &Container) -> Result<Self> {
+        if self.attr_name.is_none() {
+            self.attr_name = Some(parent.rename_rule.apply_to_field(&self.target_name));
         }
 
         Ok(self)
     }
+}
 
-    fn parse_attr(&mut self, attr: syn::Attribute) -> Result<()> {
-        if attr.name() != "darling" || attr.is_sugared_doc {
-            return Ok(())
-        }
-
-        match attr.value {
-            syn::MetaItem::List(_, items) => {
-                for item in items {
-                    if let syn::NestedMetaItem::MetaItem(mi) = item {
-                        self.parse_nested(mi)?;
-                    } else {
-                        unimplemented!();
-                    }
-                }
-
-                Ok(())
-            },
-            _ => unimplemented!()
-        }
-    }
-
-    fn parse_nested(&mut self, mi: syn::MetaItem) -> Result<()> {
+impl ParseAttribute for Field {
+    fn parse_nested(&mut self, mi: &syn::MetaItem) -> Result<()> {
         let name = mi.name().to_string();
         match name.as_str() {
             "rename" => { self.attr_name = FromMetaItem::from_meta_item(mi)?; Ok(()) }
             "default" => { self.default = FromMetaItem::from_meta_item(mi)?; Ok(()) }
             "with" => { self.with = Some(FromMetaItem::from_meta_item(mi)?); Ok(())}
-            _ => unimplemented!(),
+            n => Err(Error::unknown_field(n)),
         }
     }
 }
