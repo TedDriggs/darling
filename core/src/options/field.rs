@@ -21,6 +21,7 @@ pub struct Field {
 }
 
 impl Field {
+    /// Generate a view into this field that can be used for code generation.
     pub fn as_codegen_field<'a>(&'a self) -> codegen::Field<'a> {
         codegen::Field {
             name_in_struct: &self.target_name,
@@ -31,6 +32,8 @@ impl Field {
         }
     }
 
+    /// Generate a codegen::DefaultExpression for this field. This requires the field name 
+    /// in the `InheritFromStruct` case.
     fn as_codegen_default<'a>(&'a self) -> Option<codegen::DefaultExpression<'a>> {
         self.default.as_ref().map(|expr| {
             match *expr {
@@ -59,10 +62,17 @@ impl Field {
         }
     }
 
+    /// Apply inherited settings from the container. This is done _after_ parsing
+    /// to ensure deference to explicit field-level settings.
     fn with_inherited(mut self, parent: &Container) -> Result<Self> {
+        // explicit renamings take precedence over rename rules on the container,
+        // but in the absence of an explicit name we apply the rule.
         if self.attr_name.is_none() {
             self.attr_name = Some(parent.rename_rule.apply_to_field(&self.target_name));
         }
+
+        // Regardless of /how/ the parent sets its default, if it has one and the field
+        // doesn't then the field will defer to the parent.
         if self.default.is_none() && parent.default.is_some() {
             self.default = Some(DefaultExpression::InheritFromStruct);
         }
