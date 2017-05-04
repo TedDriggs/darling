@@ -63,6 +63,9 @@ impl Field {
         if self.attr_name.is_none() {
             self.attr_name = Some(parent.rename_rule.apply_to_field(&self.target_name));
         }
+        if self.default.is_none() && parent.default.is_some() {
+            self.default = Some(DefaultExpression::InheritFromStruct);
+        }
 
         Ok(self)
     }

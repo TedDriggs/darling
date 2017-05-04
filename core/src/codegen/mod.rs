@@ -45,7 +45,7 @@ impl<'a> ToTokens for DefaultExpression<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
         tokens.append(match *self {
             DefaultExpression::InheritFromStruct(ident) => {
-                let dsn = DEFAULT_STRUCT_NAME;
+                let dsn = syn::Ident::new(DEFAULT_STRUCT_NAME);
                 quote!(#dsn.#ident)
             },
             DefaultExpression::Explicit(path) => quote!(#path()),
@@ -58,8 +58,8 @@ pub struct DefaultDeclaration<'a>(&'a DefaultExpression<'a>);
 
 impl<'a> ToTokens for DefaultDeclaration<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
-        let name = DEFAULT_STRUCT_NAME;
-        let expr = self;
-        tokens.append(quote!(let #name = #expr;));
+        let name = syn::Ident::new(DEFAULT_STRUCT_NAME);
+        let expr = self.0;
+        tokens.append(quote!(let #name: Self = #expr;));
     }
 }

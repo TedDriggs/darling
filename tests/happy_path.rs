@@ -6,9 +6,9 @@ extern crate syn;
 use darling::FromDeriveInput;
 
 #[derive(Default, FromMetaItem, PartialEq, Debug)]
+#[darling(default)]
 struct Lorem {
     ipsum: bool,
-    #[darling(default)]
     dolor: Option<String>,
 }
 
