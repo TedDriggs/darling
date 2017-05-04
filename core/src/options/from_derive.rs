@@ -3,7 +3,7 @@ use syn::{MetaItem, Ident, Generics, Attribute};
 
 use {Result, IdentList, FromMetaItem};
 use codegen;
-use options::{Container, ParseAttribute};
+use options::{Container, ParseAttribute, DefaultExpression};
 
 #[derive(Debug)]
 pub struct FromDeriveInputContainer {
@@ -60,7 +60,13 @@ impl ParseAttribute for FromDeriveInputContainer {
     fn parse_nested(&mut self, mi: &MetaItem) -> Result<()> {
         match mi.name() {
             "attributes" => { self.attr_names = FromMetaItem::from_meta_item(mi)?; Ok(()) },
-            "from_ident" => { self.from_ident = true; Ok(()) }
+            "from_ident" => {
+                // HACK: Declaring that a default is present will cause fields to
+                // generate correct code, but control flow isn't that obvious. 
+                self.container.default = Some(DefaultExpression::Trait);
+                self.from_ident = true; 
+                Ok(()) 
+            }
             "ident" => { self.ident = true; Ok(()) }
             "vis" => { self.vis = true; Ok(()) }
             "generics" => { self.generics = true; Ok(()) }
