@@ -13,6 +13,7 @@ struct Lorem {
 }
 
 #[derive(FromDeriveInput, PartialEq, Debug)]
+#[darling(attributes(darling_demo))]
 struct Container {
     ident: syn::Ident,
     vis: syn::Visibility,

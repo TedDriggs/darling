@@ -3,11 +3,23 @@ use syn::{self, Lit, MetaItem, NestedMetaItem};
 
 use {Error, Result};
 
+/// Mutate an instance by applying declarations in an attribute declaration.
 pub trait ApplyMetaItem: Sized {
     fn from_list(&mut self, items: &[NestedMetaItem]) -> Result<&mut Self>;
 }
 
-/// Create an instance from an item in an attribute declaration.
+/// Create an instance from an item in an attribute declaration. 
+/// 
+/// # Implementing `FromMetaItem`
+/// * Do not take a dependency on the `ident` of the passed-in meta item. The ident will be set by the field name of the containing struct.
+/// * Implement only the `from_*` methods that you intend to support. The default implementations will return useful errors.
+///
+/// # Provided Implementations
+/// ## bool
+/// 
+/// * Word with no value specified - becomes `true`.
+/// * As a boolean literal, e.g. `foo = true`.
+/// * As a string literal, e.g. `foo = "true"`.
 pub trait FromMetaItem: Sized {
     fn from_nested_meta_item(item: &NestedMetaItem) -> Result<Self> {
         match *item {
@@ -62,6 +74,8 @@ pub trait FromMetaItem: Sized {
         Err(Error::unexpected_type("bool"))
     }
 }
+
+// FromMetaItem impls for std and syn types.
 
 impl FromMetaItem for bool {
     fn from_word() -> Result<Self> {

@@ -3,6 +3,7 @@ use syn::{Generics, Ident};
 
 use codegen::{DefaultExpression, Field};
 
+#[derive(Debug)]
 pub struct TraitImpl<'a> {
     pub ident: &'a Ident,
     pub generics: &'a Generics,
@@ -12,16 +13,16 @@ pub struct TraitImpl<'a> {
 }
 
 impl<'a> TraitImpl<'a> {
-    pub fn as_from_derive_input(&'a self) -> FromDeriveInputImpl<'a> {
-        FromDeriveInputImpl(self)
-    }
-
-    fn local_declarations(&self) -> Tokens {
+    /// Generate local variable declarations for all fields.
+    /// TODO: Mark this as `pub(in codegen)` once restricted visibility stabilizes.
+    pub fn local_declarations(&self) -> Tokens {
         let decls = self.fields.iter().map(Field::as_var);
         quote!(#(#decls)*)
     }
 
-    fn core_loop(&self) -> Tokens {
+    /// Generate the loop which walks meta items looking for property matches.
+    /// TODO: Mark this as `pub(in codegen)` once restricted visibility stabilizes.
+    pub fn core_loop(&self) -> Tokens {
         let arms = self.fields.iter().map(Field::as_match);
 
         quote!(
@@ -86,59 +87,5 @@ impl<'a> ToTokens for TraitImpl<'a> {
                     }
             ));
         }
-    }
-}
-
-pub struct FromDeriveInputImpl<'a>(&'a TraitImpl<'a>);
-
-impl<'a> ToTokens for FromDeriveInputImpl<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
-        let attrs = quote!("darling" | "darling_demo");
-        let passed_ident = quote!(ident);
-        let passed_vis = quote!(vis);
-        let passed_generics = quote!(generics);
-
-        let ty_ident = self.0.ident;
-        let (impl_generics, ty_generics, where_clause) = self.0.generics.split_for_impl();
-        let inits = self.0.fields.iter().map(Field::as_initializer);
-        let decls = self.0.local_declarations();
-        let core_loop = self.0.core_loop();
-        let default = self.0.default.as_ref().map(DefaultExpression::as_declaration);
-
-        tokens.append(quote!(
-            impl #impl_generics ::darling::FromDeriveInput for #ty_ident #ty_generics
-                #where_clause
-            {
-                fn from_derive_input(di: &::syn::DeriveInput) -> ::darling::Result<Self> {
-                    let #passed_ident = di.ident.clone();
-                    let #passed_vis = di.vis.clone();
-                    let #passed_generics = di.generics.clone();
-                    #decls
-
-                    for __attr in &di.attrs {
-                        match __attr.name() {
-                            #attrs => {
-                                if let ::syn::MetaItem::List(_, ref __items) = __attr.value {
-                                    #core_loop
-                                } else {
-                                    // darling currently only supports list-style
-                                    continue
-                                }
-                             }
-                            _ => continue
-                        }
-                    }
-
-                    #default
-
-                    Ok(#ty_ident {
-                        #passed_ident: #passed_ident,
-                        #passed_generics: #passed_generics,
-                        #passed_vis: #passed_vis,
-                        #(#inits),*
-                    })
-                }
-            } 
-        ));
     }
 }

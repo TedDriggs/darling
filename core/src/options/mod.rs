@@ -4,17 +4,20 @@ use {FromMetaItem, Result};
 
 mod container;
 mod field;
+mod from_derive;
 mod variant;
 
 pub use self::container::Container;
 pub use self::field::Field;
+pub use self::from_derive::FromDeriveInputContainer;
 pub use self::variant::Variant;
 
 /// A default/fallback expression encountered in attributes during parsing.
+#[derive(Debug, Clone)]
 pub enum DefaultExpression {
     /// The value should be taken from the `default` instance of the containing struct.
     /// This is not valid in container options.
-    InheritFromStruct,
+    Inherit,
     Explicit(syn::Path),
     Trait,
 }

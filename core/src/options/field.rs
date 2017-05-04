@@ -33,12 +33,12 @@ impl Field {
     }
 
     /// Generate a codegen::DefaultExpression for this field. This requires the field name 
-    /// in the `InheritFromStruct` case.
+    /// in the `Inherit` case.
     fn as_codegen_default<'a>(&'a self) -> Option<codegen::DefaultExpression<'a>> {
         self.default.as_ref().map(|expr| {
             match *expr {
                 DefaultExpression::Explicit(ref path) => codegen::DefaultExpression::Explicit(path),
-                DefaultExpression::InheritFromStruct => codegen::DefaultExpression::InheritFromStruct(&self.target_name),
+                DefaultExpression::Inherit => codegen::DefaultExpression::Inherit(&self.target_name),
                 DefaultExpression::Trait => codegen::DefaultExpression::Trait,
             }
         })
@@ -74,7 +74,7 @@ impl Field {
         // Regardless of /how/ the parent sets its default, if it has one and the field
         // doesn't then the field will defer to the parent.
         if self.default.is_none() && parent.default.is_some() {
-            self.default = Some(DefaultExpression::InheritFromStruct);
+            self.default = Some(DefaultExpression::Inherit);
         }
 
         Ok(self)

@@ -5,10 +5,22 @@ use {Result, Error, FromMetaItem};
 use codegen;
 use options::{DefaultExpression, ParseAttribute};
 
+/// A struct or enum which should have `FromMetaItem` or `FromDeriveInput` implementations
+/// generated.
+#[derive(Debug, Clone)]
 pub struct Container {
+    /// The type identifier.
     pub ident: syn::Ident,
+
+    /// The type's generics. If the type does not use any generics, this will
+    /// be an empty instance.
     pub generics: syn::Generics,
+
+    /// Controls whether missing properties should cause errors or should be filled by
+    /// the result of a function call. This can be overridden at the field level.
     pub default: Option<DefaultExpression>,
+
+    /// The rule that should be used to rename all fields/variants in the container.
     pub rename_rule: RenameRule,
 }
 
@@ -27,7 +39,7 @@ impl Container {
         self.default.as_ref().map(|expr| {
             match *expr {
                 DefaultExpression::Explicit(ref path) => codegen::DefaultExpression::Explicit(path),
-                DefaultExpression::InheritFromStruct | 
+                DefaultExpression::Inherit | 
                 DefaultExpression::Trait => codegen::DefaultExpression::Trait,
             }
         })
@@ -37,8 +49,7 @@ impl Container {
 impl ParseAttribute for Container {
     fn parse_nested(&mut self, mi: &syn::MetaItem) -> Result<()> {
         match mi.name() {
-            // DANGER: Removing this causes a stack overflow.
-            "default" => { self.default = Some(FromMetaItem::from_meta_item(mi)?); Ok(()) }
+            "default" => { self.default = FromMetaItem::from_meta_item(mi)?; Ok(()) }
             "rename_all" => { self.rename_rule = FromMetaItem::from_meta_item(mi)?; Ok(()) },
             n => Err(Error::unknown_field(n))
         }

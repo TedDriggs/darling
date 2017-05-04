@@ -25,6 +25,6 @@ Darling's features are built to work well for real-world projects.
 * **Built-in conversions**: Darling provides native support for types in the standard library, as well as for types in the `syn` crate such as `Path` and `Ident`.
 
 # To Do
-[ ] Finish error-handling story
-[ ] Add more type conversions
-[ ] Improve error diagnostics
+* [ ] Finish error-handling story
+* [ ] Add more type conversions
+* [ ] Improve error diagnostics

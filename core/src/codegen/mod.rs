@@ -6,11 +6,13 @@ const DEFAULT_STRUCT_NAME: &str = "__default";
 
 mod enum_impl;
 mod field;
+mod from_derive_impl;
 mod trait_impl;
 mod variant;
 
 pub use self::enum_impl::EnumImpl;
 pub use self::field::Field;
+pub use self::from_derive_impl::FromDeriveInputImpl;
 pub use self::trait_impl::TraitImpl;
 pub use self::variant::Variant;
 
@@ -28,9 +30,10 @@ impl<'a> ToTokens for ImplBlock<'a> {
     }
 }
 
-/// The fallback value for a field (or struct).
+/// The fallback value for a field or container.
+#[derive(Debug, Clone)]
 pub enum DefaultExpression<'a> {
-    InheritFromStruct(&'a syn::Ident),
+    Inherit(&'a syn::Ident),
     Explicit(&'a syn::Path),
     Trait,
 }
@@ -44,7 +47,7 @@ impl<'a> DefaultExpression<'a> {
 impl<'a> ToTokens for DefaultExpression<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
         tokens.append(match *self {
-            DefaultExpression::InheritFromStruct(ident) => {
+            DefaultExpression::Inherit(ident) => {
                 let dsn = syn::Ident::new(DEFAULT_STRUCT_NAME);
                 quote!(#dsn.#ident)
             },

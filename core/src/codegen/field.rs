@@ -5,6 +5,7 @@ use codegen::DefaultExpression;
 
 /// Properties needed to generate code for a field in all the contexts
 /// where one may appear.
+#[derive(Debug)]
 pub struct Field<'a> {
     /// The name presented to the user of the library. This will appear
     /// in error messages and will be looked when parsing names.

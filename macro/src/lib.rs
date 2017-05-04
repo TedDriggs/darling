@@ -55,24 +55,31 @@ pub fn derive(input: TokenStream) -> TokenStream {
 pub fn derive_from_input(input: TokenStream) -> TokenStream {
     let ast = parse_derive_input(&input.to_string()).unwrap();
     
-    let container = options::Container::new(ast.ident, ast.generics, &ast.attrs).unwrap();
+    let mut fdic = options::FromDeriveInputContainer::new(ast.ident, ast.generics, &ast.attrs).unwrap();
     
     let result = match ast.body {
         syn::Body::Struct(syn::VariantData::Struct(fields_in)) => {
+
             let mut fields = Vec::with_capacity(fields_in.len());
             for field_in in fields_in {
                 match field_in.ident.as_ref().map(|v| v.as_ref()) {
-                    Some("ident") | Some("generics") | Some("vis") => continue,
-                    _ => fields.push(options::Field::from_field(field_in, Some(&container)).unwrap())
+                    Some("ident") => fdic.ident = true,
+                    Some("vis") => fdic.vis = true,
+                    Some("generics") => fdic.generics = true,
+                    _ => fields.push(options::Field::from_field(field_in, Some(&fdic.container)).unwrap())
                 }
             }
 
             let trait_impl = codegen::TraitImpl {
                 fields: fields.iter().map(options::Field::as_codegen_field).collect(),
-                ..(&container).into()
+                ..(&fdic.container).into()
             };
 
-            let fdi_view = trait_impl.as_from_derive_input();
+            let fdi_view = codegen::FromDeriveInputImpl {
+                struct_impl: trait_impl,
+                ..(&fdic).into()
+            };
+            
             quote!(#fdi_view)
         },
         bd => panic!("Unsupported body `{:?}`", bd)
