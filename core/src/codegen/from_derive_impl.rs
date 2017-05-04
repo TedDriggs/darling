@@ -4,11 +4,12 @@ use syn::Ident;
 use codegen::{DefaultExpression, Field, TraitImpl};
 
 pub struct FromDeriveInputImpl<'a> {
-    pub struct_impl: TraitImpl<'a>,
-    pub attr_names: Vec<&'a str>,
     pub ident: Option<Ident>,
     pub generics: Option<Ident>,
     pub vis: Option<Ident>,
+    pub struct_impl: TraitImpl<'a>,
+    pub attr_names: Vec<&'a str>,
+    pub from_ident: Option<bool>,
 }
 
 impl<'a> ToTokens for FromDeriveInputImpl<'a> {
@@ -25,7 +26,12 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
         let inits = self.struct_impl.fields.iter().map(Field::as_initializer);
         let decls = self.struct_impl.local_declarations();
         let core_loop = self.struct_impl.core_loop();
-        let default = self.struct_impl.default.as_ref().map(DefaultExpression::as_declaration);
+        let default = if let Some(true) = self.from_ident {
+            quote!(let __default: Self = ::std::convert::From(#input.ident.clone()))
+        } else {
+            let tmp = self.struct_impl.default.as_ref().map(DefaultExpression::as_declaration);
+            quote!(#tmp)
+        };
 
         let grab_attr = if !attr_names.is_empty() {
             quote!(

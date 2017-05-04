@@ -20,6 +20,9 @@ pub struct FromDeriveInputContainer {
 
     /// Whether or not the target struct has a `generics` field.
     pub generics: bool,
+
+    /// Whether or not the container can be made through conversion from the type `Ident`.
+    pub from_ident: bool,
 }
 
 impl FromDeriveInputContainer {
@@ -35,6 +38,7 @@ impl FromDeriveInputContainer {
             ident: false,
             vis: false,
             generics: false,
+            from_ident: false,
         }).parse_attributes(attrs)
     }
 }
@@ -44,6 +48,7 @@ impl<'a> From<&'a FromDeriveInputContainer> for codegen::FromDeriveInputImpl<'a>
         codegen::FromDeriveInputImpl {
             struct_impl: (&v.container).into(),
             attr_names: v.attr_names.iter().map(|i| i.as_ref()).collect(),
+            from_ident: Some(v.from_ident),
             ident: if v.ident { Some(Ident::new("ident")) } else { None },
             vis: if v.vis { Some(Ident::new("vis")) } else { None },
             generics: if v.generics { Some(Ident::new("generics")) } else { None },
@@ -55,6 +60,7 @@ impl ParseAttribute for FromDeriveInputContainer {
     fn parse_nested(&mut self, mi: &MetaItem) -> Result<()> {
         match mi.name() {
             "attributes" => { self.attr_names = FromMetaItem::from_meta_item(mi)?; Ok(()) },
+            "from_ident" => { self.from_ident = true; Ok(()) }
             "ident" => { self.ident = true; Ok(()) }
             "vis" => { self.vis = true; Ok(()) }
             "generics" => { self.generics = true; Ok(()) }
