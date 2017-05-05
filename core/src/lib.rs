@@ -35,6 +35,7 @@ mod tests {
             ty: syn::parse_type("bool").unwrap(),
             default: None,
             with: None,
+            skip: false,
         };
 
         let bar = options::Field {
@@ -43,6 +44,7 @@ mod tests {
             ty: syn::parse_type("String").unwrap(),
             default: None,
             with: None,
+            skip: false,
         };
 
         let container = options::Container {

@@ -2,6 +2,7 @@ use quote::{Tokens, ToTokens};
 use syn::Ident;
 
 use codegen::{Field, TraitImpl};
+use codegen::field;
 
 pub struct FromDeriveInputImpl<'a> {
     pub ident: Option<Ident>,
@@ -23,11 +24,20 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
         let ty_ident = self.struct_impl.ident;
         let (impl_generics, ty_generics, where_clause) = self.struct_impl.generics.split_for_impl();
         let inits = self.struct_impl.fields.iter().map(Field::as_initializer);
-        let decls = self.struct_impl.local_declarations();
         let default = if let Some(true) = self.from_ident {
             quote!(let __default: Self = ::darling::export::From::from(#input.ident.clone());)
         } else {
             self.struct_impl.fallback_decl()
+        };
+
+        let decls = if !self.attr_names.is_empty() {
+            self.struct_impl.local_declarations()
+        } else {
+            let d = self.struct_impl
+                .fields
+                .iter()
+                .map(|f| field::Declaration::new(f, false));
+            quote!(#(#d)*)
         };
 
         let grab_attrs = if !self.attr_names.is_empty() {

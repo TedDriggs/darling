@@ -19,11 +19,12 @@ pub struct Field<'a> {
     pub ty: &'a Ty,
     pub default_expression: Option<DefaultExpression<'a>>,
     pub with_path: &'a Path,
+    pub skip: bool,
 }
 
 impl<'a> Field<'a> {
-    pub fn as_var(&'a self) -> FieldVar<'a> {
-        FieldVar(self)
+    pub fn as_declaration(&'a self) -> Declaration<'a> {
+        Declaration(self, !self.skip)
     }
 
     pub fn as_match(&'a self) -> MatchArm<'a> {
@@ -40,15 +41,24 @@ impl<'a> Field<'a> {
 }
 
 /// An individual field during variable declaration in the generated parsing method.
-pub struct FieldVar<'a>(&'a Field<'a>);
+pub struct Declaration<'a>(&'a Field<'a>, bool);
 
-impl<'a> ToTokens for FieldVar<'a> {
+impl<'a> Declaration<'a> {
+    /// Creates a new declaration with the given field and mutability.
+    pub fn new(field: &'a Field<'a>, mutable: bool) -> Self {
+        Declaration(field, mutable)
+    }
+}
+
+impl<'a> ToTokens for Declaration<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
         let name_in_struct = self.0.name_in_struct;
         let ty = self.0.ty;
 
+        let mutable = if self.1 { quote!(mut) } else { quote!() };
+
         tokens.append(quote!(
-            let mut #name_in_struct: ::darling::export::Option<#ty> = None;
+            let #mutable #name_in_struct: ::darling::export::Option<#ty> = None;
         ));
     }
 }
@@ -58,19 +68,21 @@ pub struct MatchArm<'a>(&'a Field<'a>);
 
 impl<'a> ToTokens for MatchArm<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
-        let name_str = self.0.name_in_attr;
-        let name_in_struct = self.0.name_in_struct;
-        let with_path = self.0.with_path;
+        if !self.0.skip {
+            let name_str = self.0.name_in_attr;
+            let name_in_struct = self.0.name_in_struct;
+            let with_path = self.0.with_path;
 
-        tokens.append(quote!(
-            #name_str => {  
-                if #name_in_struct.is_none() {
-                    #name_in_struct = ::darling::export::Some(#with_path(__inner)?);
-                } else {
-                    return ::darling::export::Err(::darling::Error::duplicate_field(#name_str));
+            tokens.append(quote!(
+                #name_str => {  
+                    if #name_in_struct.is_none() {
+                        #name_in_struct = ::darling::export::Some(#with_path(__inner)?);
+                    } else {
+                        return ::darling::export::Err(::darling::Error::duplicate_field(#name_str));
+                    }
                 }
-            }
-        ));
+            ));
+        }
     }
 }
 

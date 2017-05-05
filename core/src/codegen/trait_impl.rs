@@ -16,7 +16,7 @@ impl<'a> TraitImpl<'a> {
     /// Generate local variable declarations for all fields.
     /// TODO: Mark this as `pub(in codegen)` once restricted visibility stabilizes.
     pub fn local_declarations(&self) -> Tokens {
-        let decls = self.fields.iter().map(Field::as_var);
+        let decls = self.fields.iter().map(Field::as_declaration);
         quote!(#(#decls)*)
     }
 

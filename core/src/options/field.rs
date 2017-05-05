@@ -12,12 +12,14 @@ lazy_static! {
     };
 }
 
+#[derive(Debug)]
 pub struct Field {
     pub target_name: syn::Ident,
     pub attr_name: Option<String>,
     pub ty: syn::Ty,
     pub default: Option<DefaultExpression>,
     pub with: Option<syn::Path>,
+    pub skip: bool,
 }
 
 impl Field {
@@ -29,6 +31,7 @@ impl Field {
             ty: &self.ty,
             default_expression: self.as_codegen_default(),
             with_path: self.with.as_ref().unwrap_or(&FROM_META_ITEM),
+            skip: self.skip,
         }
     }
 
@@ -51,6 +54,7 @@ impl Field {
             attr_name: None,
             default: None,
             with: None,
+            skip: false,
         }
     }
 
@@ -91,7 +95,8 @@ impl ParseAttribute for Field {
         match name.as_str() {
             "rename" => { self.attr_name = FromMetaItem::from_meta_item(mi)?; Ok(()) }
             "default" => { self.default = FromMetaItem::from_meta_item(mi)?; Ok(()) }
-            "with" => { self.with = Some(FromMetaItem::from_meta_item(mi)?); Ok(())}
+            "with" => { self.with = Some(FromMetaItem::from_meta_item(mi)?); Ok(()) }
+            "skip" => { self.skip = FromMetaItem::from_meta_item(mi)?; Ok(()) }
             n => Err(Error::unknown_field(n)),
         }
     }
