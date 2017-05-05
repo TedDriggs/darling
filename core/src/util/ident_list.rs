@@ -7,6 +7,12 @@ use {FromMetaItem, Result, Error};
 #[derive(Debug, Default)]
 pub struct IdentList(Vec<Ident>);
 
+impl IdentList {
+    pub fn as_strs<'a>(&'a self) -> Vec<&'a str> {
+        self.iter().map(|i| i.as_ref()).collect()
+    }
+}
+
 impl Deref for IdentList {
     type Target = Vec<Ident>;
 
