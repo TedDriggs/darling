@@ -1,9 +1,10 @@
 use serde_case::RenameRule;
 use syn::{MetaItem, Ident, Generics, Attribute};
 
-use {Result, IdentList, FromMetaItem};
+use {Result, FromMetaItem};
 use codegen;
 use options::{Container, ParseAttribute, DefaultExpression};
+use util::IdentList;
 
 #[derive(Debug)]
 pub struct FromDeriveInputContainer {
@@ -47,7 +48,7 @@ impl<'a> From<&'a FromDeriveInputContainer> for codegen::FromDeriveInputImpl<'a>
     fn from(v: &'a FromDeriveInputContainer) -> Self {
         codegen::FromDeriveInputImpl {
             struct_impl: (&v.container).into(),
-            attr_names: v.attr_names.iter().map(|i| i.as_ref()).collect(),
+            attr_names: v.attr_names.as_strs(),
             from_ident: Some(v.from_ident),
             ident: if v.ident { Some(Ident::new("ident")) } else { None },
             vis: if v.vis { Some(Ident::new("vis")) } else { None },

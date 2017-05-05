@@ -44,16 +44,20 @@ impl Field {
         })
     }
 
-    pub fn from_field(f: syn::Field, parent: Option<&Container>) -> Result<Self> {
-        let target_name = f.ident.unwrap();
-        let ty = f.ty;
-        let base = (Field {
+    fn new(target_name: syn::Ident, ty: syn::Ty) -> Self {
+        Field {
             target_name,
             ty,
             attr_name: None,
             default: None,
             with: None,
-        }).parse_attributes(&f.attrs)?;
+        }
+    }
+
+    pub fn from_field(f: syn::Field, parent: Option<&Container>) -> Result<Self> {
+        let target_name = f.ident.unwrap();
+        let ty = f.ty;
+        let base = Self::new(target_name, ty).parse_attributes(&f.attrs)?;
         
         if let Some(container) = parent {
             base.with_inherited(container)

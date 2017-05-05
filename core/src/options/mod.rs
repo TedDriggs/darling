@@ -5,11 +5,13 @@ use {FromMetaItem, Result};
 mod container;
 mod field;
 mod from_derive;
+mod from_field;
 mod variant;
 
 pub use self::container::Container;
 pub use self::field::Field;
 pub use self::from_derive::FromDeriveInputContainer;
+pub use self::from_field::FromFieldOptions;
 pub use self::variant::Variant;
 
 /// A default/fallback expression encountered in attributes during parsing.

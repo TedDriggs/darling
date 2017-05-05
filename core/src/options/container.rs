@@ -77,3 +77,14 @@ impl<'a> From<&'a Container> for codegen::EnumImpl<'a> {
         }
     }
 }
+
+impl From<syn::Ident> for Container { 
+    fn from(ident: syn::Ident) -> Self {
+        Container {
+            ident,
+            generics: Default::default(),
+            default: None,
+            rename_rule: RenameRule::None,
+        }
+    }
+}

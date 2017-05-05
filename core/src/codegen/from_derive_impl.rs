@@ -1,7 +1,7 @@
 use quote::{Tokens, ToTokens};
 use syn::Ident;
 
-use codegen::{DefaultExpression, Field, TraitImpl};
+use codegen::{Field, TraitImpl};
 
 pub struct FromDeriveInputImpl<'a> {
     pub ident: Option<Ident>,
@@ -15,7 +15,6 @@ pub struct FromDeriveInputImpl<'a> {
 impl<'a> ToTokens for FromDeriveInputImpl<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
         let input = quote!(__di);
-        let attr_names = &self.attr_names;
         
         let passed_ident = self.ident.as_ref().map(|i| quote!(#i: #input.ident.clone(),));
         let passed_vis = self.vis.as_ref().map(|i| quote!(#i: #input.vis.clone(),));
@@ -25,15 +24,15 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
         let (impl_generics, ty_generics, where_clause) = self.struct_impl.generics.split_for_impl();
         let inits = self.struct_impl.fields.iter().map(Field::as_initializer);
         let decls = self.struct_impl.local_declarations();
-        let core_loop = self.struct_impl.core_loop();
         let default = if let Some(true) = self.from_ident {
             quote!(let __default: Self = ::darling::export::From::from(#input.ident.clone());)
         } else {
-            let tmp = self.struct_impl.default.as_ref().map(DefaultExpression::as_declaration);
-            quote!(#tmp)
+            self.struct_impl.fallback_decl()
         };
 
-        let grab_attr = if !attr_names.is_empty() {
+        let grab_attrs = if !self.attr_names.is_empty() {
+            let attr_names = &self.attr_names;
+            let core_loop = self.struct_impl.core_loop();
             quote!(
                 for __attr in &#input.attrs {
                     // Filter attributes based on name
@@ -60,7 +59,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
                 fn from_derive_input(#input: &::syn::DeriveInput) -> ::darling::Result<Self> {
                     #decls
 
-                    #grab_attr
+                    #grab_attrs
 
                     #default
 
