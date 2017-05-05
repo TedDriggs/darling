@@ -3,9 +3,15 @@ use syn::{Ident, Generics};
 
 use codegen::Variant;
 
+/// Data needed to generate an impl of `FromMetaItem` for a unit enum.
 pub struct EnumImpl<'a> {
+    /// The type ident of the target enum.
     pub ident: &'a Ident,
+
+    /// Any generics for the enum (should be none at the moment, as only unit enums are supported).
     pub generics: &'a Generics,
+
+    /// The variants of the enum.
     pub variants: Vec<Variant<'a>>,
 }
 

@@ -3,8 +3,13 @@ use syn::Ident;
 
 /// An enum variant.
 pub struct Variant<'a> {
+    /// The name which will appear in code passed to the `FromMetaItem` input.
     pub name_in_attr: &'a str,
+
+    /// The name of the variant which will be returned for a given `name_in_attr`.
     pub variant_ident: &'a Ident,
+
+    /// The name of the parent enum type.
     pub ty_ident: &'a Ident,
 }
 

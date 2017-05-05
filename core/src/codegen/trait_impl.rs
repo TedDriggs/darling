@@ -20,6 +20,13 @@ impl<'a> TraitImpl<'a> {
         quote!(#(#decls)*)
     }
 
+    /// Generate local variable declaration and initialization for instance from which missing fields will be taken.
+    /// TODO: Mark this as `pub(in codegen)` once restricted visibility stabilizes.
+    pub fn fallback_decl(&self) -> Tokens {
+        let default = self.default.as_ref().map(DefaultExpression::as_declaration);
+        quote!(#default)
+    }
+
     /// Generate the loop which walks meta items looking for property matches.
     /// TODO: Mark this as `pub(in codegen)` once restricted visibility stabilizes.
     pub fn core_loop(&self) -> Tokens {
@@ -46,8 +53,8 @@ impl<'a> ToTokens for TraitImpl<'a> {
         let inits = self.fields.iter().map(Field::as_initializer);
         let decls = self.local_declarations();
         let core_loop = self.core_loop();
-
-        let default = self.default.as_ref().map(DefaultExpression::as_declaration);
+        let default = self.fallback_decl();
+        
 
         tokens.append(quote!(
             impl #impl_generics ::darling::FromMetaItem for #ty_ident #ty_generics 
