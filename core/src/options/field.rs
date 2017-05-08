@@ -82,11 +82,25 @@ impl Field {
             self.attr_name = Some(parent.rename_rule.apply_to_field(&self.target_name));
         }
 
-        // Regardless of /how/ the parent sets its default, if it has one and the field
-        // doesn't then the field will defer to the parent.
-        if self.default.is_none() && parent.default.is_some() {
-            self.default = Some(DefaultExpression::Inherit);
-        }
+        // Determine the default expression for this field, based on three pieces of information:
+        // 1. Will we look for this field in the attribute?
+        // 1. Is there a locally-defined default?
+        // 1. Did the parent define a default?
+        self.default = match (self.skip, self.default.is_some(), parent.default.is_some()) {
+            // If we have a default, use it.
+            (_, true, _) => self.default,
+
+            // If there isn't an explicit default but the struct sets a default, we'll
+            // inherit from that.
+            (_, false, true) => Some(DefaultExpression::Inherit),
+
+            // If we're skipping the field and no defaults have been expressed then we should
+            // use the ::darling::export::Default trait.
+            (true, false, false) => Some(DefaultExpression::Trait),
+
+            // If we don't have or need a default, then leave it blank.
+            (false, false, false) => None,
+        };
 
         Ok(self)
     }
