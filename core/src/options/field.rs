@@ -20,6 +20,7 @@ pub struct Field {
     pub default: Option<DefaultExpression>,
     pub with: Option<syn::Path>,
     pub skip: bool,
+    pub map: Option<syn::Path>,
 }
 
 impl Field {
@@ -32,6 +33,7 @@ impl Field {
             default_expression: self.as_codegen_default(),
             with_path: self.with.as_ref().unwrap_or(&FROM_META_ITEM),
             skip: self.skip,
+            map: self.map.as_ref(),
         }
     }
 
@@ -55,6 +57,7 @@ impl Field {
             default: None,
             with: None,
             skip: false,
+            map: Default::default(),
         }
     }
 
@@ -97,6 +100,7 @@ impl ParseAttribute for Field {
             "default" => { self.default = FromMetaItem::from_meta_item(mi)?; Ok(()) }
             "with" => { self.with = Some(FromMetaItem::from_meta_item(mi)?); Ok(()) }
             "skip" => { self.skip = FromMetaItem::from_meta_item(mi)?; Ok(()) }
+            "map" => { self.map = Some(FromMetaItem::from_meta_item(mi)?); Ok(()) }
             n => Err(Error::unknown_field(n)),
         }
     }

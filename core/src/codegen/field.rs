@@ -19,6 +19,7 @@ pub struct Field<'a> {
     pub ty: &'a Ty,
     pub default_expression: Option<DefaultExpression<'a>>,
     pub with_path: &'a Path,
+    pub map: Option<&'a Path>,
     pub skip: bool,
 }
 
@@ -73,10 +74,16 @@ impl<'a> ToTokens for MatchArm<'a> {
             let name_in_struct = self.0.name_in_struct;
             let with_path = self.0.with_path;
 
+            let mut extractor = quote!(#with_path(__inner)?);
+            
+            if let Some(ref map) = self.0.map.as_ref() {
+                extractor = quote!(#map(#extractor));
+            }
+
             tokens.append(quote!(
                 #name_str => {  
                     if #name_in_struct.is_none() {
-                        #name_in_struct = ::darling::export::Some(#with_path(__inner)?);
+                        #name_in_struct = ::darling::export::Some(#extractor);
                     } else {
                         return ::darling::export::Err(::darling::Error::duplicate_field(#name_str));
                     }
