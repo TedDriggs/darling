@@ -23,6 +23,8 @@ pub struct Container {
     /// The rule that should be used to rename all fields/variants in the container.
     pub rename_rule: RenameRule,
 
+    /// An infallible function with the signature `FnOnce(T) -> T` which will be called after the 
+    /// target instance is successfully constructed.
     pub map: Option<syn::Path>,
 }
 
