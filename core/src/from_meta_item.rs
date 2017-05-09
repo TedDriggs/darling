@@ -57,7 +57,7 @@ pub trait FromMetaItem: Sized {
     fn from_value(value: &Lit) -> Result<Self> {
         match *value {
             Lit::Bool(ref b) => Self::from_bool(b.clone()),
-            Lit::Str(ref s, syn::StrStyle::Cooked) => Self::from_string(s),
+            Lit::Str(ref s, _) => Self::from_string(s),
             ref _other => Err(Error::unexpected_type("other"))
         }
     }
@@ -77,6 +77,12 @@ pub trait FromMetaItem: Sized {
 
 // FromMetaItem impls for std and syn types.
 
+impl FromMetaItem for () {
+    fn from_word() -> Result<Self> {
+        Ok(())
+    }
+}
+
 impl FromMetaItem for bool {
     fn from_word() -> Result<Self> {
         Ok(true)
@@ -87,7 +93,7 @@ impl FromMetaItem for bool {
     }
 
     fn from_string(value: &str) -> Result<Self> {
-        Ok(value.parse().unwrap())
+        value.parse().or_else(|_| Err(Error::unknown_value(value)))
     }
 }
 
@@ -105,13 +111,19 @@ impl FromMetaItem for syn::Ident {
 
 impl FromMetaItem for syn::Path {
     fn from_string(value: &str) -> Result<Self> {
-        Ok(syn::parse_path(value).unwrap())
+        syn::parse_path(value).or_else(|_| Err(Error::unknown_value(value)))
     }
 }
 
 impl FromMetaItem for syn::TyParamBound {
     fn from_string(value: &str) -> Result<Self> {
-        Ok(syn::parse_ty_param_bound(value).unwrap())
+        syn::parse_ty_param_bound(value).or_else(|_| Err(Error::unknown_value(value)))
+    }
+}
+
+impl FromMetaItem for syn::MetaItem {
+    fn from_meta_item(value: &syn::MetaItem) -> Result<Self> {
+        Ok(value.clone())
     }
 }
 
