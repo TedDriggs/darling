@@ -1,5 +1,5 @@
 use quote::{Tokens, ToTokens};
-use syn::{Generics, Ident};
+use syn::{Generics, Ident, Path};
 
 use codegen::{DefaultExpression, Field};
 use codegen::field;
@@ -11,6 +11,7 @@ pub struct TraitImpl<'a> {
     pub fields: Vec<Field<'a>>,
     pub default: Option<DefaultExpression<'a>>,
     pub include_applicator: bool,
+    pub map: Option<&'a Path>,
 }
 
 impl<'a> TraitImpl<'a> {
@@ -28,6 +29,10 @@ impl<'a> TraitImpl<'a> {
             .iter()
             .map(|f| field::Declaration::new(f, false));
         quote!(#(#decls)*)
+    }
+
+    pub fn map_fn(&self) -> Option<Tokens> {
+        self.map.as_ref().map(|path| quote!(.map(#path)))
     }
 
     /// Generate local variable declaration and initialization for instance from which missing fields will be taken.
@@ -64,6 +69,7 @@ impl<'a> ToTokens for TraitImpl<'a> {
         let decls = self.local_declarations();
         let core_loop = self.core_loop();
         let default = self.fallback_decl();
+        let map = self.map_fn();
         
 
         tokens.append(quote!(
@@ -79,7 +85,7 @@ impl<'a> ToTokens for TraitImpl<'a> {
 
                     Ok(#ty_ident {
                         #(#inits),*
-                    })
+                    }) #map
                 }
             }
         ));

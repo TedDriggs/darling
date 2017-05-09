@@ -41,6 +41,7 @@ impl FromDeriveInputContainer {
                 generics: generics,
                 default: None,
                 rename_rule: RenameRule::None,
+                map: Default::default(),
             },
             attr_names: Default::default(),
             ident: Default::default(),

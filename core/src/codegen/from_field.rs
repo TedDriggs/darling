@@ -33,6 +33,7 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
 
         /// Determine which attributes to forward (if any).
         let grab_attrs = self.extractor();
+        let map = self.body.map_fn();
 
         tokens.append(quote!(
             impl #impl_generics ::darling::FromField for #ty_ident #ty_generics
@@ -49,7 +50,7 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
                         #passed_vis
                         #passed_attrs
                         #(#initializers),*
-                    })
+                    }) #map
                     
                 }
             }

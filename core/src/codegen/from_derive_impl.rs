@@ -34,6 +34,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
         };
 
         let grab_attrs = self.extractor();
+        let map = self.struct_impl.map_fn();
 
         tokens.append(quote!(
             impl #impl_generics ::darling::FromDeriveInput for #ty_ident #ty_generics
@@ -50,7 +51,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
                         #passed_vis
                         #passed_attrs
                         #(#inits),*
-                    })
+                    }) #map
                 }
             } 
         ));

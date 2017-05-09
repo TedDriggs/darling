@@ -22,6 +22,8 @@ pub struct Container {
 
     /// The rule that should be used to rename all fields/variants in the container.
     pub rename_rule: RenameRule,
+
+    pub map: Option<syn::Path>,
 }
 
 impl Container {
@@ -32,6 +34,7 @@ impl Container {
             generics: generics,
             default: None,
             rename_rule: RenameRule::None,
+            map: None,
         }).parse_attributes(attrs)
     }
 
@@ -51,6 +54,7 @@ impl ParseAttribute for Container {
         match mi.name() {
             "default" => { self.default = FromMetaItem::from_meta_item(mi)?; Ok(()) }
             "rename_all" => { self.rename_rule = FromMetaItem::from_meta_item(mi)?; Ok(()) },
+            "map" => { self.map = FromMetaItem::from_meta_item(mi)?; Ok(()) }
             n => Err(Error::unknown_field(n))
         }
     }
@@ -64,6 +68,7 @@ impl<'a> From<&'a Container> for codegen::TraitImpl<'a> {
             fields: vec![],
             default: v.as_codegen_default(),
             include_applicator: true,
+            map: v.map.as_ref(),
         }
     }
 }
@@ -73,7 +78,7 @@ impl<'a> From<&'a Container> for codegen::EnumImpl<'a> {
         codegen::EnumImpl {
             ident: &v.ident,
             generics: &v.generics,
-            variants: vec![],
+            variants: Default::default(),
         }
     }
 }
@@ -83,8 +88,9 @@ impl From<syn::Ident> for Container {
         Container {
             ident,
             generics: Default::default(),
-            default: None,
+            default: Default::default(),
             rename_rule: RenameRule::None,
+            map: Default::default(),
         }
     }
 }
