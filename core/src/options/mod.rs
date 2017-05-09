@@ -3,14 +3,14 @@ use syn;
 use {FromMetaItem, Result};
 
 mod container;
-mod field;
 mod forward_attrs;
 mod from_derive;
 mod from_field;
+mod meta_item_field;
 mod variant;
 
 pub use self::container::Container;
-pub use self::field::Field;
+pub use self::meta_item_field::MetaItemField;
 pub use self::forward_attrs::ForwardAttrs;
 pub use self::from_derive::FromDeriveInputContainer;
 pub use self::from_field::FromFieldOptions;

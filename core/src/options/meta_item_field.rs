@@ -13,7 +13,7 @@ lazy_static! {
 }
 
 #[derive(Debug)]
-pub struct Field {
+pub struct MetaItemField {
     pub target_name: syn::Ident,
     pub attr_name: Option<String>,
     pub ty: syn::Ty,
@@ -23,7 +23,7 @@ pub struct Field {
     pub map: Option<syn::Path>,
 }
 
-impl Field {
+impl MetaItemField {
     /// Generate a view into this field that can be used for code generation.
     pub fn as_codegen_field<'a>(&'a self) -> codegen::Field<'a> {
         codegen::Field {
@@ -50,7 +50,7 @@ impl Field {
     }
 
     fn new(target_name: syn::Ident, ty: syn::Ty) -> Self {
-        Field {
+        MetaItemField {
             target_name,
             ty,
             attr_name: None,
@@ -106,7 +106,7 @@ impl Field {
     }
 }
 
-impl ParseAttribute for Field {
+impl ParseAttribute for MetaItemField {
     fn parse_nested(&mut self, mi: &syn::MetaItem) -> Result<()> {
         let name = mi.name().to_string();
         match name.as_str() {

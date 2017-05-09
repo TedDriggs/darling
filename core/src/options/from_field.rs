@@ -2,7 +2,7 @@ use syn::{Attribute, Generics, Ident, MetaItem};
 
 use {FromMetaItem, Result};
 use codegen::FromFieldImpl;
-use options::{Container, ForwardAttrs, ParseAttribute};
+use options::{Container, DefaultExpression, ForwardAttrs, ParseAttribute};
 use util::IdentList;
 
 pub struct FromFieldOptions {
@@ -13,6 +13,7 @@ pub struct FromFieldOptions {
     pub attr_names: IdentList,
     pub container: Container,
     pub forward_attrs: Option<ForwardAttrs>,
+    pub from_ident: bool,
 }
 
 impl FromFieldOptions {
@@ -30,6 +31,7 @@ impl FromFieldOptions {
             attrs: Default::default(),
             attr_names: Default::default(),
             forward_attrs: Default::default(),
+            from_ident: Default::default(),
         }).parse_attributes(attrs)
     }
 }
@@ -39,6 +41,13 @@ impl ParseAttribute for FromFieldOptions {
         match mi.name() {
             "attributes" => { self.attr_names = FromMetaItem::from_meta_item(mi)?; Ok(()) }
             "forward_attrs" => { self.forward_attrs = FromMetaItem::from_meta_item(mi)?; Ok(()) },
+            "from_ident" => {
+                // HACK: Declaring that a default is present will cause fields to
+                // generate correct code, but control flow isn't that obvious. 
+                self.container.default = Some(DefaultExpression::Trait);
+                self.from_ident = true; 
+                Ok(())
+            }
             _ => self.container.parse_nested(mi)
         }
     }
