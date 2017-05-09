@@ -26,4 +26,5 @@ pub mod export {
     pub use ::core::option::Option::{self, Some, None};
     pub use ::core::result::Result::{self, Ok, Err};
     pub use ::core::default::Default;
+    pub use ::std::vec::Vec;
 }

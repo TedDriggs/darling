@@ -4,12 +4,14 @@ use {FromMetaItem, Result};
 
 mod container;
 mod field;
+mod forward_attrs;
 mod from_derive;
 mod from_field;
 mod variant;
 
 pub use self::container::Container;
 pub use self::field::Field;
+pub use self::forward_attrs::ForwardAttrs;
 pub use self::from_derive::FromDeriveInputContainer;
 pub use self::from_field::FromFieldOptions;
 pub use self::variant::Variant;
@@ -35,6 +37,7 @@ impl FromMetaItem for DefaultExpression {
     }
 }
 
+/// Middleware for extracting attribute values.
 pub trait ParseAttribute: Sized {
     fn parse_attributes(mut self, attrs: &[syn::Attribute]) -> Result<Self> {
         for attr in attrs {
@@ -46,6 +49,7 @@ pub trait ParseAttribute: Sized {
         Ok(self)
     }
 
+    /// Read a meta-item, and apply its values to the current instance.
     fn parse_nested(&mut self, mi: &syn::MetaItem) -> Result<()>;
 }
 

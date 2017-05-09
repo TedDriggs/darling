@@ -2,6 +2,7 @@ use quote::{Tokens, ToTokens};
 use syn::{Generics, Ident};
 
 use codegen::{DefaultExpression, Field};
+use codegen::field;
 
 #[derive(Debug)]
 pub struct TraitImpl<'a> {
@@ -17,6 +18,15 @@ impl<'a> TraitImpl<'a> {
     /// TODO: Mark this as `pub(in codegen)` once restricted visibility stabilizes.
     pub fn local_declarations(&self) -> Tokens {
         let decls = self.fields.iter().map(Field::as_declaration);
+        quote!(#(#decls)*)
+    }
+
+    /// Generate immutable variable declarations for all fields.
+    /// TODO: Mark this as `pub(in codegen)` once restricted visiblity stabilizes.
+    pub fn immutable_declarations(&self) -> Tokens {
+        let decls = self.fields
+            .iter()
+            .map(|f| field::Declaration::new(f, false));
         quote!(#(#decls)*)
     }
 

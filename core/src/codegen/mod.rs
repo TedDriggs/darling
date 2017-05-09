@@ -1,9 +1,6 @@
-use syn;
-use quote::{Tokens, ToTokens};
+use quote::Tokens;
 
-/// This will be in scope during struct initialization after option parsing.
-const DEFAULT_STRUCT_NAME: &str = "__default";
-
+mod default_expr;
 mod enum_impl;
 mod field;
 mod from_derive_impl;
@@ -11,6 +8,7 @@ mod from_field;
 mod trait_impl;
 mod variant;
 
+pub use self::default_expr::DefaultExpression;
 pub use self::enum_impl::EnumImpl;
 pub use self::field::Field;
 pub use self::from_derive_impl::FromDeriveInputImpl;
@@ -18,87 +16,99 @@ pub use self::from_field::FromFieldImpl;
 pub use self::trait_impl::TraitImpl;
 pub use self::variant::Variant;
 
-pub enum ImplBlock<'a> {
-    Struct(TraitImpl<'a>),
-    Enum(EnumImpl<'a>)
-}
+use options::ForwardAttrs;
 
-impl<'a> ToTokens for ImplBlock<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
-        match *self {
-            ImplBlock::Struct(ref i) => i.to_tokens(tokens),
-            ImplBlock::Enum(ref i) => i.to_tokens(tokens),
+/// Infrastructure for generating an attribute extractor.
+trait ExtractAttribute {
+    fn local_declarations(&self) -> Tokens;
+
+    fn immutable_declarations(&self) -> Tokens;
+
+    /// Gets the list of attribute names that should be parsed by the extractor.
+    fn attr_names(&self) -> &[&str];
+
+    fn forwarded_attrs(&self) -> Option<&ForwardAttrs>;
+
+    /// Gets the name used by the generated impl to return to the `syn` item passed as input.
+    fn param_name(&self) -> Tokens;
+
+    /// Gets the core from-meta-item loop that should be used on matching attributes.
+    fn core_loop(&self) -> Tokens;
+
+    fn declarations(&self) -> Tokens {
+        if !self.attr_names().is_empty() {
+            self.local_declarations()
+        } else {
+            self.immutable_declarations()
+        }
+    }
+
+    /// Generates the main extraction loop.
+    fn extractor(&self) -> Tokens {
+        let declarations = self.declarations();
+
+        let will_parse_any = !self.attr_names().is_empty();
+        let will_fwd_any = self.forwarded_attrs().map(|fa| !fa.is_empty()).unwrap_or_default();
+
+        if will_parse_any || will_fwd_any {
+            let input = self.param_name();
+
+            /// The block for parsing attributes whose names have been claimed by the target
+            /// struct. If no attributes were claimed, this is a pass-through.
+            let parse_handled = if will_parse_any {
+                let attr_names = self.attr_names();
+                let core_loop = self.core_loop();
+                quote!(
+                    #(#attr_names)|* => {
+                        if let ::syn::MetaItem::List(_, ref __items) = __attr.value {
+                            #core_loop
+                        } else {
+                            // darling currently only supports list-style
+                            continue
+                        }
+                    }
+                )
+            } else {
+                quote!()
+            };
+
+            /// Specifies the behavior for unhandled attributes. They will either be silently ignored or 
+            /// forwarded to the inner struct for later analysis.
+            let forward_unhandled = if will_fwd_any {
+                forwards_to_local(self.forwarded_attrs().unwrap())
+            } else {
+                quote!(_ => continue)
+            };
+
+            quote!(
+                #declarations
+                let mut __fwd_attrs: ::darling::export::Vec<::syn::Attribute> = vec![];
+
+                for __attr in &#input.attrs {
+                    // Filter attributes based on name
+                    match __attr.name() {
+                        #parse_handled
+                        #forward_unhandled
+                    }
+                })
+        } else {
+            quote!(
+                #declarations
+            )
         }
     }
 }
 
-/// The fallback value for a field or container.
-#[derive(Debug, Clone)]
-pub enum DefaultExpression<'a> {
-    Inherit(&'a syn::Ident),
-    Explicit(&'a syn::Path),
-    Trait,
-}
-
-impl<'a> DefaultExpression<'a> {
-    pub fn as_declaration(&'a self) -> DefaultDeclaration<'a> {
-        DefaultDeclaration(self)
-    }
-}
-
-impl<'a> ToTokens for DefaultExpression<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
-        tokens.append(match *self {
-            DefaultExpression::Inherit(ident) => {
-                let dsn = syn::Ident::new(DEFAULT_STRUCT_NAME);
-                quote!(#dsn.#ident)
-            },
-            DefaultExpression::Explicit(path) => quote!(#path()),
-            DefaultExpression::Trait => quote!(::darling::export::Default::default()),
-        });
-    }
-}
-
-pub struct DefaultDeclaration<'a>(&'a DefaultExpression<'a>);
-
-impl<'a> ToTokens for DefaultDeclaration<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
-        let name = syn::Ident::new(DEFAULT_STRUCT_NAME);
-        let expr = self.0;
-        tokens.append(quote!(let #name: Self = #expr;));
-    }
-}
-
-trait ExtractAttribute {
-    fn attr_names(&self) -> &[&str];
-
-    fn param_name(&self) -> Tokens;
-
-    fn core_loop(&self) -> Tokens;
-
-    fn extractor(&self) -> Tokens {
-        if !self.attr_names().is_empty() {
-            let input = self.param_name();
-            let attr_names = self.attr_names();
-            let core_loop = self.core_loop();
-
+fn forwards_to_local(behavior: &ForwardAttrs) -> Tokens {
+    let push_command = quote!(__fwd_attrs.push(__attr.clone()));
+    match *behavior {
+        ForwardAttrs::All => quote!(_ => #push_command),
+        ForwardAttrs::Only(ref idents) => {
+            let names = idents.as_strs();
             quote!(
-                for __attr in &#input.attrs {
-                    // Filter attributes based on name
-                    match __attr.name() {
-                        #(#attr_names)|* => {
-                            if let ::syn::MetaItem::List(_, ref __items) = __attr.value {
-                                #core_loop
-                            } else {
-                                // darling currently only supports list-style
-                                continue
-                            }
-                            }
-                        _ => continue
-                    }
-                })
-        } else {
-            quote!()
+                #(#names)|* => #push_command,
+                _ => continue,
+            )
         }
     }
 }

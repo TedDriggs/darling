@@ -63,9 +63,10 @@ pub fn derive_from_input(input: TokenStream) -> TokenStream {
             let mut fields = Vec::with_capacity(fields_in.len());
             for field_in in fields_in {
                 match field_in.ident.as_ref().map(|v| v.as_ref()) {
-                    Some("ident") => fdic.ident = true,
-                    Some("vis") => fdic.vis = true,
-                    Some("generics") => fdic.generics = true,
+                    Some("ident") => fdic.ident = Some("ident".into()),
+                    Some("vis") => fdic.vis = Some("vis".into()),
+                    Some("generics") => fdic.generics = Some("generics".into()),
+                    Some("attrs") => fdic.attrs = Some("attrs".into()),
                     _ => fields.push(options::Field::from_field(field_in, Some(&fdic.container)).unwrap())
                 }
             }
@@ -100,9 +101,10 @@ pub fn derive_field(input: TokenStream) -> TokenStream {
             let mut fields = Vec::with_capacity(fields_in.len());
             for field_in in fields_in {
                 match field_in.ident.as_ref().map(|v| v.as_ref()) {
-                    Some("ident") => fdic.ident = true,
-                    Some("vis") => fdic.vis = true,
-                    Some("ty") => fdic.ty = true,
+                    Some("ident") => fdic.ident = Some("ident".into()),
+                    Some("vis") => fdic.vis = Some("vis".into()),
+                    Some("ty") => fdic.ty = Some("ty".into()),
+                    Some("attrs") => fdic.attrs = Some("attrs".into()),
                     _ => fields.push(options::Field::from_field(field_in, Some(&fdic.container)).unwrap())
                 }
             }

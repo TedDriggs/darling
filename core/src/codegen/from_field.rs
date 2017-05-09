@@ -2,31 +2,34 @@ use quote::{Tokens, ToTokens};
 use syn::Ident;
 
 use codegen::{Field, TraitImpl, ExtractAttribute};
+use options::ForwardAttrs;
 
 /// `impl FromField` generator. This is used for parsing an individual
 /// field and its attributes.
 pub struct FromFieldImpl<'a> {
-    pub ident: Option<Ident>,
-    pub vis: Option<Ident>,
-    pub ty: Option<Ident>,
+    pub ident: Option<&'a Ident>,
+    pub vis: Option<&'a Ident>,
+    pub ty: Option<&'a Ident>,
+    pub attrs: Option<&'a Ident>,
     pub body: TraitImpl<'a>,
     pub attr_names: Vec<&'a str>,
+    pub forward_attrs: Option<&'a ForwardAttrs>,
 }
 
 impl<'a> ToTokens for FromFieldImpl<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
-        let input = quote!(__field);
+        let input = self.param_name();
 
         let ty_ident = self.body.ident;
         let (impl_generics, ty_generics, where_clause) = self.body.generics.split_for_impl();
 
-        let decls = self.body.local_declarations();
         let initializers = self.body.fields.iter().map(Field::as_initializer);
         let default = self.body.fallback_decl();
 
         let passed_ident = self.ident.as_ref().map(|i| quote!(#i: #input.ident.clone().unwrap(),));
         let passed_vis = self.vis.as_ref().map(|i| quote!(#i: #input.vis.clone(),));
         let passed_ty = self.ty.as_ref().map(|i| quote!(#i: #input.ty.clone(),));
+        let passed_attrs = self.attrs.as_ref().map(|i| quote!(#i: __fwd_attrs,));
 
         /// Determine which attributes to forward (if any).
         let grab_attrs = self.extractor();
@@ -36,8 +39,6 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
                 #where_clause
             {
                 fn from_field(#input: &::syn::Field) -> ::darling::Result<Self> {
-                    #decls
-
                     #grab_attrs
 
                     #default
@@ -46,6 +47,7 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
                         #passed_ident
                         #passed_ty
                         #passed_vis
+                        #passed_attrs
                         #(#initializers),*
                     })
                     
@@ -60,11 +62,23 @@ impl<'a> ExtractAttribute for FromFieldImpl<'a> {
         self.attr_names.as_slice()
     }
 
+    fn forwarded_attrs(&self) -> Option<&ForwardAttrs> {
+        self.forward_attrs
+    }
+
     fn param_name(&self) -> Tokens {
         quote!(__field)
     }
 
     fn core_loop(&self) -> Tokens {
         self.body.core_loop()
+    }
+
+    fn local_declarations(&self) -> Tokens {
+        self.body.local_declarations()
+    }
+
+    fn immutable_declarations(&self) -> Tokens {
+        self.body.immutable_declarations()
     }
 }
