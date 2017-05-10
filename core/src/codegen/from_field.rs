@@ -14,6 +14,7 @@ pub struct FromFieldImpl<'a> {
     pub body: TraitImpl<'a>,
     pub attr_names: Vec<&'a str>,
     pub forward_attrs: Option<&'a ForwardAttrs>,
+    pub from_ident: bool,
 }
 
 impl<'a> ToTokens for FromFieldImpl<'a> {
@@ -24,7 +25,11 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
         let (impl_generics, ty_generics, where_clause) = self.body.generics.split_for_impl();
 
         let initializers = self.body.fields.iter().map(Field::as_initializer);
-        let default = self.body.fallback_decl();
+        let default = if self.from_ident {
+            quote!(let __default: Self = ::darling::export::From::from(#input.ident.clone());)
+        } else {
+            self.body.fallback_decl()
+        };
 
         let passed_ident = self.ident.as_ref().map(|i| quote!(#i: #input.ident.clone().unwrap(),));
         let passed_vis = self.vis.as_ref().map(|i| quote!(#i: #input.vis.clone(),));

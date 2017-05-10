@@ -63,6 +63,7 @@ impl<'a> From<&'a FromFieldOptions> for FromFieldImpl<'a> {
             body: (&v.container).into(),
             attr_names: v.attr_names.as_strs(),
             forward_attrs: v.forward_attrs.as_ref(),
+            from_ident: v.from_ident,
         }
     }
 }

@@ -144,3 +144,55 @@ impl<T: FromMetaItem> FromMetaItem for Box<T> {
         Ok(Box::new(FromMetaItem::from_meta_item(item)?))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use syn;
+    
+    use {FromMetaItem};
+
+    /// parse a string as a syn::MetaItem instance.
+    fn pmi(s: &str) -> ::std::result::Result<syn::MetaItem, String> {
+        Ok(syn::parse_outer_attr(&format!("#[{}]", s))?.value)
+    }
+
+    fn fmi<T: FromMetaItem>(s: &str) -> T {
+        FromMetaItem::from_meta_item(&pmi(s).expect("Tests should pass well-formed input"))
+            .expect("Tests should pass valid input")
+    }
+
+    #[test]
+    fn unit_succeeds() {
+        assert_eq!(fmi::<()>("hello"), ());
+    }
+
+    #[test]
+    fn bool_succeeds() {
+        // word format
+        assert_eq!(fmi::<bool>("hello"), true);
+
+        // bool literal
+        assert_eq!(fmi::<bool>("hello = true"), true);
+        assert_eq!(fmi::<bool>("hello = false"), false);
+
+        // string literals
+        assert_eq!(fmi::<bool>(r#"hello = "true""#), true);
+        assert_eq!(fmi::<bool>(r#"hello = "false""#), false);
+    }
+
+    #[test]
+    fn string_succeeds() {
+        // cooked form
+        assert_eq!(&fmi::<String>(r#"hello = "world""#), "world");
+
+        // raw form
+        assert_eq!(&fmi::<String>(r##"hello = r#"world"#"##), "world");
+    }
+
+    #[test]
+    fn meta_item_succeeds() {
+        use syn::MetaItem;
+
+        assert_eq!(fmi::<MetaItem>("hello(world,today)"), pmi("hello(world,today)").unwrap());
+    }
+}

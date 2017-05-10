@@ -20,11 +20,11 @@ pub fn derive(input: TokenStream) -> TokenStream {
         syn::Body::Struct(syn::VariantData::Struct(fields_in)) => {
             let mut fields = Vec::with_capacity(fields_in.len());
             for field_in in fields_in {
-                fields.push(options::Field::from_field(field_in, Some(&container)).unwrap());
+                fields.push(options::MetaItemField::from_field(field_in, Some(&container)).unwrap());
             }
 
             let trait_impl = codegen::TraitImpl {
-                fields: fields.iter().map(options::Field::as_codegen_field).collect(),
+                fields: fields.iter().map(options::MetaItemField::as_codegen_field).collect(),
                 ..(&container).into()
             };
 
@@ -67,12 +67,12 @@ pub fn derive_from_input(input: TokenStream) -> TokenStream {
                     Some("vis") => fdic.vis = Some("vis".into()),
                     Some("generics") => fdic.generics = Some("generics".into()),
                     Some("attrs") => fdic.attrs = Some("attrs".into()),
-                    _ => fields.push(options::Field::from_field(field_in, Some(&fdic.container)).unwrap())
+                    _ => fields.push(options::MetaItemField::from_field(field_in, Some(&fdic.container)).unwrap())
                 }
             }
 
             let trait_impl = codegen::TraitImpl {
-                fields: fields.iter().map(options::Field::as_codegen_field).collect(),
+                fields: fields.iter().map(options::MetaItemField::as_codegen_field).collect(),
                 ..(&fdic.container).into()
             };
 
@@ -105,12 +105,12 @@ pub fn derive_field(input: TokenStream) -> TokenStream {
                     Some("vis") => fdic.vis = Some("vis".into()),
                     Some("ty") => fdic.ty = Some("ty".into()),
                     Some("attrs") => fdic.attrs = Some("attrs".into()),
-                    _ => fields.push(options::Field::from_field(field_in, Some(&fdic.container)).unwrap())
+                    _ => fields.push(options::MetaItemField::from_field(field_in, Some(&fdic.container)).unwrap())
                 }
             }
 
             let trait_impl = codegen::TraitImpl {
-                fields: fields.iter().map(options::Field::as_codegen_field).collect(),
+                fields: fields.iter().map(options::MetaItemField::as_codegen_field).collect(),
                 ..(&fdic.container).into()
             };
 

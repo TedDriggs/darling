@@ -29,22 +29,24 @@ mod tests {
 
     #[test]
     fn do_things() {
-        let foo = options::Field {
+        let foo = options::MetaItemField {
             target_name: syn::parse_ident("lorem").unwrap(),
             attr_name: Some("ipsum".to_string()),
             ty: syn::parse_type("bool").unwrap(),
             default: None,
             with: None,
             skip: false,
+            map: None,
         };
 
-        let bar = options::Field {
+        let bar = options::MetaItemField {
             target_name: syn::parse_ident("dolor").unwrap(),
             attr_name: None,
             ty: syn::parse_type("String").unwrap(),
             default: None,
             with: None,
             skip: false,
+            map: None,
         };
 
         let container = options::Container {
@@ -52,6 +54,7 @@ mod tests {
             generics: Default::default(),
             default: None,
             rename_rule: serde_case::RenameRule::None,
+            map: None,
         };
 
         let derive_tgt = codegen::TraitImpl {
