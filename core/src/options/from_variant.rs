@@ -1,6 +1,6 @@
 use syn::MetaItem;
 
-use {Result};
+use Result;
 use options::{OuterFrom, ParseAttribute};
 
 #[derive(Debug)]
