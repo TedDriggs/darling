@@ -6,7 +6,9 @@ mod container;
 mod forward_attrs;
 mod from_derive;
 mod from_field;
+mod from_variant;
 mod meta_item_field;
+mod outer_from;
 mod variant;
 
 pub use self::container::Container;
@@ -14,6 +16,8 @@ pub use self::meta_item_field::MetaItemField;
 pub use self::forward_attrs::ForwardAttrs;
 pub use self::from_derive::FromDeriveInputContainer;
 pub use self::from_field::FromFieldOptions;
+pub use self::from_variant::FromVariantOptions;
+pub use self::outer_from::OuterFrom;
 pub use self::variant::Variant;
 
 /// A default/fallback expression encountered in attributes during parsing.
