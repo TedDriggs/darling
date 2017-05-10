@@ -69,7 +69,6 @@ impl<'a> From<&'a Container> for codegen::TraitImpl<'a> {
             generics: &v.generics,
             fields: vec![],
             default: v.as_codegen_default(),
-            include_applicator: true,
             map: v.map.as_ref(),
         }
     }

@@ -10,7 +10,6 @@ pub struct TraitImpl<'a> {
     pub generics: &'a Generics,
     pub fields: Vec<Field<'a>>,
     pub default: Option<DefaultExpression<'a>>,
-    pub include_applicator: bool,
     pub map: Option<&'a Path>,
 }
 
@@ -89,26 +88,5 @@ impl<'a> ToTokens for TraitImpl<'a> {
                 }
             }
         ));
-
-        if self.include_applicator {
-            let applicators = self.fields.iter().map(Field::as_applicator);
-
-            tokens.append(quote!(
-                impl #impl_generics ::darling::ApplyMetaItem for #ty_ident #ty_generics
-                    #where_clause 
-                    {
-                        fn from_list(&mut self, __items: &[::syn::NestedMetaItem]) -> ::darling::Result<&mut Self> {
-                            
-                            #decls
-
-                            #core_loop
-
-                            #(#applicators)*
-
-                            Ok(self)
-                        }
-                    }
-            ));
-        }
     }
 }

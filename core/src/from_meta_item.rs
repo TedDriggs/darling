@@ -3,11 +3,6 @@ use syn::{self, Lit, MetaItem, NestedMetaItem};
 
 use {Error, Result};
 
-/// Mutate an instance by applying declarations in an attribute declaration.
-pub trait ApplyMetaItem: Sized {
-    fn from_list(&mut self, items: &[NestedMetaItem]) -> Result<&mut Self>;
-}
-
 /// Create an instance from an item in an attribute declaration. 
 /// 
 /// # Implementing `FromMetaItem`

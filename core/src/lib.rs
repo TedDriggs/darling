@@ -22,7 +22,7 @@ pub mod util;
 pub use errors::{Result, Error};
 pub use from_derive_input::FromDeriveInput;
 pub use from_field::FromField;
-pub use from_meta_item::{ApplyMetaItem, FromMetaItem};
+pub use from_meta_item::{FromMetaItem};
 pub use from_variant::FromVariant;
 
 #[cfg(test)]
