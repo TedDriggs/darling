@@ -1,4 +1,4 @@
-use serde_case;
+use ident_case;
 use syn::{self, Lit, MetaItem, NestedMetaItem};
 
 use {Error, Result};
@@ -127,7 +127,7 @@ impl FromMetaItem for syn::MetaItem {
     }
 }
 
-impl FromMetaItem for serde_case::RenameRule {
+impl FromMetaItem for ident_case::RenameRule {
     fn from_string(value: &str) -> Result<Self> {
         value.parse().or_else(|_| Err(Error::unknown_value(value)))
     }

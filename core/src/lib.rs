@@ -8,7 +8,7 @@ extern crate quote;
 
 extern crate syn;
 
-extern crate serde_case;
+extern crate ident_case;
 
 pub mod codegen;
 mod errors;
@@ -52,9 +52,9 @@ mod tests {
         let container = options::Container {
             ident: syn::parse_ident("Foo").unwrap(),
             generics: Default::default(),
-            default: None,
-            rename_rule: serde_case::RenameRule::None,
-            map: None,
+            default: Default::default(),
+            rename_rule: Default::default(),
+            map: Default::default(),
         };
 
         let derive_tgt = codegen::TraitImpl {

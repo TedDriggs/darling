@@ -1,4 +1,4 @@
-use serde_case::RenameRule;
+use ident_case::RenameRule;
 use syn::{MetaItem, Ident, Generics, Attribute};
 
 use {Result, FromMetaItem};
