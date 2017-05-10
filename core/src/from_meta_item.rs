@@ -145,6 +145,12 @@ impl<T: FromMetaItem> FromMetaItem for Box<T> {
     }
 }
 
+impl<T: FromMetaItem> FromMetaItem for Result<T> {
+    fn from_meta_item(item: &MetaItem) -> Result<Self> {
+        Ok(FromMetaItem::from_meta_item(item))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use syn;
