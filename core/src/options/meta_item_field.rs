@@ -12,7 +12,7 @@ lazy_static! {
     };
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MetaItemField {
     pub target_name: syn::Ident,
     pub attr_name: Option<String>,

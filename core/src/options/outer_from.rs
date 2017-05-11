@@ -6,7 +6,7 @@ use util::IdentList;
 
 /// Reusable base for `FromDeriveInput`, `FromVariant`, `FromField`, and other top-level 
 /// `From*` traits.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OuterFrom {
     /// The field on the target struct which should receive the type identifier, if any.
     pub ident: Option<Ident>,

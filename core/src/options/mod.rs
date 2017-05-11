@@ -2,7 +2,7 @@ use syn;
 
 use {FromMetaItem, Result};
 
-mod container;
+mod core;
 mod forward_attrs;
 mod from_derive;
 mod from_field;
@@ -11,7 +11,7 @@ mod meta_item_field;
 mod outer_from;
 mod variant;
 
-pub use self::container::Core;
+pub use self::core::Core;
 pub use self::meta_item_field::MetaItemField;
 pub use self::forward_attrs::ForwardAttrs;
 pub use self::from_derive::FdiOptions;
@@ -21,7 +21,7 @@ pub use self::outer_from::OuterFrom;
 pub use self::variant::Variant;
 
 /// A default/fallback expression encountered in attributes during parsing.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DefaultExpression {
     /// The value should be taken from the `default` instance of the containing struct.
     /// This is not valid in container options.
