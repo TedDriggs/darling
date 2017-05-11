@@ -2,7 +2,7 @@ use syn::{Attribute, Generics, Ident, MetaItem};
 
 use {FromMetaItem, Result};
 use codegen::FromFieldImpl;
-use options::{Container, DefaultExpression, ForwardAttrs, ParseAttribute};
+use options::{Core, DefaultExpression, ForwardAttrs, ParseAttribute};
 use util::IdentList;
 
 pub struct FromFieldOptions {
@@ -11,7 +11,7 @@ pub struct FromFieldOptions {
     pub ty: Option<Ident>,
     pub attrs: Option<Ident>,
     pub attr_names: IdentList,
-    pub container: Container,
+    pub container: Core,
     pub forward_attrs: Option<ForwardAttrs>,
     pub from_ident: bool,
 }
@@ -21,7 +21,7 @@ impl FromFieldOptions {
     pub fn new(target_name: Ident, generics: Generics, attrs: &[Attribute]) -> Result<Self> {
         (FromFieldOptions {
             container: {
-                let mut c = Container::from(target_name);
+                let mut c = Core::from(target_name);
                 c.generics = generics;
                 c
             },

@@ -14,7 +14,7 @@ struct Lorem {
 
 #[derive(FromDeriveInput, PartialEq, Debug)]
 #[darling(attributes(darling_demo))]
-struct Container {
+struct Core {
     ident: syn::Ident,
     vis: syn::Visibility,
     generics: syn::Generics,
@@ -23,7 +23,7 @@ struct Container {
 
 #[derive(FromDeriveInput, PartialEq, Debug)]
 #[darling(attributes(darling_demo))]
-struct TraitContainer {
+struct TraitCore {
     ident: syn::Ident,
     generics: syn::Generics,
     lorem: Lorem,
@@ -37,7 +37,7 @@ fn simple() {
         pub struct Bar;
     "#).unwrap();
 
-    assert_eq!(Container::from_derive_input(&di).unwrap(), Container {
+    assert_eq!(Core::from_derive_input(&di).unwrap(), Core {
         ident: syn::Ident::new("Bar"),
         vis: syn::Visibility::Public,
         generics: Default::default(),
@@ -56,7 +56,7 @@ fn trait_type() {
         pub struct Bar;
     "#).unwrap();
 
-    assert_eq!(TraitContainer::from_derive_input(&di).unwrap(), TraitContainer {
+    assert_eq!(TraitCore::from_derive_input(&di).unwrap(), TraitCore {
         ident: syn::Ident::new("Bar"),
         generics: Default::default(),
         lorem: Lorem {

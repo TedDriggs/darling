@@ -1,7 +1,7 @@
 use syn::{Ident, MetaItem};
 
 use {FromMetaItem, Result};
-use options::{Container, DefaultExpression, ForwardAttrs, ParseAttribute};
+use options::{Core, DefaultExpression, ForwardAttrs, ParseAttribute};
 use util::IdentList;
 
 /// Reusable base for `FromDeriveInput`, `FromVariant`, `FromField`, and other top-level 
@@ -14,7 +14,7 @@ pub struct OuterFrom {
     /// The field on the target struct which should receive the type attributes, if any.
     pub attrs: Option<Ident>,
 
-    pub container: Container,
+    pub container: Core,
 
     /// The attribute names that should be searched.
     pub attr_names: IdentList,

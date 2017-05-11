@@ -2,7 +2,7 @@ use syn;
 
 use ::{FromMetaItem, Error, Result};
 use codegen;
-use options::{Container, DefaultExpression, ParseAttribute};
+use options::{Core, DefaultExpression, ParseAttribute};
 
 lazy_static! {
     /// The default path for extracting data from a meta item. This can be overridden
@@ -61,7 +61,7 @@ impl MetaItemField {
         }
     }
 
-    pub fn from_field(f: syn::Field, parent: Option<&Container>) -> Result<Self> {
+    pub fn from_field(f: syn::Field, parent: Option<&Core>) -> Result<Self> {
         let target_name = f.ident.unwrap();
         let ty = f.ty;
         let base = Self::new(target_name, ty).parse_attributes(&f.attrs)?;
@@ -75,7 +75,7 @@ impl MetaItemField {
 
     /// Apply inherited settings from the container. This is done _after_ parsing
     /// to ensure deference to explicit field-level settings.
-    fn with_inherited(mut self, parent: &Container) -> Result<Self> {
+    fn with_inherited(mut self, parent: &Core) -> Result<Self> {
         // explicit renamings take precedence over rename rules on the container,
         // but in the absence of an explicit name we apply the rule.
         if self.attr_name.is_none() {

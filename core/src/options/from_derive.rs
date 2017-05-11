@@ -3,10 +3,10 @@ use syn::{MetaItem, Ident, Generics, Attribute};
 
 use Result;
 use codegen;
-use options::{Container, ParseAttribute, OuterFrom};
+use options::{Core, ParseAttribute, OuterFrom};
 
 #[derive(Debug)]
-pub struct FromDeriveInputContainer {
+pub struct FdiOptions {
     pub base: OuterFrom,
 
     /// The field on the target struct which should receive the type visibility, if any.
@@ -16,11 +16,11 @@ pub struct FromDeriveInputContainer {
     pub generics: Option<Ident>,
 }
 
-impl FromDeriveInputContainer {
+impl FdiOptions {
     pub fn new(ident: Ident, generics: Generics, attrs: &[Attribute]) -> Result<Self> {
-        (FromDeriveInputContainer {
+        (FdiOptions {
                 base: OuterFrom {
-                    container: Container {
+                    container: Core {
                         ident: ident,
                         generics: generics,
                         default: None,
@@ -40,8 +40,8 @@ impl FromDeriveInputContainer {
     }
 }
 
-impl<'a> From<&'a FromDeriveInputContainer> for codegen::FromDeriveInputImpl<'a> {
-    fn from(v: &'a FromDeriveInputContainer) -> Self {
+impl<'a> From<&'a FdiOptions> for codegen::FromDeriveInputImpl<'a> {
+    fn from(v: &'a FdiOptions) -> Self {
         codegen::FromDeriveInputImpl {
             struct_impl: (&v.base.container).into(),
             attr_names: v.base.attr_names.as_strs(),
@@ -55,7 +55,7 @@ impl<'a> From<&'a FromDeriveInputContainer> for codegen::FromDeriveInputImpl<'a>
     }
 }
 
-impl ParseAttribute for FromDeriveInputContainer {
+impl ParseAttribute for FdiOptions {
     fn parse_nested(&mut self, mi: &MetaItem) -> Result<()> {
         self.base.parse_nested(mi)
     }

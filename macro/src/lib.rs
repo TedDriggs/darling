@@ -14,7 +14,7 @@ use darling_core::{options, codegen};
 pub fn derive(input: TokenStream) -> TokenStream {
     let ast = parse_derive_input(&input.to_string()).unwrap();
     
-    let container = options::Container::new(ast.ident, ast.generics, &ast.attrs).unwrap();
+    let container = options::Core::new(ast.ident, ast.generics, &ast.attrs).unwrap();
 
     let result = match ast.body {
         syn::Body::Struct(syn::VariantData::Struct(fields_in)) => {
@@ -55,7 +55,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
 pub fn derive_from_input(input: TokenStream) -> TokenStream {
     let ast = parse_derive_input(&input.to_string()).unwrap();
     
-    let mut fdic = options::FromDeriveInputContainer::new(ast.ident, ast.generics, &ast.attrs).unwrap();
+    let mut fdic = options::FdiOptions::new(ast.ident, ast.generics, &ast.attrs).unwrap();
 
     let result = match ast.body {
         syn::Body::Struct(syn::VariantData::Struct(fields_in)) => {

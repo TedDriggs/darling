@@ -2,7 +2,7 @@ use syn;
 
 use {FromMetaItem, Error, Result};
 use codegen;
-use options::{Container, ParseAttribute};
+use options::{Core, ParseAttribute};
 
 pub struct Variant {
     ident: syn::Ident,
@@ -18,7 +18,7 @@ impl Variant {
         }
     }
 
-    pub fn from_variant(v: syn::Variant, parent: Option<&Container>) -> Result<Self> {
+    pub fn from_variant(v: syn::Variant, parent: Option<&Core>) -> Result<Self> {
         let starter = (Variant {
             ident: v.ident,
             attr_name: Default::default()
@@ -31,7 +31,7 @@ impl Variant {
         })
     }
 
-    fn with_inherited(mut self, parent: &Container) -> Self {
+    fn with_inherited(mut self, parent: &Core) -> Self {
         if self.attr_name.is_none() {
             self.attr_name = Some(parent.rename_rule.apply_to_variant(&self.ident));
         }

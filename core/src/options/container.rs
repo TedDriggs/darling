@@ -8,7 +8,7 @@ use options::{DefaultExpression, ParseAttribute};
 /// A struct or enum which should have `FromMetaItem` or `FromDeriveInput` implementations
 /// generated.
 #[derive(Debug, Clone)]
-pub struct Container {
+pub struct Core {
     /// The type identifier.
     pub ident: syn::Ident,
 
@@ -28,10 +28,10 @@ pub struct Container {
     pub map: Option<syn::Path>,
 }
 
-impl Container {
+impl Core {
     /// Creates a new container, with the identity bound for later diagnostics.
     pub fn new(ident: syn::Ident, generics: syn::Generics, attrs: &[syn::Attribute]) -> Result<Self> {
-        (Container {
+        (Core {
             ident: ident,
             generics: generics,
             default: None,
@@ -51,7 +51,7 @@ impl Container {
     }
 }
 
-impl ParseAttribute for Container {
+impl ParseAttribute for Core {
     fn parse_nested(&mut self, mi: &syn::MetaItem) -> Result<()> {
         match mi.name() {
             "default" => { self.default = FromMetaItem::from_meta_item(mi)?; Ok(()) }
@@ -62,8 +62,8 @@ impl ParseAttribute for Container {
     }
 }
 
-impl<'a> From<&'a Container> for codegen::TraitImpl<'a> {
-    fn from(v: &'a Container) -> Self {
+impl<'a> From<&'a Core> for codegen::TraitImpl<'a> {
+    fn from(v: &'a Core) -> Self {
         codegen::TraitImpl {
             ident: &v.ident,
             generics: &v.generics,
@@ -74,8 +74,8 @@ impl<'a> From<&'a Container> for codegen::TraitImpl<'a> {
     }
 }
 
-impl<'a> From<&'a Container> for codegen::EnumImpl<'a> {
-    fn from(v: &'a Container) -> Self {
+impl<'a> From<&'a Core> for codegen::EnumImpl<'a> {
+    fn from(v: &'a Core) -> Self {
         codegen::EnumImpl {
             ident: &v.ident,
             generics: &v.generics,
@@ -84,9 +84,9 @@ impl<'a> From<&'a Container> for codegen::EnumImpl<'a> {
     }
 }
 
-impl From<syn::Ident> for Container { 
+impl From<syn::Ident> for Core { 
     fn from(ident: syn::Ident) -> Self {
-        Container {
+        Core {
             ident,
             generics: Default::default(),
             default: Default::default(),

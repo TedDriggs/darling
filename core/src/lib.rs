@@ -51,7 +51,7 @@ mod tests {
             map: None,
         };
 
-        let container = options::Container {
+        let container = options::Core {
             ident: syn::parse_ident("Foo").unwrap(),
             generics: Default::default(),
             default: Default::default(),
