@@ -14,6 +14,8 @@ pub struct FdiOptions {
 
     /// The field on the target struct which should receive the type generics, if any.
     pub generics: Option<Ident>,
+
+    pub body: Option<Ident>,
 }
 
 impl FdiOptions {
@@ -26,6 +28,7 @@ impl FdiOptions {
                         default: None,
                         rename_rule: RenameRule::None,
                         map: Default::default(),
+                        fields: Default::default(),
                     },
                     attr_names: Default::default(),
                     attrs: Default::default(),
@@ -35,6 +38,7 @@ impl FdiOptions {
                 },
                 vis: Default::default(),
                 generics: Default::default(),
+                body: None,
             })
             .parse_attributes(attrs)
     }

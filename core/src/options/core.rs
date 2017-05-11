@@ -3,11 +3,11 @@ use syn;
 
 use {Result, Error, FromMetaItem};
 use codegen;
-use options::{DefaultExpression, ParseAttribute};
+use options::{DefaultExpression, MetaItemField, ParseAttribute};
 
 /// A struct or enum which should have `FromMetaItem` or `FromDeriveInput` implementations
 /// generated.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Core {
     /// The type identifier.
     pub ident: syn::Ident,
@@ -26,6 +26,9 @@ pub struct Core {
     /// An infallible function with the signature `FnOnce(T) -> T` which will be called after the 
     /// target instance is successfully constructed.
     pub map: Option<syn::Path>,
+
+    /// The fields of the deriving struct.
+    pub fields: Vec<MetaItemField>,
 }
 
 impl Core {
@@ -36,6 +39,7 @@ impl Core {
             generics: generics,
             default: None,
             rename_rule: RenameRule::None,
+            fields: Default::default(),
             map: None,
         }).parse_attributes(attrs)
     }
@@ -92,6 +96,7 @@ impl From<syn::Ident> for Core {
             default: Default::default(),
             rename_rule: RenameRule::None,
             map: Default::default(),
+            fields: Default::default(),
         }
     }
 }

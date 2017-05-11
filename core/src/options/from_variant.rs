@@ -1,11 +1,12 @@
-use syn::MetaItem;
+use syn::{Ident, MetaItem};
 
 use Result;
 use options::{OuterFrom, ParseAttribute};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FromVariantOptions {
     pub base: OuterFrom,
+    pub body: Option<Ident>,
 }
 
 impl ParseAttribute for FromVariantOptions {
