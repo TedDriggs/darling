@@ -10,6 +10,8 @@ pub enum VariantData<T> {
 }
 
 impl<T> VariantData<T> {
+    /// Creates a new `VariantData` instance of the same shape as the one passed in,
+    /// but containing no values.
     pub fn empty_from(src: &syn::VariantData) -> Self {
         match *src {
             syn::VariantData::Struct(_) => VariantData::Struct(vec![]),
@@ -27,6 +29,7 @@ impl<T> VariantData<T> {
         }
     }
 
+    /// Transforms the fields of the variant by applying `FnMut(T) -> U` to each one.
     pub fn map<F, U>(self, map: F) -> VariantData<U>
         where F: FnMut(T) -> U
     {
@@ -47,6 +50,7 @@ impl<T> VariantData<T> {
         }
     }
 
+    /// Returns `true` if this is a unit variant.
     pub fn is_unit(&self) -> bool {
         match *self {
             VariantData::Unit => true,
