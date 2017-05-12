@@ -5,7 +5,7 @@ use syn::{Ident, Path};
 const DEFAULT_STRUCT_NAME: &str = "__default";
 
 /// The fallback value for a field or container.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DefaultExpression<'a> {
     Inherit(&'a Ident),
     Explicit(&'a Path),

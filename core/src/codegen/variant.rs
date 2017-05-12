@@ -5,6 +5,7 @@ use codegen::Field;
 use util::VariantData;
 
 /// An enum variant.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Variant<'a> {
     /// The name which will appear in code passed to the `FromMetaItem` input.
     pub name_in_attr: &'a str,
@@ -32,8 +33,14 @@ impl<'a> ToTokens for UnitMatchArm<'a> {
         let variant_ident = self.0.variant_ident;
         let ty_ident = self.0.ty_ident;
 
-        tokens.append(quote!(
-            #name_in_attr => ::darling::export::Ok(#ty_ident::#variant_ident),
-        ));
+        if self.0.data.is_unit() {
+            tokens.append(quote!(
+                #name_in_attr => ::darling::export::Ok(#ty_ident::#variant_ident),
+            ));
+        } else {
+            tokens.append(quote!(
+                #name_in_attr => ::darling::export::Err(::darling::Error::unsupported_format("literal")),
+            ));
+        }
     }
 }

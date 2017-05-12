@@ -62,7 +62,7 @@ impl InputField {
     }
 
     pub fn from_field(f: &syn::Field, parent: Option<&Core>) -> Result<Self> {
-        let target_name = f.ident.clone().unwrap();
+        let target_name = f.ident.clone().unwrap_or(syn::Ident::new("__unnamed"));
         let ty = f.ty.clone();
         let base = Self::new(target_name, ty).parse_attributes(&f.attrs)?;
         

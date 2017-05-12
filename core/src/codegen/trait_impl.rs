@@ -1,14 +1,16 @@
-use quote::{Tokens, ToTokens};
+use quote::{Tokens};
 use syn::{Generics, Ident, Path};
 
-use codegen::{DefaultExpression, Field};
+use codegen::{DefaultExpression, Field, Variant};
 use codegen::field;
+use util::Body;
 
 #[derive(Debug)]
 pub struct TraitImpl<'a> {
     pub ident: &'a Ident,
     pub generics: &'a Generics,
     pub fields: Vec<Field<'a>>,
+    pub body: Body<Variant<'a>, Field<'a>>,
     pub default: Option<DefaultExpression<'a>>,
     pub map: Option<&'a Path>,
 }
@@ -17,17 +19,25 @@ impl<'a> TraitImpl<'a> {
     /// Generate local variable declarations for all fields.
     /// TODO: Mark this as `pub(in codegen)` once restricted visibility stabilizes.
     pub fn local_declarations(&self) -> Tokens {
-        let decls = self.fields.iter().map(Field::as_declaration);
-        quote!(#(#decls)*)
+        if let Body::Struct(ref vd) = self.body {
+            let vdr = vd.as_ref().map(Field::as_declaration);
+            let decls = vdr.fields();
+            quote!(#(#decls)*)
+        } else {
+            quote!()
+        }
     }
 
     /// Generate immutable variable declarations for all fields.
     /// TODO: Mark this as `pub(in codegen)` once restricted visiblity stabilizes.
     pub fn immutable_declarations(&self) -> Tokens {
-        let decls = self.fields
-            .iter()
-            .map(|f| field::Declaration::new(f, false));
-        quote!(#(#decls)*)
+        if let Body::Struct(ref vd) = self.body {
+            let vdr = vd.as_ref().map(|f| field::Declaration::new(f, false));
+            let decls = vdr.fields();
+            quote!(#(#decls)*)
+        } else {
+            quote!()
+        }
     }
 
     pub fn map_fn(&self) -> Option<Tokens> {
@@ -57,36 +67,5 @@ impl<'a> TraitImpl<'a> {
                 }
             }
         )
-    }
-}
-
-impl<'a> ToTokens for TraitImpl<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
-        let ty_ident = self.ident;
-        let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
-        let inits = self.fields.iter().map(Field::as_initializer);
-        let decls = self.local_declarations();
-        let core_loop = self.core_loop();
-        let default = self.fallback_decl();
-        let map = self.map_fn();
-        
-
-        tokens.append(quote!(
-            impl #impl_generics ::darling::FromMetaItem for #ty_ident #ty_generics 
-                #where_clause {
-                fn from_list(__items: &[::syn::NestedMetaItem]) -> ::darling::Result<Self> {
-                    
-                    #decls
-
-                    #core_loop
-
-                    #default
-
-                    Ok(#ty_ident {
-                        #(#inits),*
-                    }) #map
-                }
-            }
-        ));
     }
 }

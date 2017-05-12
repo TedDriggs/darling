@@ -1,3 +1,5 @@
+use std::fmt;
+
 /// An alias of `Result` specific to attribute parsing.
 pub type Result<T> = ::std::result::Result<T, Error>;
 
@@ -28,5 +30,11 @@ impl Error {
 
     pub fn unknown_value(value: &str) -> Self {
         Error(format!("Encountered unknown value `{}`", value))
+    }
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
     }
 }

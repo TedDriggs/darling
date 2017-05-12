@@ -73,13 +73,13 @@ fn parse_attr<T: ParseAttribute>(attr: &syn::Attribute, target: &mut T) -> Resul
                 if let syn::NestedMetaItem::MetaItem(ref mi) = *item {
                     target.parse_nested(mi)?;
                 } else {
-                    unimplemented!();
+                    panic!("Wasn't able to parse: `{:?}`", item);
                 }
             }
 
             Ok(())
         },
-        _ => unimplemented!()
+        ref item => panic!("Wasn't able to parse: `{:?}`", item)
     }
 }
 
@@ -89,15 +89,21 @@ pub trait ParseBody: Sized {
 
         match *body {
             Body::Struct(VariantData::Unit) => Ok(self),
+            Body::Struct(VariantData::Tuple(ref fields)) |
             Body::Struct(VariantData::Struct(ref fields)) => {
                 for field in fields {
                     self.parse_field(field)?;
                 }
 
                 Ok(self)
-            },
-            Body::Struct(_) => unimplemented!(),
-            Body::Enum(_) => unimplemented!(),
+            }
+            Body::Enum(ref variants) => {
+                for variant in variants {
+                    self.parse_variant(variant)?;
+                }
+
+                Ok(self)
+            }
         }
     }
 

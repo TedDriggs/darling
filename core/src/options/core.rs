@@ -113,9 +113,13 @@ impl<'a> From<&'a Core> for codegen::TraitImpl<'a> {
         codegen::TraitImpl {
             ident: &v.ident,
             generics: &v.generics,
+            body: v.body
+                .as_ref()
+                .map_struct(InputField::as_codegen_field)
+                .map_enum(|variant| variant.as_codegen_variant(&v.ident)),
             fields: match v.body {
                 Body::Struct(ref vd) => vd.fields().into_iter().map(InputField::as_codegen_field).collect(),
-                _ => unimplemented!()
+                _ => Vec::new(),
             },
             default: v.as_codegen_default(),
             map: v.map.as_ref(),
@@ -123,12 +127,15 @@ impl<'a> From<&'a Core> for codegen::TraitImpl<'a> {
     }
 }
 
-impl<'a> From<&'a Core> for codegen::EnumImpl<'a> {
-    fn from(v: &'a Core) -> Self {
-        codegen::EnumImpl {
-            ident: &v.ident,
-            generics: &v.generics,
-            variants: Default::default(),
-        }
-    }
-}
+// impl<'a> From<&'a Core> for codegen::EnumImpl<'a> {
+//     fn from(v: &'a Core) -> Self {
+//         codegen::EnumImpl {
+//             ident: &v.ident,
+//             generics: &v.generics,
+//             variants: match v.body {
+//                 Body::Enum(ref vars) => vars.iter().map(InputVariant::as_codegen_field),
+//                 Body::Struct(_) => panic!("Do not use EnumImpl for structs"),
+//             }
+//         }
+//     }
+// }

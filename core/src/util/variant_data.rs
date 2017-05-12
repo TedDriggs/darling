@@ -46,6 +46,13 @@ impl<T> VariantData<T> {
             VariantData::Unit => VariantData::Unit,
         }
     }
+
+    pub fn is_unit(&self) -> bool {
+        match *self {
+            VariantData::Unit => true,
+            _ => false,
+        }
+    }
 }
 
 impl<F: FromField> VariantData<F> {

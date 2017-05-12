@@ -33,8 +33,10 @@ impl ParseBody for FmiOptions {
     }
 }
 
-impl<'a> From<&'a FmiOptions> for codegen::TraitImpl<'a> {
+impl<'a> From<&'a FmiOptions> for codegen::FmiImpl<'a> {
     fn from(v: &'a FmiOptions) -> Self {
-        (&v.base).into()
+        codegen::FmiImpl {
+            base: (&v.base).into(),
+        }
     }
 }

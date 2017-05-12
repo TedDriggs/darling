@@ -46,7 +46,11 @@ impl ParseAttribute for OuterFrom {
 
 impl ParseBody for OuterFrom {
     fn parse_field(&mut self, field: &Field) -> Result<()> {
-        self.container.parse_field(field)
+        match field.ident.as_ref().map(|v| v.as_ref()) {
+            Some("ident") => { self.ident = field.ident.clone(); Ok(()) }
+            Some("attrs") => { self.attrs = field.ident.clone(); Ok(()) }
+            _ => self.container.parse_field(field)
+        }
     }
 }
 

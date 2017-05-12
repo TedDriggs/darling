@@ -20,6 +20,38 @@ impl<V, F> Body<V, F> {
             syn::Body::Struct(ref vd) => Body::Struct(VariantData::empty_from(vd)),
         }
     }
+
+    pub fn as_ref<'a>(&'a self) -> Body<&'a V, &'a F> {
+        match *self {
+            Body::Enum(ref variants) => Body::Enum(variants.into_iter().collect()),
+            Body::Struct(ref data) => Body::Struct(data.as_ref()),
+        }
+    }
+
+    pub fn map_enum<T, U>(self, map: T) -> Body<U, F> where T: FnMut(V) -> U {
+        match self {
+            Body::Enum(v) => Body::Enum(v.into_iter().map(map).collect()),
+            Body::Struct(f) => Body::Struct(f),
+        }
+    }
+
+    pub fn map_struct<T, U>(self, map: T) -> Body<V, U> where T: FnMut(F) -> U {
+        match self {
+            Body::Enum(v) => Body::Enum(v),
+            Body::Struct(f) => Body::Struct(f.map(map)),
+        }
+    }
+
+    pub fn is_enum(&self) -> bool {
+        match *self {
+            Body::Enum(_) => true,
+            Body::Struct(_) => false,
+        }
+    }
+
+    pub fn is_struct(&self) -> bool {
+        !self.is_enum()
+    }
 }
 
 impl<V: FromVariant, F> Body<V, F> {
