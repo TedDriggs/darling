@@ -126,16 +126,3 @@ impl<'a> From<&'a Core> for codegen::TraitImpl<'a> {
         }
     }
 }
-
-// impl<'a> From<&'a Core> for codegen::EnumImpl<'a> {
-//     fn from(v: &'a Core) -> Self {
-//         codegen::EnumImpl {
-//             ident: &v.ident,
-//             generics: &v.generics,
-//             variants: match v.body {
-//                 Body::Enum(ref vars) => vars.iter().map(InputVariant::as_codegen_field),
-//                 Body::Struct(_) => panic!("Do not use EnumImpl for structs"),
-//             }
-//         }
-//     }
-// }

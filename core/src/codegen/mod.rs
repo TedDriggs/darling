@@ -1,7 +1,6 @@
 use quote::Tokens;
 
 mod default_expr;
-mod enum_impl;
 mod field;
 mod fmi_impl;
 mod from_derive_impl;
@@ -10,7 +9,6 @@ mod trait_impl;
 mod variant;
 
 pub use self::default_expr::DefaultExpression;
-pub use self::enum_impl::EnumImpl;
 pub use self::field::Field;
 pub use self::fmi_impl::FmiImpl;
 pub use self::from_derive_impl::FromDeriveInputImpl;
