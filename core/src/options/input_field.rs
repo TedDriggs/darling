@@ -13,7 +13,7 @@ lazy_static! {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct MetaItemField {
+pub struct InputField {
     pub target_name: syn::Ident,
     pub attr_name: Option<String>,
     pub ty: syn::Ty,
@@ -23,7 +23,7 @@ pub struct MetaItemField {
     pub map: Option<syn::Path>,
 }
 
-impl MetaItemField {
+impl InputField {
     /// Generate a view into this field that can be used for code generation.
     pub fn as_codegen_field<'a>(&'a self) -> codegen::Field<'a> {
         codegen::Field {
@@ -50,7 +50,7 @@ impl MetaItemField {
     }
 
     fn new(target_name: syn::Ident, ty: syn::Ty) -> Self {
-        MetaItemField {
+        InputField {
             target_name,
             ty,
             attr_name: None,
@@ -61,9 +61,9 @@ impl MetaItemField {
         }
     }
 
-    pub fn from_field(f: syn::Field, parent: Option<&Core>) -> Result<Self> {
-        let target_name = f.ident.unwrap();
-        let ty = f.ty;
+    pub fn from_field(f: &syn::Field, parent: Option<&Core>) -> Result<Self> {
+        let target_name = f.ident.clone().unwrap();
+        let ty = f.ty.clone();
         let base = Self::new(target_name, ty).parse_attributes(&f.attrs)?;
         
         if let Some(container) = parent {
@@ -106,7 +106,7 @@ impl MetaItemField {
     }
 }
 
-impl ParseAttribute for MetaItemField {
+impl ParseAttribute for InputField {
     fn parse_nested(&mut self, mi: &syn::MetaItem) -> Result<()> {
         let name = mi.name().to_string();
         match name.as_str() {

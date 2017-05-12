@@ -1,54 +1,43 @@
-use syn::{Attribute, Generics, Ident, MetaItem};
+use syn::{self, Ident};
 
-use {FromMetaItem, Result};
+use {Result};
 use codegen::FromFieldImpl;
-use options::{Core, DefaultExpression, ForwardAttrs, ParseAttribute};
-use util::IdentList;
+use options::{ParseAttribute, ParseBody, OuterFrom};
+use util::Body;
 
+#[derive(Debug)]
 pub struct FromFieldOptions {
-    pub ident: Option<Ident>,
+    pub base: OuterFrom,
     pub vis: Option<Ident>,
     pub ty: Option<Ident>,
-    pub attrs: Option<Ident>,
-    pub attr_names: IdentList,
-    pub container: Core,
-    pub forward_attrs: Option<ForwardAttrs>,
-    pub from_ident: bool,
 }
 
 impl FromFieldOptions {
-    /// Create a new instance for the target name and generics.
-    pub fn new(target_name: Ident, generics: Generics, attrs: &[Attribute]) -> Result<Self> {
+    pub fn new(di: &syn::DeriveInput) -> Result<Self> {
         (FromFieldOptions {
-            container: {
-                let mut c = Core::from(target_name);
-                c.generics = generics;
-                c
-            },
-            ident: Default::default(),
+            base: OuterFrom::from((di.ident.clone(), Body::empty_from(&di.body))),
             vis: Default::default(),
             ty: Default::default(),
-            attrs: Default::default(),
-            attr_names: Default::default(),
-            forward_attrs: Default::default(),
-            from_ident: Default::default(),
-        }).parse_attributes(attrs)
+        }).parse_attributes(&di.attrs)?.parse_body(&di.body)
     }
 }
 
 impl ParseAttribute for FromFieldOptions {
-    fn parse_nested(&mut self, mi: &MetaItem) -> Result<()> {
-        match mi.name() {
-            "attributes" => { self.attr_names = FromMetaItem::from_meta_item(mi)?; Ok(()) }
-            "forward_attrs" => { self.forward_attrs = FromMetaItem::from_meta_item(mi)?; Ok(()) },
-            "from_ident" => {
-                // HACK: Declaring that a default is present will cause fields to
-                // generate correct code, but control flow isn't that obvious. 
-                self.container.default = Some(DefaultExpression::Trait);
-                self.from_ident = true; 
-                Ok(())
-            }
-            _ => self.container.parse_nested(mi)
+    fn parse_nested(&mut self, mi: &syn::MetaItem) -> Result<()> {
+        self.base.parse_nested(mi)
+    }
+}
+
+impl ParseBody for FromFieldOptions {
+    fn parse_variant(&mut self, variant: &syn::Variant) -> Result<()> {
+        self.base.parse_variant(variant)
+    }
+
+    fn parse_field(&mut self, field: &syn::Field) -> Result<()> {
+        match field.ident.as_ref().map(|v| v.as_ref()) {
+            Some("vis") => { self.vis = field.ident.clone(); Ok(()) },
+            Some("ty") => { self.ty = field.ident.clone(); Ok(()) }
+            _ => self.base.parse_field(field)
         }
     }
 }
@@ -56,14 +45,14 @@ impl ParseAttribute for FromFieldOptions {
 impl<'a> From<&'a FromFieldOptions> for FromFieldImpl<'a> {
     fn from(v: &'a FromFieldOptions) -> Self {
         FromFieldImpl {
-            ident: v.ident.as_ref(),
+            ident: v.base.ident.as_ref(),
             vis: v.vis.as_ref(),
             ty: v.ty.as_ref(),
-            attrs: v.attrs.as_ref(),
-            body: (&v.container).into(),
-            attr_names: v.attr_names.as_strs(),
-            forward_attrs: v.forward_attrs.as_ref(),
-            from_ident: v.from_ident,
+            attrs: v.base.attrs.as_ref(),
+            body: (&v.base.container).into(),
+            attr_names: v.base.attr_names.as_strs(),
+            forward_attrs: v.base.forward_attrs.as_ref(),
+            from_ident: v.base.from_ident,
         }
     }
 }

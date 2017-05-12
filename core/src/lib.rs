@@ -27,43 +27,5 @@ pub use from_variant::FromVariant;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
-    #[test]
-    fn do_things() {
-        let foo = options::MetaItemField {
-            target_name: syn::parse_ident("lorem").unwrap(),
-            attr_name: Some("ipsum".to_string()),
-            ty: syn::parse_type("bool").unwrap(),
-            default: None,
-            with: None,
-            skip: false,
-            map: None,
-        };
-
-        let bar = options::MetaItemField {
-            target_name: syn::parse_ident("dolor").unwrap(),
-            attr_name: None,
-            ty: syn::parse_type("String").unwrap(),
-            default: None,
-            with: None,
-            skip: false,
-            map: None,
-        };
-
-        let container = options::Core {
-            ident: syn::parse_ident("Foo").unwrap(),
-            generics: Default::default(),
-            default: Default::default(),
-            rename_rule: Default::default(),
-            map: Default::default(),
-        };
-
-        let derive_tgt = codegen::TraitImpl {
-            fields: vec![foo.as_codegen_field(), bar.as_codegen_field()],
-            ..(&container).into()
-        };
-
-        println!("{}", quote!(#derive_tgt));
-    }
+    
 }

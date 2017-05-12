@@ -5,11 +5,15 @@ use util::VariantData;
 /// Contents of a type.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Body<V, F> {
+    /// Type is an enum.
     Enum(Vec<V>),
+
+    /// Type is a struct.
     Struct(VariantData<F>),
 }
 
 impl<V, F> Body<V, F> {
+    /// Creates an empty body of the same shape as the passed-in body.
     pub fn empty_from(src: &syn::Body) -> Self {
         match *src {
             syn::Body::Enum(_) => Body::Enum(vec![]),

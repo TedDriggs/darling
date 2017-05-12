@@ -2,26 +2,31 @@ use syn;
 
 use {FromMetaItem, Error, Result};
 use codegen;
-use options::{Core, ParseAttribute};
+use options::{Core, InputField, ParseAttribute};
+use util::VariantData;
 
-pub struct Variant {
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InputVariant {
     ident: syn::Ident,
     attr_name: Option<String>,
+    data: VariantData<InputField>,
 }
 
-impl Variant {
+impl InputVariant {
     pub fn as_codegen_variant<'a>(&'a self, ty_ident: &'a syn::Ident) -> codegen::Variant<'a> {
         codegen::Variant {
             name_in_attr: self.attr_name.as_ref().map(|s| s.as_str()).unwrap_or(self.ident.as_ref()),
             variant_ident: &self.ident,
             ty_ident,
+            data: self.data.as_ref().map(InputField::as_codegen_field)
         }
     }
 
-    pub fn from_variant(v: syn::Variant, parent: Option<&Core>) -> Result<Self> {
-        let starter = (Variant {
-            ident: v.ident,
-            attr_name: Default::default()
+    pub fn from_variant(v: &syn::Variant, parent: Option<&Core>) -> Result<Self> {
+        let starter = (InputVariant {
+            ident: v.ident.clone(),
+            attr_name: Default::default(),
+            data: VariantData::empty_from(&v.data)
         }).parse_attributes(&v.attrs)?;
 
         Ok(if let Some(p) = parent {
@@ -40,7 +45,7 @@ impl Variant {
     }
 }
 
-impl ParseAttribute for Variant {
+impl ParseAttribute for InputVariant {
     fn parse_nested(&mut self, mi: &syn::MetaItem) -> Result<()> {
         let name = mi.name().to_string();
         match name.as_str() {

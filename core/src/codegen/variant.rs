@@ -1,6 +1,9 @@
 use quote::{Tokens, ToTokens};
 use syn::Ident;
 
+use codegen::Field;
+use util::VariantData;
+
 /// An enum variant.
 pub struct Variant<'a> {
     /// The name which will appear in code passed to the `FromMetaItem` input.
@@ -11,17 +14,19 @@ pub struct Variant<'a> {
 
     /// The name of the parent enum type.
     pub ty_ident: &'a Ident,
+
+    pub data: VariantData<Field<'a>>,
 }
 
 impl<'a> Variant<'a> {
-    pub fn as_match_arm(&'a self) -> MatchArm<'a> {
-        MatchArm(self)
+    pub fn as_match_arm(&'a self) -> UnitMatchArm<'a> {
+        UnitMatchArm(self)
     }
 }
 
-pub struct MatchArm<'a>(&'a Variant<'a>);
+pub struct UnitMatchArm<'a>(&'a Variant<'a>);
 
-impl<'a> ToTokens for MatchArm<'a> {
+impl<'a> ToTokens for UnitMatchArm<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
         let name_in_attr = self.0.name_in_attr;
         let variant_ident = self.0.variant_ident;

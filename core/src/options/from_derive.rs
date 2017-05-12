@@ -1,9 +1,9 @@
-use ident_case::RenameRule;
-use syn::{MetaItem, Ident, Generics, Attribute};
+use syn::{self, Ident};
 
 use Result;
 use codegen;
-use options::{Core, ParseAttribute, OuterFrom};
+use options::{ParseAttribute, ParseBody, OuterFrom};
+use util::Body;
 
 #[derive(Debug)]
 pub struct FdiOptions {
@@ -19,28 +19,34 @@ pub struct FdiOptions {
 }
 
 impl FdiOptions {
-    pub fn new(ident: Ident, generics: Generics, attrs: &[Attribute]) -> Result<Self> {
+    pub fn new(di: &syn::DeriveInput) -> Result<Self> {
         (FdiOptions {
-                base: OuterFrom {
-                    container: Core {
-                        ident: ident,
-                        generics: generics,
-                        default: None,
-                        rename_rule: RenameRule::None,
-                        map: Default::default(),
-                        fields: Default::default(),
-                    },
-                    attr_names: Default::default(),
-                    attrs: Default::default(),
-                    forward_attrs: Default::default(),
-                    from_ident: Default::default(),
-                    ident: Default::default(),
-                },
-                vis: Default::default(),
-                generics: Default::default(),
-                body: None,
-            })
-            .parse_attributes(attrs)
+            base: OuterFrom::from((di.ident.clone(), Body::empty_from(&di.body))),
+            vis: Default::default(),
+            generics: Default::default(),
+            body: Default::default(),
+        }).parse_attributes(&di.attrs)?.parse_body(&di.body)
+    }
+}
+
+impl ParseAttribute for FdiOptions {
+    fn parse_nested(&mut self, mi: &syn::MetaItem) -> Result<()> {
+        self.base.parse_nested(mi)
+    }
+}
+
+impl ParseBody for FdiOptions {
+    fn parse_variant(&mut self, variant: &syn::Variant) -> Result<()> {
+        self.base.parse_variant(variant)
+    }
+
+    fn parse_field(&mut self, field: &syn::Field) -> Result<()> {
+        match field.ident.as_ref().map(|v| v.as_ref()) {
+            Some("vis") => { self.vis = field.ident.clone(); Ok(()) }
+            Some("body") => { self.body = field.ident.clone(); Ok(()) }
+            Some("generics") => { self.generics = field.ident.clone(); Ok(()) }
+            _ => self.base.parse_field(field)
+        }
     }
 }
 
@@ -56,11 +62,5 @@ impl<'a> From<&'a FdiOptions> for codegen::FromDeriveInputImpl<'a> {
             attrs: v.base.attrs.as_ref(),
             forward_attrs: v.base.forward_attrs.as_ref(),
         }
-    }
-}
-
-impl ParseAttribute for FdiOptions {
-    fn parse_nested(&mut self, mi: &MetaItem) -> Result<()> {
-        self.base.parse_nested(mi)
     }
 }

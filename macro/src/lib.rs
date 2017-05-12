@@ -14,39 +14,9 @@ use darling_core::{options, codegen};
 pub fn derive(input: TokenStream) -> TokenStream {
     let ast = parse_derive_input(&input.to_string()).unwrap();
     
-    let container = options::Core::new(ast.ident, ast.generics, &ast.attrs).unwrap();
-
-    let result = match ast.body {
-        syn::Body::Struct(syn::VariantData::Struct(fields_in)) => {
-            let mut fields = Vec::with_capacity(fields_in.len());
-            for field_in in fields_in {
-                fields.push(options::MetaItemField::from_field(field_in, Some(&container)).unwrap());
-            }
-
-            let trait_impl = codegen::TraitImpl {
-                fields: fields.iter().map(options::MetaItemField::as_codegen_field).collect(),
-                ..(&container).into()
-            };
-
-            quote!(#trait_impl)
-        },
-        syn::Body::Enum(src_variants) => {
-            let mut variants = Vec::with_capacity(src_variants.len());
-            for src_var in src_variants {
-                variants.push(options::Variant::from_variant(src_var, Some(&container)).unwrap());
-            }
-
-            let enum_impl = codegen::EnumImpl {
-                variants: variants.iter()
-                    .map(|v| v.as_codegen_variant(&container.ident))
-                    .collect(),
-                ..(&container).into()
-            };
-
-            quote!(#enum_impl)
-        }
-        bd => panic!("Unsupported body `{:?}`", bd)
-    };
+    let container = options::FmiOptions::new(&ast).unwrap();
+    let trait_impl = codegen::TraitImpl::from(&container);
+    let result = quote!(#trait_impl);
 
     result.parse().expect(&format!("Couldn't parse `{}` to tokens", result))
 }
@@ -55,7 +25,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
 pub fn derive_from_input(input: TokenStream) -> TokenStream {
     let ast = parse_derive_input(&input.to_string()).unwrap();
     
-    let mut fdic = options::FdiOptions::new(ast.ident, ast.generics, &ast.attrs).unwrap();
+    let mut fdic = options::FdiOptions::new(&ast).unwrap();
 
     let result = match ast.body {
         syn::Body::Struct(syn::VariantData::Struct(fields_in)) => {
@@ -67,12 +37,12 @@ pub fn derive_from_input(input: TokenStream) -> TokenStream {
                     Some("vis") => fdic.vis = Some("vis".into()),
                     Some("generics") => fdic.generics = Some("generics".into()),
                     Some("attrs") => fdic.base.attrs = Some("attrs".into()),
-                    _ => fields.push(options::MetaItemField::from_field(field_in, Some(&fdic.base.container)).unwrap())
+                    _ => fields.push(options::InputField::from_field(&field_in, Some(&fdic.base.container)).unwrap())
                 }
             }
 
             let trait_impl = codegen::TraitImpl {
-                fields: fields.iter().map(options::MetaItemField::as_codegen_field).collect(),
+                fields: fields.iter().map(options::InputField::as_codegen_field).collect(),
                 ..(&fdic.base.container).into()
             };
 
@@ -93,36 +63,9 @@ pub fn derive_from_input(input: TokenStream) -> TokenStream {
 pub fn derive_field(input: TokenStream) -> TokenStream {
     let ast = parse_derive_input(&input.to_string()).unwrap();
     
-    let mut fdic = options::FromFieldOptions::new(ast.ident, ast.generics, &ast.attrs).unwrap();
-    
-    let result = match ast.body {
-        syn::Body::Struct(syn::VariantData::Struct(fields_in)) => {
-
-            let mut fields = Vec::with_capacity(fields_in.len());
-            for field_in in fields_in {
-                match field_in.ident.as_ref().map(|v| v.as_ref()) {
-                    Some("ident") => fdic.ident = Some("ident".into()),
-                    Some("vis") => fdic.vis = Some("vis".into()),
-                    Some("ty") => fdic.ty = Some("ty".into()),
-                    Some("attrs") => fdic.attrs = Some("attrs".into()),
-                    _ => fields.push(options::MetaItemField::from_field(field_in, Some(&fdic.container)).unwrap())
-                }
-            }
-
-            let trait_impl = codegen::TraitImpl {
-                fields: fields.iter().map(options::MetaItemField::as_codegen_field).collect(),
-                ..(&fdic.container).into()
-            };
-
-            let fdi_view = codegen::FromFieldImpl {
-                body: trait_impl,
-                ..(&fdic).into()
-            };
-            
-            quote!(#fdi_view)
-        },
-        bd => panic!("Unsupported body `{:?}`", bd)
-    };
+    let fdic = options::FromFieldOptions::new(&ast).unwrap();
+    let generator = codegen::FromFieldImpl::from(&fdic);
+    let result = quote!(#generator);
 
     result.parse().expect(&format!("Couldn't parse `{}` to tokens", result))
 }

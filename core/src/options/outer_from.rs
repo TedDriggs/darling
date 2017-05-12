@@ -1,7 +1,7 @@
-use syn::{Ident, MetaItem};
+use syn::{Field, Ident, MetaItem};
 
 use {FromMetaItem, Result};
-use options::{Core, DefaultExpression, ForwardAttrs, ParseAttribute};
+use options::{Body, Core, DefaultExpression, ForwardAttrs, ParseAttribute, ParseBody};
 use util::IdentList;
 
 /// Reusable base for `FromDeriveInput`, `FromVariant`, `FromField`, and other top-level 
@@ -40,6 +40,25 @@ impl ParseAttribute for OuterFrom {
                 Ok(())
             }
             _ => self.container.parse_nested(mi)
+        }
+    }
+}
+
+impl ParseBody for OuterFrom {
+    fn parse_field(&mut self, field: &Field) -> Result<()> {
+        self.container.parse_field(field)
+    }
+}
+
+impl From<(Ident, Body)> for OuterFrom {
+    fn from(v: (Ident, Body)) -> Self {
+        OuterFrom {
+            container: Core::from(v),
+            attr_names: Default::default(),
+            attrs: Default::default(),
+            forward_attrs: Default::default(),
+            from_ident: Default::default(),
+            ident: Default::default(),
         }
     }
 }

@@ -3,7 +3,8 @@ use syn;
 
 use {Result, Error, FromMetaItem};
 use codegen;
-use options::{DefaultExpression, MetaItemField, ParseAttribute};
+use options::{DefaultExpression, InputField, InputVariant, ParseAttribute, ParseBody};
+use util::{Body, VariantData};
 
 /// A struct or enum which should have `FromMetaItem` or `FromDeriveInput` implementations
 /// generated.
@@ -27,8 +28,8 @@ pub struct Core {
     /// target instance is successfully constructed.
     pub map: Option<syn::Path>,
 
-    /// The fields of the deriving struct.
-    pub fields: Vec<MetaItemField>,
+    /// The body of the _deriving_ type.
+    pub body: Body<InputVariant,InputField>,
 }
 
 impl Core {
@@ -39,7 +40,7 @@ impl Core {
             generics: generics,
             default: None,
             rename_rule: RenameRule::None,
-            fields: Default::default(),
+            body: Body::Struct(VariantData::Unit),
             map: None,
         }).parse_attributes(attrs)
     }
@@ -66,12 +67,56 @@ impl ParseAttribute for Core {
     }
 }
 
+impl ParseBody for Core {
+    fn parse_variant(&mut self, variant: &syn::Variant) -> Result<()> {
+        let v = InputVariant::from_variant(variant, Some(&self))?;
+
+        match self.body {
+            Body::Enum(ref mut variants) => {
+                variants.push(v);
+                Ok(())
+            }
+            Body::Struct(_) => panic!("Core::parse_variant should never be called for a struct"),
+        }
+    }
+
+    fn parse_field(&mut self, field: &syn::Field) -> Result<()> {
+        let f = InputField::from_field(field, Some(&self))?;
+
+        match self.body {
+            Body::Struct(VariantData::Struct(ref mut fields))
+            | Body::Struct(VariantData::Tuple(ref mut fields)) => {
+                fields.push(f);
+                Ok(())
+            }
+            Body::Struct(VariantData::Unit) => panic!("Core::parse_field should not be called on unit"),
+            Body::Enum(_) => panic!("Core::parse_field should never be called for an enum"),
+        }
+    }
+}
+
+impl From<(syn::Ident, Body<InputVariant, InputField>)> for Core { 
+    fn from((ident, body): (syn::Ident, Body<InputVariant, InputField>)) -> Self {
+        Core {
+            ident,
+            body,
+            generics: Default::default(),
+            default: Default::default(),
+            rename_rule: RenameRule::None,
+            map: Default::default(),
+        }
+    }
+}
+
 impl<'a> From<&'a Core> for codegen::TraitImpl<'a> {
     fn from(v: &'a Core) -> Self {
         codegen::TraitImpl {
             ident: &v.ident,
             generics: &v.generics,
-            fields: vec![],
+            fields: match v.body {
+                Body::Struct(ref vd) => vd.fields().into_iter().map(InputField::as_codegen_field).collect(),
+                _ => unimplemented!()
+            },
             default: v.as_codegen_default(),
             map: v.map.as_ref(),
         }
@@ -84,19 +129,6 @@ impl<'a> From<&'a Core> for codegen::EnumImpl<'a> {
             ident: &v.ident,
             generics: &v.generics,
             variants: Default::default(),
-        }
-    }
-}
-
-impl From<syn::Ident> for Core { 
-    fn from(ident: syn::Ident) -> Self {
-        Core {
-            ident,
-            generics: Default::default(),
-            default: Default::default(),
-            rename_rule: RenameRule::None,
-            map: Default::default(),
-            fields: Default::default(),
         }
     }
 }
