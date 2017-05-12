@@ -1,20 +1,20 @@
-use syn::{Field, Variant};
+use syn::{self, Variant};
 use {FromField, FromVariant, Result};
+use util::VariantData;
 
 /// Contents of a type.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Body<V, F> {
-    Variants(Vec<V>),
-    Fields(Vec<F>),
+    Enum(Vec<V>),
+    Struct(VariantData<F>),
 }
 
-impl<V, F: FromField> Body<V, F> {
-    pub fn from_fields(fields: &[Field]) -> Result<Self> {
-        let mut f = Vec::with_capacity(fields.len());
-        for field in fields {
-            f.push(FromField::from_field(field)?);
+impl<V, F> Body<V, F> {
+    pub fn empty_from(src: &syn::Body) -> Self {
+        match *src {
+            syn::Body::Enum(_) => Body::Enum(vec![]),
+            syn::Body::Struct(ref vd) => Body::Struct(VariantData::empty_from(vd)),
         }
-
-        Ok(Body::Fields(f))
     }
 }
 
@@ -25,6 +25,15 @@ impl<V: FromVariant, F> Body<V, F> {
             v.push(FromVariant::from_variant(variant)?);
         }
 
-        Ok(Body::Variants(v))
+        Ok(Body::Enum(v))
+    }
+}
+
+impl<V: FromVariant, F: FromField> Body<V, F> {
+    pub fn from_body(body: &syn::Body) -> Result<Self> {
+        match *body {
+            syn::Body::Enum(ref variants) => Self::from_variants(variants),
+            syn::Body::Struct(ref v_data) => VariantData::from(v_data).map(Body::Struct),
+        }
     }
 }
