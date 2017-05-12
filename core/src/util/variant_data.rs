@@ -82,3 +82,12 @@ impl<F: FromField> VariantData<F> {
         }
     }
 }
+
+impl<T> Into<Vec<T>> for VariantData<T> {
+    fn into(self) -> Vec<T> {
+        match self {
+            VariantData::Struct(fields) | VariantData::Tuple(fields) => fields,
+            VariantData::Unit => Vec::new(),
+        }
+    }
+}
