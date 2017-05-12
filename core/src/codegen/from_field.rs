@@ -1,7 +1,7 @@
 use quote::{Tokens, ToTokens};
 use syn::Ident;
 
-use codegen::{Field, TraitImpl, ExtractAttribute};
+use codegen::{TraitImpl, ExtractAttribute};
 use options::ForwardAttrs;
 
 /// `impl FromField` generator. This is used for parsing an individual
@@ -24,7 +24,7 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
         let ty_ident = self.body.ident;
         let (impl_generics, ty_generics, where_clause) = self.body.generics.split_for_impl();
 
-        let initializers = self.body.fields.iter().map(Field::as_initializer);
+        let initializers = self.body.initializers();
         let default = if self.from_ident {
             quote!(let __default: Self = ::darling::export::From::from(#input.ident.clone());)
         } else {
@@ -54,7 +54,7 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
                         #passed_ty
                         #passed_vis
                         #passed_attrs
-                        #(#initializers),*
+                        #initializers
                     }) #map
                     
                 }

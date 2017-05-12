@@ -1,7 +1,7 @@
 use quote::{Tokens, ToTokens};
 use syn::Ident;
 
-use codegen::{Field, TraitImpl, ExtractAttribute};
+use codegen::{TraitImpl, ExtractAttribute};
 use options::ForwardAttrs;
 
 pub struct FromDeriveInputImpl<'a> {
@@ -26,7 +26,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
 
         let ty_ident = self.struct_impl.ident;
         let (impl_generics, ty_generics, where_clause) = self.struct_impl.generics.split_for_impl();
-        let inits = self.struct_impl.fields.iter().map(Field::as_initializer);
+        let inits = self.struct_impl.initializers();
         let default = if let Some(true) = self.from_ident {
             quote!(let __default: Self = ::darling::export::From::from(#input.ident.clone());)
         } else {
@@ -50,7 +50,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
                         #passed_generics
                         #passed_vis
                         #passed_attrs
-                        #(#inits),*
+                        #inits
                     }) #map
                 }
             } 

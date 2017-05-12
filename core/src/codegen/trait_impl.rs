@@ -1,7 +1,7 @@
 use quote::{Tokens};
 use syn::{Generics, Ident, Path};
 
-use codegen::{DefaultExpression, Field, Variant};
+use codegen::{DefaultExpression, Field, Variant, VariantDataGen};
 use codegen::field;
 use util::Body;
 
@@ -9,7 +9,6 @@ use util::Body;
 pub struct TraitImpl<'a> {
     pub ident: &'a Ident,
     pub generics: &'a Generics,
-    pub fields: Vec<Field<'a>>,
     pub body: Body<Variant<'a>, Field<'a>>,
     pub default: Option<DefaultExpression<'a>>,
     pub map: Option<&'a Path>,
@@ -51,21 +50,27 @@ impl<'a> TraitImpl<'a> {
         quote!(#default)
     }
 
+    pub fn initializers(&self) -> Tokens {
+        let foo = match self.body {
+            Body::Enum(_) => panic!("Core loop on enums isn't supported"),
+            Body::Struct(ref data) => { 
+                VariantDataGen(data)
+            }
+        };
+
+        foo.initializers()
+    }
+
     /// Generate the loop which walks meta items looking for property matches.
     /// TODO: Mark this as `pub(in codegen)` once restricted visibility stabilizes.
     pub fn core_loop(&self) -> Tokens {
-        let arms = self.fields.iter().map(Field::as_match);
-
-        quote!(
-            for __item in __items {
-                if let ::syn::NestedMetaItem::MetaItem(ref __inner) = *__item {
-                    let __name = __inner.name().to_string();
-                    match __name.as_str() {
-                        #(#arms)*
-                        __other => return ::darling::export::Err(::darling::Error::unknown_field(__other))
-                    }
-                }
+        let foo = match self.body {
+            Body::Enum(_) => panic!("Core loop on enums isn't supported"),
+            Body::Struct(ref data) => { 
+                VariantDataGen(data)
             }
-        )
+        };
+
+        foo.core_loop()
     }
 }

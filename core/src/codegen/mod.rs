@@ -7,6 +7,7 @@ mod from_derive_impl;
 mod from_field;
 mod trait_impl;
 mod variant;
+mod variant_data;
 
 pub use self::default_expr::DefaultExpression;
 pub use self::field::Field;
@@ -15,6 +16,7 @@ pub use self::from_derive_impl::FromDeriveInputImpl;
 pub use self::from_field::FromFieldImpl;
 pub use self::trait_impl::TraitImpl;
 pub use self::variant::Variant;
+pub use self::variant_data::VariantDataGen;
 
 use options::ForwardAttrs;
 

@@ -28,17 +28,31 @@ impl<V, F> Body<V, F> {
         }
     }
 
-    pub fn map_enum<T, U>(self, map: T) -> Body<U, F> where T: FnMut(V) -> U {
+    pub fn map_enum_variants<T, U>(self, map: T) -> Body<U, F> where T: FnMut(V) -> U {
         match self {
             Body::Enum(v) => Body::Enum(v.into_iter().map(map).collect()),
             Body::Struct(f) => Body::Struct(f),
         }
     }
 
-    pub fn map_struct<T, U>(self, map: T) -> Body<V, U> where T: FnMut(F) -> U {
+    pub fn map_struct_fields<T, U>(self, map: T) -> Body<V, U> where T: FnMut(F) -> U {
         match self {
             Body::Enum(v) => Body::Enum(v),
             Body::Struct(f) => Body::Struct(f.map(map)),
+        }
+    }
+
+    pub fn map_struct<T, U>(self, mut map: T) -> Body<V, U> where T: FnMut(VariantData<F>) -> VariantData<U> {
+        match self {
+            Body::Enum(v) => Body::Enum(v),
+            Body::Struct(f) => Body::Struct(map(f)),
+        }
+    }
+
+    pub fn take_struct(self) -> Option<VariantData<F>> {
+        match self {
+            Body::Enum(_) => None,
+            Body::Struct(f) => Some(f),
         }
     }
 

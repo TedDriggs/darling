@@ -115,12 +115,8 @@ impl<'a> From<&'a Core> for codegen::TraitImpl<'a> {
             generics: &v.generics,
             body: v.body
                 .as_ref()
-                .map_struct(InputField::as_codegen_field)
-                .map_enum(|variant| variant.as_codegen_variant(&v.ident)),
-            fields: match v.body {
-                Body::Struct(ref vd) => vd.fields().into_iter().map(InputField::as_codegen_field).collect(),
-                _ => Vec::new(),
-            },
+                .map_struct_fields(InputField::as_codegen_field)
+                .map_enum_variants(|variant| variant.as_codegen_variant(&v.ident)),
             default: v.as_codegen_default(),
             map: v.map.as_ref(),
         }
