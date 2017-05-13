@@ -23,11 +23,31 @@ impl InputVariant {
     }
 
     pub fn from_variant(v: &syn::Variant, parent: Option<&Core>) -> Result<Self> {
-        let starter = (InputVariant {
+        let mut starter = (InputVariant {
             ident: v.ident.clone(),
             attr_name: Default::default(),
-            data: VariantData::empty_from(&v.data)
+            data: VariantData::empty_from(&v.data),
         }).parse_attributes(&v.attrs)?;
+
+        starter.data = match v.data {
+            syn::VariantData::Struct(ref fields) => {
+                let mut items = Vec::with_capacity(fields.len());
+                for item in fields {
+                    items.push(InputField::from_field(item, parent)?);
+                }
+
+                VariantData::Struct(items)
+            }
+            syn::VariantData::Tuple(ref fields) => {
+                let mut items = Vec::with_capacity(fields.len());
+                for item in fields {
+                    items.push(InputField::from_field(item, parent)?);
+                }
+
+                VariantData::Tuple(items)
+            }
+            syn::VariantData::Unit => VariantData::Unit
+        };
 
         Ok(if let Some(p) = parent {
             starter.with_inherited(p)

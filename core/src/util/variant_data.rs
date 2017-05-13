@@ -57,6 +57,22 @@ impl<T> VariantData<T> {
             _ => false,
         }
     }
+
+    /// Returns `true` if this is a struct-style variant with named fields.
+    pub fn is_struct(&self) -> bool {
+        match *self {
+            VariantData::Struct(_) => true,
+            _ => false,
+        }
+    }
+
+    /// Returns `true` if this is a tuple-style variant with unnamed fields.
+    pub fn is_tuple(&self) -> bool {
+        match *self {
+            VariantData::Tuple(_) => true,
+            _ => false,
+        }
+    }
 }
 
 impl<F: FromField> VariantData<F> {

@@ -9,7 +9,7 @@ pub struct VariantDataGen<'a>(pub &'a VariantData<Field<'a>>);
 
 #[allow(dead_code)]
 impl<'a> VariantDataGen<'a> {
-    fn declarations(&self) -> Tokens {
+    pub fn declarations(&self) -> Tokens {
         match *self.0 {
             VariantData::Struct(ref fields) => {
                 let vdr = fields.into_iter().map(Field::as_declaration);
