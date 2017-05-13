@@ -2,6 +2,9 @@ use syn;
 
 use {FromField, Result};
 
+/// A generic container which holds the body of a struct or enum variant.
+/// This is an exact match of `syn::VariantData`, but it allows for arbitrary
+/// types to support parsing scenarios.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VariantData<T> {
     Tuple(Vec<T>),
