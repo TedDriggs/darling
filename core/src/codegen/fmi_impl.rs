@@ -55,12 +55,34 @@ impl<'a> ToTokens for FmiImpl<'a> {
                 )
             }
             Body::Enum(ref variants) => {
-                let arms = variants.iter().map(Variant::as_match_arm);
+                let unit_arms = variants.iter().map(Variant::as_unit_match_arm);
+                let struct_arms = variants.iter().map(Variant::as_struct_match_arm);
 
                 quote!(
+                    fn from_list(__outer: &[::syn::NestedMetaItem]) -> Result<Self> {
+                        match __outer.len() {
+                            __x if __x < 1 => ::darling::export::Err(::darling::Error::too_few_items(1)),
+                            __x if __x > 1 => ::darling::export::Err(::darling::Error::too_many_items(1)),
+                            1 => {
+                                if let ::syn::NestedMetaItem::MetaItem(ref __nested) = __outer[0] {
+                                    if let ::syn::MetaItem::List(_, ref __items) = __nested {
+                                        match __nested.name() {
+                                            #(#struct_arms)*
+                                            __other => ::darling::export::Err(::darling::Error::unknown_value(__other))
+                                        }
+                                    } else {
+                                        ::darling::export::Err(::darling::Error::unsupported_format("non-list"))
+                                    }                                    
+                                } else {
+                                    ::darling::export::Err(::darling::Error::unsupported_format("literal"))
+                                }
+                            }
+                        }
+                    }
+
                     fn from_string(lit: &str) -> ::darling::Result<Self> {
                         match lit {
-                            #(#arms)*
+                            #(#unit_arms)*
                             __other => ::darling::export::Err(::darling::Error::unknown_value(__other))
                         }
                     }

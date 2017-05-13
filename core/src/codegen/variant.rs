@@ -1,7 +1,7 @@
 use quote::{Tokens, ToTokens};
 use syn::Ident;
 
-use codegen::Field;
+use codegen::{Field, VariantDataGen};
 use util::VariantData;
 
 /// An enum variant.
@@ -20,8 +20,12 @@ pub struct Variant<'a> {
 }
 
 impl<'a> Variant<'a> {
-    pub fn as_match_arm(&'a self) -> UnitMatchArm<'a> {
+    pub fn as_unit_match_arm(&'a self) -> UnitMatchArm<'a> {
         UnitMatchArm(self)
+    }
+
+    pub fn as_struct_match_arm(&'a self) -> StructMatchArm<'a> {
+        StructMatchArm(self)
     }
 }
 
@@ -30,10 +34,11 @@ pub struct UnitMatchArm<'a>(&'a Variant<'a>);
 impl<'a> ToTokens for UnitMatchArm<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
         let name_in_attr = self.0.name_in_attr;
-        let variant_ident = self.0.variant_ident;
-        let ty_ident = self.0.ty_ident;
 
         if self.0.data.is_unit() {
+            let variant_ident = self.0.variant_ident;
+            let ty_ident = self.0.ty_ident;
+
             tokens.append(quote!(
                 #name_in_attr => ::darling::export::Ok(#ty_ident::#variant_ident),
             ));
@@ -42,5 +47,38 @@ impl<'a> ToTokens for UnitMatchArm<'a> {
                 #name_in_attr => ::darling::export::Err(::darling::Error::unsupported_format("literal")),
             ));
         }
+    }
+}
+
+pub struct StructMatchArm<'a>(&'a Variant<'a>);
+
+impl<'a> ToTokens for StructMatchArm<'a> {
+    fn to_tokens(&self, tokens: &mut Tokens) {
+        let val: &Variant<'a> = self.0;
+        let name_in_attr = val.name_in_attr;
+        let variant_ident = val.variant_ident;
+        let ty_ident = val.ty_ident;
+
+        tokens.append(if val.data.is_struct() {
+            let vdg = VariantDataGen(&val.data);
+
+            let decls = vdg.declarations();
+            let core_loop = vdg.core_loop();
+            let inits = vdg.initializers();
+
+            quote!(
+                #name_in_attr => {
+                    #decls
+                    #core_loop
+                    ::darling::export::Ok(#ty_ident::#variant_ident {
+                        #inits
+                    })
+                }
+            )
+        } else {
+            quote!(
+                #name_in_attr => ::darling::export::Err(::darling::Error::unsupported_format("list")),
+            )
+        });
     }
 }
