@@ -32,11 +32,11 @@ impl Error {
         Error(format!("Encountered unknown value `{}`", value))
     }
 
-    pub fn too_few_values(min: usize) -> Self {
+    pub fn too_few_items(min: usize) -> Self {
         Error(format!("Didn't get enough values; expected {}", min))
     }
 
-    pub fn too_many_values(max: usize) -> Self {
+    pub fn too_many_items(max: usize) -> Self {
         Error(format!("Got too many values; expected no more than {}", max))
     }
 }
