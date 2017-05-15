@@ -24,8 +24,8 @@ impl<'a> Variant<'a> {
         UnitMatchArm(self)
     }
 
-    pub fn as_struct_match_arm(&'a self) -> StructMatchArm<'a> {
-        StructMatchArm(self)
+    pub fn as_data_match_arm(&'a self) -> DataMatchArm<'a> {
+        DataMatchArm(self)
     }
 }
 
@@ -50,23 +50,32 @@ impl<'a> ToTokens for UnitMatchArm<'a> {
     }
 }
 
-pub struct StructMatchArm<'a>(&'a Variant<'a>);
+pub struct DataMatchArm<'a>(&'a Variant<'a>);
 
-impl<'a> ToTokens for StructMatchArm<'a> {
+impl<'a> ToTokens for DataMatchArm<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
         let val: &Variant<'a> = self.0;
         let name_in_attr = val.name_in_attr;
         let variant_ident = val.variant_ident;
         let ty_ident = val.ty_ident;
 
-        tokens.append(if val.data.is_struct() {
-            let vdg = VariantDataGen(&val.data);
+        if val.data.is_unit() {
+            tokens.append(quote!(
+                #name_in_attr => ::darling::export::Err(::darling::Error::unsupported_format("list")),
+            ));
 
+            return;
+        }
+
+        
+        let vdg = VariantDataGen(&val.data);
+
+        if val.data.is_struct() {
             let decls = vdg.declarations();
             let core_loop = vdg.core_loop();
             let inits = vdg.initializers();
 
-            quote!(
+            tokens.append(quote!(
                 #name_in_attr => {
                     if let ::syn::MetaItem::List(_, ref __items) = *__nested {
                         #decls
@@ -78,11 +87,9 @@ impl<'a> ToTokens for StructMatchArm<'a> {
                         ::darling::export::Err(::darling::Error::unsupported_format("non-list"))
                     }
                 }
-            )
+            ));
         } else {
-            quote!(
-                #name_in_attr => ::darling::export::Err(::darling::Error::unsupported_format("list")),
-            )
-        });
+            panic!("Match arms aren't supported for tuple variants yet");
+        }
     }
 }

@@ -56,7 +56,7 @@ impl<'a> ToTokens for FmiImpl<'a> {
             }
             Body::Enum(ref variants) => {
                 let unit_arms = variants.iter().map(Variant::as_unit_match_arm);
-                let struct_arms = variants.iter().map(Variant::as_struct_match_arm);
+                let struct_arms = variants.iter().map(Variant::as_data_match_arm);
 
                 quote!(
                     fn from_list(__outer: &[::syn::NestedMetaItem]) -> ::darling::Result<Self> {
