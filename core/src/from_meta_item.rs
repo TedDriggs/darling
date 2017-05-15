@@ -1,3 +1,5 @@
+use std::collections::hash_map::{Entry, HashMap};
+
 use ident_case;
 use syn::{self, Lit, MetaItem, NestedMetaItem};
 
@@ -15,6 +17,20 @@ use {Error, Result};
 /// * Word with no value specified - becomes `true`.
 /// * As a boolean literal, e.g. `foo = true`.
 /// * As a string literal, e.g. `foo = "true"`.
+///
+/// ## String
+/// * As a string literal, e.g. `foo = "hello"`.
+/// * As a raw string literal, e.g. `foo = r#"hello "world""#`.
+///
+/// ## ()
+/// * Word with no value specified, e.g. `foo`. This is best used with `Option`.
+///
+/// ## Option
+/// * Any format produces `Some`.
+///
+/// ## `Result<T, darling::Error>`
+/// * Allows for fallible parsing; will populate the target field with the result of the
+///   parse attempt.
 pub trait FromMetaItem: Sized {
     fn from_nested_meta_item(item: &NestedMetaItem) -> Result<Self> {
         match *item {
@@ -48,13 +64,18 @@ pub trait FromMetaItem: Sized {
     /// Create an instance from a literal value of either `foo = "bar"` or `foo("bar")`.
     /// This dispatches to the appropriate method based on the type of literal encountered,
     /// and generally should not be overridden by implementers.
-    #[allow(unused_variables)]
     fn from_value(value: &Lit) -> Result<Self> {
         match *value {
             Lit::Bool(ref b) => Self::from_bool(b.clone()),
             Lit::Str(ref s, _) => Self::from_string(s),
             ref _other => Err(Error::unexpected_type("other"))
         }
+    }
+
+    /// Create an instance from a char literal in a value position.
+    #[allow(unused_variables)]
+    fn from_char(value: char) -> Result<Self> {
+        Err(Error::unexpected_type("char"))
     }
 
     /// Create an instance from a string literal in a value position.
@@ -146,6 +167,24 @@ impl<T: FromMetaItem> FromMetaItem for Result<T> {
     }
 }
 
+impl<V: FromMetaItem> FromMetaItem for HashMap<String, V> {
+    fn from_list(nested: &[syn::NestedMetaItem]) -> Result<Self> {
+        let mut map = HashMap::with_capacity(nested.len());
+        for item in nested {
+            if let syn::NestedMetaItem::MetaItem(ref inner) = *item {
+                match map.entry(inner.name().to_string()) {
+                    Entry::Occupied(_) => return Err(Error::duplicate_field(inner.name())),
+                    Entry::Vacant(entry) => { entry.insert(FromMetaItem::from_meta_item(inner)?); }
+                }
+            }
+        }
+
+        Ok(map)
+    }
+}
+
+/// Tests for `FromMetaItem` implementations. Wherever the word `ignore` appears in test input,
+/// it should not be considered by the parsing.
 #[cfg(test)]
 mod tests {
     use syn;
@@ -164,30 +203,30 @@ mod tests {
 
     #[test]
     fn unit_succeeds() {
-        assert_eq!(fmi::<()>("hello"), ());
+        assert_eq!(fmi::<()>("ignore"), ());
     }
 
     #[test]
     fn bool_succeeds() {
         // word format
-        assert_eq!(fmi::<bool>("hello"), true);
+        assert_eq!(fmi::<bool>("ignore"), true);
 
         // bool literal
-        assert_eq!(fmi::<bool>("hello = true"), true);
-        assert_eq!(fmi::<bool>("hello = false"), false);
+        assert_eq!(fmi::<bool>("ignore = true"), true);
+        assert_eq!(fmi::<bool>("ignore = false"), false);
 
         // string literals
-        assert_eq!(fmi::<bool>(r#"hello = "true""#), true);
-        assert_eq!(fmi::<bool>(r#"hello = "false""#), false);
+        assert_eq!(fmi::<bool>(r#"ignore = "true""#), true);
+        assert_eq!(fmi::<bool>(r#"ignore = "false""#), false);
     }
 
     #[test]
     fn string_succeeds() {
         // cooked form
-        assert_eq!(&fmi::<String>(r#"hello = "world""#), "world");
+        assert_eq!(&fmi::<String>(r#"ignore = "world""#), "world");
 
         // raw form
-        assert_eq!(&fmi::<String>(r##"hello = r#"world"#"##), "world");
+        assert_eq!(&fmi::<String>(r##"ignore = r#"world"#"##), "world");
     }
 
     #[test]
@@ -195,5 +234,20 @@ mod tests {
         use syn::MetaItem;
 
         assert_eq!(fmi::<MetaItem>("hello(world,today)"), pmi("hello(world,today)").unwrap());
+    }
+
+    #[test]
+    fn hash_map_succeeds() {
+        use std::collections::HashMap;
+
+        let comparison = {
+            let mut c = HashMap::new();
+            c.insert("hello".to_string(), true);
+            c.insert("world".to_string(), false);
+            c.insert("there".to_string(), true);
+            c
+        };
+
+        assert_eq!(fmi::<HashMap<String, bool>>(r#"ignore(hello, world = false, there = "true")"#), comparison);
     }
 }

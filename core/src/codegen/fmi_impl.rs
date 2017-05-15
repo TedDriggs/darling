@@ -73,6 +73,7 @@ impl<'a> ToTokens for FmiImpl<'a> {
                                     ::darling::export::Err(::darling::Error::unsupported_format("literal"))
                                 }
                             }
+                            _ => unreachable!()
                         }
                     }
 
