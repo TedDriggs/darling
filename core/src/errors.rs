@@ -1,4 +1,5 @@
 use std::fmt;
+use std::string::ToString;
 
 /// An alias of `Result` specific to attribute parsing.
 pub type Result<T> = ::std::result::Result<T, Error>;
@@ -8,36 +9,40 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 pub struct Error(String);
 
 impl Error {
+    pub fn custom<T: fmt::Display>(msg: T) -> Self {
+        Error(msg.to_string())
+    }
+
     pub fn duplicate_field(name: &str) -> Self {
-        Error(format!("Encountered duplicate field `{}`", name))
+        Error::custom(format!("Encountered duplicate field `{}`", name))
     }
 
     pub fn missing_field(name: &str) -> Self {
-        Error(format!("Missing required field `{}`", name))
+        Error::custom(format!("Missing required field `{}`", name))
     }
 
     pub fn unknown_field(name: &str) -> Self {
-        Error(format!("Encountered unknown field `{}`", name))
+        Error::custom(format!("Encountered unknown field `{}`", name))
     }
 
     pub fn unsupported_format(format: &str) -> Self {
-        Error(format!("Encountered unsupported format `{}`", format))
+        Error::custom(format!("Encountered unsupported format `{}`", format))
     }
 
     pub fn unexpected_type(ty: &str) -> Self {
-        Error(format!("Unexpected literal type `{}`", ty))
+        Error::custom(format!("Unexpected literal type `{}`", ty))
     }
 
     pub fn unknown_value(value: &str) -> Self {
-        Error(format!("Encountered unknown value `{}`", value))
+        Error::custom(format!("Encountered unknown value `{}`", value))
     }
 
     pub fn too_few_items(min: usize) -> Self {
-        Error(format!("Didn't get enough values; expected {}", min))
+        Error::custom(format!("Didn't get enough values; expected {}", min))
     }
 
     pub fn too_many_items(max: usize) -> Self {
-        Error(format!("Got too many values; expected no more than {}", max))
+        Error::custom(format!("Got too many values; expected no more than {}", max))
     }
 }
 
