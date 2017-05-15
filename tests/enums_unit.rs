@@ -1,3 +1,5 @@
+//! Test expansion of enum variants which have no associated data.
+
 #[macro_use]
 extern crate darling;
 extern crate syn;
@@ -12,5 +14,5 @@ enum Pattern {
 
 #[test]
 fn expansion() {
-    
+
 }

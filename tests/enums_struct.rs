@@ -1,3 +1,5 @@
+//! Test expansion of enums which have struct variants.
+
 #[macro_use]
 extern crate darling;
 extern crate syn;

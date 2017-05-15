@@ -1,3 +1,5 @@
+//! A newtype struct should be able to derive `FromMetaItem` if its member implements it.
+
 #[macro_use]
 extern crate darling;
 
