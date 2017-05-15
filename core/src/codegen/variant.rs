@@ -68,11 +68,15 @@ impl<'a> ToTokens for StructMatchArm<'a> {
 
             quote!(
                 #name_in_attr => {
-                    #decls
-                    #core_loop
-                    ::darling::export::Ok(#ty_ident::#variant_ident {
-                        #inits
-                    })
+                    if let ::syn::MetaItem::List(_, ref __items) = *__nested {
+                        #decls
+                        #core_loop
+                        ::darling::export::Ok(#ty_ident::#variant_ident {
+                            #inits
+                        })
+                    } else {
+                        ::darling::export::Err(::darling::Error::unsupported_format("non-list"))
+                    }
                 }
             )
         } else {

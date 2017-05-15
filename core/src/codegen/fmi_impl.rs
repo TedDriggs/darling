@@ -65,13 +65,9 @@ impl<'a> ToTokens for FmiImpl<'a> {
                             __x if __x > 1 => ::darling::export::Err(::darling::Error::too_many_items(1)),
                             1 => {
                                 if let ::syn::NestedMetaItem::MetaItem(ref __nested) = __outer[0] {
-                                    if let ::syn::MetaItem::List(_, ref __items) = *__nested {
-                                        match __nested.name() {
-                                            #(#struct_arms)*
-                                            __other => ::darling::export::Err(::darling::Error::unknown_value(__other))
-                                        }
-                                    } else {
-                                        ::darling::export::Err(::darling::Error::unsupported_format("non-list"))
+                                    match __nested.name() {
+                                        #(#struct_arms)*
+                                        __other => ::darling::export::Err(::darling::Error::unknown_value(__other))
                                     }                                    
                                 } else {
                                     ::darling::export::Err(::darling::Error::unsupported_format("literal"))
