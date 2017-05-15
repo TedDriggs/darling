@@ -11,7 +11,7 @@ use syn::parse_derive_input;
 use darling_core::{options, codegen};
 
 #[proc_macro_derive(FromMetaItem, attributes(darling))]
-pub fn derive(input: TokenStream) -> TokenStream {
+pub fn derive_from_meta_item(input: TokenStream) -> TokenStream {
     let ast = parse_derive_input(&input.to_string()).unwrap();
     
     let container = options::FmiOptions::new(&ast).unwrap();
