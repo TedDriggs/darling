@@ -61,8 +61,7 @@ impl<'a> ToTokens for FmiImpl<'a> {
                 quote!(
                     fn from_list(__outer: &[::syn::NestedMetaItem]) -> ::darling::Result<Self> {
                         match __outer.len() {
-                            __x if __x < 1 => ::darling::export::Err(::darling::Error::too_few_items(1)),
-                            __x if __x > 1 => ::darling::export::Err(::darling::Error::too_many_items(1)),
+                            0 => ::darling::export::Err(::darling::Error::too_few_items(1)),
                             1 => {
                                 if let ::syn::NestedMetaItem::MetaItem(ref __nested) = __outer[0] {
                                     match __nested.name() {
@@ -73,7 +72,7 @@ impl<'a> ToTokens for FmiImpl<'a> {
                                     ::darling::export::Err(::darling::Error::unsupported_format("literal"))
                                 }
                             }
-                            _ => unreachable!()
+                            _ => ::darling::export::Err(::darling::Error::too_many_items(1)),
                         }
                     }
 
