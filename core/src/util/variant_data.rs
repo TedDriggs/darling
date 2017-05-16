@@ -79,7 +79,7 @@ impl<T> VariantData<T> {
 }
 
 impl<F: FromField> VariantData<F> {
-    pub fn from(vd: &syn::VariantData) -> Result<Self> {
+    pub fn try_from(vd: &syn::VariantData) -> Result<Self> {
         match *vd {
             syn::VariantData::Unit => Ok(VariantData::Unit),
             syn::VariantData::Tuple(ref fields) => {
