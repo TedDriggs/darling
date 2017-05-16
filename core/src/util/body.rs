@@ -106,7 +106,7 @@ impl<V: FromVariant, F: FromField> Body<V, F> {
     pub fn from_body(body: &syn::Body) -> Result<Self> {
         match *body {
             syn::Body::Enum(ref variants) => Self::from_variants(variants),
-            syn::Body::Struct(ref v_data) => VariantData::from(v_data).map(Body::Struct),
+            syn::Body::Struct(ref v_data) => VariantData::try_from(v_data).map(Body::Struct),
         }
     }
 }
