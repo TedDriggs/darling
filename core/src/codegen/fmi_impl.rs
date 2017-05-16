@@ -67,7 +67,7 @@ impl<'a> ToTokens for FmiImpl<'a> {
                                     match __nested.name() {
                                         #(#struct_arms)*
                                         __other => ::darling::export::Err(::darling::Error::unknown_value(__other))
-                                    }                                    
+                                    }
                                 } else {
                                     ::darling::export::Err(::darling::Error::unsupported_format("literal"))
                                 }
