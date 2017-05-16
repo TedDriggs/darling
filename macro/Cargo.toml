@@ -1,6 +1,6 @@
 [package]
 name = "darling_macro"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Ted Driggs <ted.driggs@outlook.com>"]
 repository = "https://github.com/TedDriggs/darling"
 description = """
@@ -15,4 +15,4 @@ proc-macro = true
 [dependencies]
 quote = "0.3.8"
 syn = "0.11.11"
-darling_core = { version = "=0.1.0", path = "../core" }
+darling_core = { version = "=0.1.1", path = "../core" }
