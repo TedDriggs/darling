@@ -1,6 +1,8 @@
-[![Build Status](https://travis-ci.org/TedDriggs/darling.svg?branch=master)](https://travis-ci.org/TedDriggs/darling)
+Darling
+=======
 
-# Darling
+[![Build Status](https://travis-ci.org/TedDriggs/darling.svg?branch=master)](https://travis-ci.org/TedDriggs/darling)
+[![Latest Version](https://img.shields.io/crates/v/darling.svg)](https://crates.io/crates/darling)
 
 `darling` is a crate for proc macro authors, which enables parsing attributes into structs. It is heavily inspired by `serde` both in its internals and in its API.
 
@@ -16,14 +18,32 @@
 ```rust,ignore
 #[macro_use]
 extern crate darling;
+extern crate syn;
 
-#[derive(FromMetaItem)]
+#[derive(Default, FromMetaItem)]
+#[darling(default)]
 pub struct Lorem {
-    #[darling(default = "local", rename = "sit")]
+    #[darling(rename = "sit")]
     ipsum: bool,
-    #[darling(default)]
     dolor: Option<String>,
 }
+
+#[derive(FromDeriveInput)]
+#[darling(from_ident, attributes(my_crate), forward_attrs(allow, doc, cfg))]
+pub struct MyTraitOpts {
+    ident: syn::Ident,
+    attrs: Vec<syn::Attribute>,
+    lorem: Lorem,
+}
+```
+
+The above code will then be able to parse this input:
+
+```rust,ignore
+/// A doc comment which will be available in `MyTraitOpts::attrs`.
+#[derive(MyTrait)]
+#[my_crate(lorem(dolor = "Hello", ipsum))]
+pub struct ConsumingType;
 ```
 
 # Features
@@ -34,9 +54,3 @@ Darling's features are built to work well for real-world projects.
 * **Auto-populated fields**: Structs deriving `FromDeriveInput` and `FromField` can declare properties named `ident`, `vis`, `ty`, `attrs`, and `generics` to automatically get copies of the matching values from the input AST.
 * **Mapping function**: Use `#[darling(map="path")]` to specify a function that runs on the result of parsing a meta-item field. This can change the return type, which enables you to parse to an intermediate form and convert that to the type you need in your struct.
 * **Skip fields**: Use `#[darling(skip)]` to mark a field that shouldn't be read from attribute meta-items.
-
-
-# To Do
-* [ ] Finish error-handling story
-* [ ] Add more type conversions
-* [ ] Improve error diagnostics
