@@ -76,6 +76,14 @@ impl<T> VariantData<T> {
             _ => false,
         }
     }
+
+    /// Returns `true` if this is a newtype-style variant (tuple-style with one field).
+    pub fn is_newtype(&self) -> bool {
+        match *self {
+            VariantData::Tuple(ref fields) => fields.len() == 1,
+            _ => false,
+        }
+    }
 }
 
 impl<F: FromField> VariantData<F> {

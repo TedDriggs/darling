@@ -88,6 +88,12 @@ impl<'a> ToTokens for DataMatchArm<'a> {
                     }
                 }
             ));
+        } else if val.data.is_newtype() {
+            tokens.append(quote!(
+                #name_in_attr => {
+                    ::darling::export::Ok(#ty_ident::#variant_ident(::darling::FromMetaItem::from_meta_item(__nested)?))
+                }
+            ));
         } else {
             panic!("Match arms aren't supported for tuple variants yet");
         }
