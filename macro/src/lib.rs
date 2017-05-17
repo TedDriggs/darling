@@ -42,3 +42,14 @@ pub fn derive_field(input: TokenStream) -> TokenStream {
 
     result.parse().expect(&format!("Couldn't parse `{}` to tokens", result))
 }
+
+#[proc_macro_derive(FromVariant, attributes(darling))]
+pub fn derive_variant(input: TokenStream) -> TokenStream {
+    let ast = parse_derive_input(&input.to_string()).unwrap();
+    
+    let fdic = options::FromVariantOptions::new(&ast).unwrap();
+    let trait_impl = codegen::FromVariantImpl::from(&fdic);
+    let result = quote!(#trait_impl);
+
+    result.parse().expect(&format!("Couldn't parse `{}` to tokens", result))
+}

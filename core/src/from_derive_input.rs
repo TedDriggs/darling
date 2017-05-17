@@ -12,3 +12,9 @@ pub trait FromDeriveInput: Sized {
     /// Create an instance from `syn::DeriveInput`, or return an error.
     fn from_derive_input(input: &DeriveInput) -> Result<Self>;
 }
+
+impl FromDeriveInput for DeriveInput {
+    fn from_derive_input(input: &DeriveInput) -> Result<Self> {
+        Ok(input.clone())
+    }
+}

@@ -9,6 +9,7 @@ pub struct FromDeriveInputImpl<'a> {
     pub generics: Option<&'a Ident>,
     pub vis: Option<&'a Ident>,
     pub attrs: Option<&'a Ident>,
+    pub body: Option<&'a Ident>,
     pub struct_impl: TraitImpl<'a>,
     pub attr_names: Vec<&'a str>,
     pub forward_attrs: Option<&'a ForwardAttrs>,
@@ -23,6 +24,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
         let passed_vis = self.vis.as_ref().map(|i| quote!(#i: #input.vis.clone(),));
         let passed_generics = self.generics.as_ref().map(|i| quote!(#i: #input.generics.clone(),));
         let passed_attrs = self.attrs.as_ref().map(|i| quote!(#i: __fwd_attrs,));
+        let passed_body = self.body.as_ref().map(|i| quote!(#i: ::darling::util::Body::from_body(&#input.body)?,));
 
         let ty_ident = self.struct_impl.ident;
         let (impl_generics, ty_generics, where_clause) = self.struct_impl.generics.split_for_impl();
@@ -50,6 +52,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
                         #passed_generics
                         #passed_vis
                         #passed_attrs
+                        #passed_body
                         #inits
                     }) #map
                 }
