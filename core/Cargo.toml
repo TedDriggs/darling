@@ -1,6 +1,6 @@
 [package]
 name = "darling_core"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Ted Driggs <ted.driggs@outlook.com>"]
 repository = "https://github.com/TedDriggs/darling"
 description = """
@@ -18,4 +18,4 @@ default = ["syn/full"]
 ident_case = "1.0.0"
 lazy_static = "0.2.8"
 syn = "0.11.11"
-quote = "0.3.12"
+quote = "0.3.15"
