@@ -1,3 +1,4 @@
+use std::error::Error as StdError;
 use std::fmt;
 use std::string::ToString;
 
@@ -43,6 +44,16 @@ impl Error {
 
     pub fn too_many_items(max: usize) -> Self {
         Error::custom(format!("Got too many values; expected no more than {}", max))
+    }
+}
+
+impl StdError for Error {
+    fn description(&self) -> &str {
+        &self.0
+    }
+
+    fn cause(&self) -> Option<&StdError> {
+        None
     }
 }
 
