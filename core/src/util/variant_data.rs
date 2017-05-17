@@ -118,3 +118,9 @@ impl<T> Into<Vec<T>> for VariantData<T> {
         }
     }
 }
+
+impl Default for VariantData {
+    fn default() -> Self {
+        VariantData::Unit
+    }
+}
