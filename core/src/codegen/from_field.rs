@@ -1,5 +1,5 @@
 use quote::{Tokens, ToTokens};
-use syn::Ident;
+use syn::{self, Ident};
 
 use codegen::{TraitImpl, ExtractAttribute, OuterFromImpl};
 use options::ForwardAttrs;
@@ -84,8 +84,12 @@ impl<'a> ExtractAttribute for FromFieldImpl<'a> {
 }
 
 impl<'a> OuterFromImpl<'a> for FromFieldImpl<'a> {
-    fn trait_path(&self) -> Tokens {
-        quote!(::darling::FromField)
+    fn trait_path(&self) -> syn::Path {
+        syn::parse_path("::darling::FromField").unwrap()
+    }
+
+    fn trait_bound(&self) -> syn::Path {
+        syn::parse_path("::darling::FromMetaItem").unwrap()
     }
 
     fn base(&'a self) -> &'a TraitImpl<'a> {

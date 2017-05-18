@@ -1,5 +1,5 @@
 use quote::{Tokens, ToTokens};
-use syn::{Ident};
+use syn::{self, Ident};
 
 use codegen::{ExtractAttribute, OuterFromImpl, TraitImpl};
 use options::ForwardAttrs;
@@ -48,16 +48,6 @@ impl<'a> ToTokens for FromVariantImpl<'a> {
     }
 }
 
-impl<'a> OuterFromImpl<'a> for FromVariantImpl<'a> {
-    fn trait_path(&self) -> Tokens {
-        quote!(::darling::FromVariant)
-    }
-
-    fn base(&'a self) -> &'a TraitImpl<'a> {
-        &self.base
-    }
-}
-
 impl<'a> ExtractAttribute for FromVariantImpl<'a> {
     fn local_declarations(&self) -> Tokens {
         self.base.local_declarations()
@@ -81,5 +71,20 @@ impl<'a> ExtractAttribute for FromVariantImpl<'a> {
 
     fn core_loop(&self) -> Tokens {
         self.base.core_loop()
+    }
+}
+
+
+impl<'a> OuterFromImpl<'a> for FromVariantImpl<'a> {
+    fn trait_path(&self) -> syn::Path {
+        syn::parse_path("::darling::FromVariant").unwrap()
+    }
+
+    fn trait_bound(&self) -> syn::Path {
+        syn::parse_path("::darling::FromMetaItem").unwrap()
+    }
+
+    fn base(&'a self) -> &'a TraitImpl<'a> {
+        &self.base
     }
 }

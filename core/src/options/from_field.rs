@@ -3,7 +3,6 @@ use syn::{self, Ident};
 use {Result};
 use codegen::FromFieldImpl;
 use options::{ParseAttribute, ParseBody, OuterFrom};
-use util::Body;
 
 #[derive(Debug)]
 pub struct FromFieldOptions {
@@ -15,7 +14,7 @@ pub struct FromFieldOptions {
 impl FromFieldOptions {
     pub fn new(di: &syn::DeriveInput) -> Result<Self> {
         (FromFieldOptions {
-            base: OuterFrom::from((di.ident.clone(), Body::empty_from(&di.body))),
+            base: OuterFrom::start(di),
             vis: Default::default(),
             ty: Default::default(),
         }).parse_attributes(&di.attrs)?.parse_body(&di.body)

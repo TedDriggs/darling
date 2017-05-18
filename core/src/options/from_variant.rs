@@ -3,7 +3,6 @@ use syn::{DeriveInput, Field, Ident, MetaItem};
 use Result;
 use codegen::FromVariantImpl;
 use options::{OuterFrom, ParseAttribute, ParseBody};
-use util::Body;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FromVariantOptions {
@@ -14,7 +13,7 @@ pub struct FromVariantOptions {
 impl FromVariantOptions {
     pub fn new(di: &DeriveInput) -> Result<Self> {
         (FromVariantOptions {
-            base: OuterFrom::from((di.ident.clone(), Body::empty_from(&di.body))),
+            base: OuterFrom::start(di),
             data: Default::default()
         }).parse_attributes(&di.attrs)?.parse_body(&di.body)
     }

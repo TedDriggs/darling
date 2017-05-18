@@ -29,20 +29,20 @@ pub struct Core {
     pub map: Option<syn::Path>,
 
     /// The body of the _deriving_ type.
-    pub body: Body<InputVariant,InputField>,
+    pub body: Body<InputVariant, InputField>,
 }
 
 impl Core {
-    /// Creates a new container, with the identity bound for later diagnostics.
-    pub fn new(ident: syn::Ident, generics: syn::Generics, attrs: &[syn::Attribute]) -> Result<Self> {
-        (Core {
-            ident: ident,
-            generics: generics,
-            default: None,
-            rename_rule: RenameRule::None,
-            body: Body::Struct(VariantData::Unit),
-            map: None,
-        }).parse_attributes(attrs)
+    /// Partially initializes `Core` by reading the identity, generics, and body shape.
+    pub fn start(di: &syn::DeriveInput) -> Self {
+        Core {
+            ident: di.ident.clone(),
+            generics: di.generics.clone(),
+            body: Body::empty_from(&di.body),
+            default: Default::default(),
+            rename_rule: Default::default(),
+            map: Default::default(),
+        }
     }
 
     fn as_codegen_default<'a>(&'a self) -> Option<codegen::DefaultExpression<'a>> {
@@ -91,19 +91,6 @@ impl ParseBody for Core {
             }
             Body::Struct(VariantData::Unit) => panic!("Core::parse_field should not be called on unit"),
             Body::Enum(_) => panic!("Core::parse_field should never be called for an enum"),
-        }
-    }
-}
-
-impl From<(syn::Ident, Body<InputVariant, InputField>)> for Core { 
-    fn from((ident, body): (syn::Ident, Body<InputVariant, InputField>)) -> Self {
-        Core {
-            ident,
-            body,
-            generics: Default::default(),
-            default: Default::default(),
-            rename_rule: RenameRule::None,
-            map: Default::default(),
         }
     }
 }

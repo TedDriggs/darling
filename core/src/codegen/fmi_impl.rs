@@ -1,4 +1,5 @@
 use quote::{Tokens, ToTokens};
+use syn;
 
 use codegen::{Field, TraitImpl, OuterFromImpl, Variant};
 use util::{Body, VariantData};
@@ -20,9 +21,10 @@ impl<'a> ToTokens for FmiImpl<'a> {
                 )
             }
             Body::Struct(VariantData::Tuple(ref fields)) if fields.len() == 1 => {
+                let ty_ident = base.ident;
                 quote!(
                     fn from_meta_item(__item: &::syn::MetaItem) -> ::darling::Result<Self> {
-                        Ok(Self(::darling::FromMetaItem::from_meta_item(__item)?))
+                        Ok(#ty_ident(::darling::FromMetaItem::from_meta_item(__item)?))
                     }
                 )
             }
@@ -89,8 +91,8 @@ impl<'a> ToTokens for FmiImpl<'a> {
 }
 
 impl<'a> OuterFromImpl<'a> for FmiImpl<'a> {
-    fn trait_path(&self) -> Tokens {
-        quote!(::darling::FromMetaItem)
+    fn trait_path(&self) -> syn::Path {
+        syn::parse_path("::darling::FromMetaItem").unwrap()
     }
 
     fn base(&'a self) -> &'a TraitImpl<'a> {

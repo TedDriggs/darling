@@ -3,7 +3,6 @@ use syn::{self, Ident};
 use Result;
 use codegen;
 use options::{ParseAttribute, ParseBody, OuterFrom};
-use util::Body;
 
 #[derive(Debug)]
 pub struct FdiOptions {
@@ -21,7 +20,7 @@ pub struct FdiOptions {
 impl FdiOptions {
     pub fn new(di: &syn::DeriveInput) -> Result<Self> {
         (FdiOptions {
-            base: OuterFrom::from((di.ident.clone(), Body::empty_from(&di.body))),
+            base: OuterFrom::start(di),
             vis: Default::default(),
             generics: Default::default(),
             body: Default::default(),

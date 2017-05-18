@@ -3,7 +3,6 @@ use syn;
 use Result;
 use codegen;
 use options::{Core, ParseAttribute, ParseBody};
-use util::Body;
 
 pub struct FmiOptions {
     base: Core
@@ -12,7 +11,7 @@ pub struct FmiOptions {
 impl FmiOptions {
     pub fn new(di: &syn::DeriveInput) -> Result<Self> {
         (FmiOptions {
-            base: Core::from((di.ident.clone(), Body::empty_from(&di.body))),
+            base: Core::start(di),
         }).parse_attributes(&di.attrs)?.parse_body(&di.body)
     }
 }
