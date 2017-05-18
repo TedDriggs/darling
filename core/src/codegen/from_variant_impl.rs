@@ -16,7 +16,7 @@ pub struct FromVariantImpl<'a> {
 
 impl<'a> ToTokens for FromVariantImpl<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
-        let input = OuterFromImpl::param_name(self);
+        let input = self.param_name();
         let extractor = self.extractor();
         let passed_ident = self.ident.as_ref().map(|i| quote!(#i: #input.ident.clone(),));
         let passed_attrs = self.attrs.as_ref().map(|i| quote!(#i: __fwd_attrs,));
@@ -55,22 +55,6 @@ impl<'a> OuterFromImpl<'a> for FromVariantImpl<'a> {
 
     fn base(&'a self) -> &'a TraitImpl<'a> {
         &self.base
-    }
-
-    fn param_name(&self) -> Ident {
-        "__variant".into()
-    }
-
-    fn parse_attr_names(&'a self) -> &'a[&'a str] {
-        self.attr_names.as_slice()
-    }
-
-    fn ident_into(&'a self) -> Option<&'a Ident> {
-        self.ident
-    }
-
-    fn attrs_into(&'a self) -> Option<&'a Ident> {
-        self.attrs
     }
 }
 

@@ -1,7 +1,7 @@
 use quote::{Tokens, ToTokens};
 use syn::Ident;
 
-use codegen::{TraitImpl, ExtractAttribute};
+use codegen::{TraitImpl, ExtractAttribute, OuterFromImpl};
 use options::ForwardAttrs;
 
 /// `impl FromField` generator. This is used for parsing an individual
@@ -21,10 +21,8 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
         let input = self.param_name();
 
-        let ty_ident = self.body.ident;
-        let (impl_generics, ty_generics, where_clause) = self.body.generics.split_for_impl();
-
         let initializers = self.body.initializers();
+        
         let default = if self.from_ident {
             quote!(let __default: Self = ::darling::export::From::from(#input.ident.clone());)
         } else {
@@ -40,26 +38,22 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
         let grab_attrs = self.extractor();
         let map = self.body.map_fn();
 
-        tokens.append(quote!(
-            impl #impl_generics ::darling::FromField for #ty_ident #ty_generics
-                #where_clause
-            {
-                fn from_field(#input: &::syn::Field) -> ::darling::Result<Self> {
-                    #grab_attrs
+        self.wrap(quote!{
+            fn from_field(#input: &::syn::Field) -> ::darling::Result<Self> {
+                #grab_attrs
 
-                    #default
+                #default
 
-                    Ok(Self {
-                        #passed_ident
-                        #passed_ty
-                        #passed_vis
-                        #passed_attrs
-                        #initializers
-                    }) #map
-                    
-                }
+                ::darling::export::Ok(Self {
+                    #passed_ident
+                    #passed_ty
+                    #passed_vis
+                    #passed_attrs
+                    #initializers
+                }) #map
+                
             }
-        ));
+        }, tokens);
     }
 }
 
@@ -86,5 +80,15 @@ impl<'a> ExtractAttribute for FromFieldImpl<'a> {
 
     fn immutable_declarations(&self) -> Tokens {
         self.body.immutable_declarations()
+    }
+}
+
+impl<'a> OuterFromImpl<'a> for FromFieldImpl<'a> {
+    fn trait_path(&self) -> Tokens {
+        quote!(::darling::FromField)
+    }
+
+    fn base(&'a self) -> &'a TraitImpl<'a> {
+        &self.body
     }
 }

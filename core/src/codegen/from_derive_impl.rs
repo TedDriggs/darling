@@ -1,7 +1,7 @@
 use quote::{Tokens, ToTokens};
 use syn::Ident;
 
-use codegen::{TraitImpl, ExtractAttribute};
+use codegen::{TraitImpl, ExtractAttribute, OuterFromImpl};
 use options::ForwardAttrs;
 
 pub struct FromDeriveInputImpl<'a> {
@@ -27,7 +27,6 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
         let passed_body = self.body.as_ref().map(|i| quote!(#i: ::darling::util::Body::from_body(&#input.body)?,));
 
         let ty_ident = self.struct_impl.ident;
-        let (impl_generics, ty_generics, where_clause) = self.struct_impl.generics.split_for_impl();
         let inits = self.struct_impl.initializers();
         let default = if let Some(true) = self.from_ident {
             quote!(let __default: Self = ::darling::export::From::from(#input.ident.clone());)
@@ -38,26 +37,22 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
         let grab_attrs = self.extractor();
         let map = self.struct_impl.map_fn();
 
-        tokens.append(quote!(
-            impl #impl_generics ::darling::FromDeriveInput for #ty_ident #ty_generics
-                #where_clause
-            {
-                fn from_derive_input(#input: &::syn::DeriveInput) -> ::darling::Result<Self> {
-                    #grab_attrs
+        self.wrap(quote! {
+            fn from_derive_input(#input: &::syn::DeriveInput) -> ::darling::Result<Self> {
+                #grab_attrs
 
-                    #default
+                #default
 
-                    Ok(#ty_ident {
-                        #passed_ident
-                        #passed_generics
-                        #passed_vis
-                        #passed_attrs
-                        #passed_body
-                        #inits
-                    }) #map
-                }
-            } 
-        ));
+                ::darling::export::Ok(#ty_ident {
+                    #passed_ident
+                    #passed_generics
+                    #passed_vis
+                    #passed_attrs
+                    #passed_body
+                    #inits
+                }) #map
+            }
+        }, tokens);
     }
 }
 
@@ -84,5 +79,15 @@ impl<'a> ExtractAttribute for FromDeriveInputImpl<'a> {
 
     fn immutable_declarations(&self) -> Tokens {
         self.struct_impl.immutable_declarations()
+    }
+}
+
+impl<'a> OuterFromImpl<'a> for FromDeriveInputImpl<'a> {
+    fn trait_path(&self) -> Tokens {
+        quote!(::darling::FromDeriveInput)
+    }
+
+    fn base(&'a self) -> &'a TraitImpl<'a> {
+        &self.struct_impl
     }
 }

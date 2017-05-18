@@ -1,6 +1,6 @@
 use quote::{Tokens, ToTokens};
 
-use codegen::{Field, TraitImpl, Variant};
+use codegen::{Field, TraitImpl, OuterFromImpl, Variant};
 use util::{Body, VariantData};
 
 pub struct FmiImpl<'a> {
@@ -10,10 +10,8 @@ pub struct FmiImpl<'a> {
 impl<'a> ToTokens for FmiImpl<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
         let base = &self.base;
-        let ty_ident = base.ident;
-        let (impl_generics, ty_generics, where_clause) = base.generics.split_for_impl();
 
-        let impl_block = match self.base.body {
+        let impl_block = match base.body {
             Body::Struct(VariantData::Unit) => {
                 quote!(
                     fn from_word() -> ::darling::Result<Self> {
@@ -24,7 +22,7 @@ impl<'a> ToTokens for FmiImpl<'a> {
             Body::Struct(VariantData::Tuple(ref fields)) if fields.len() == 1 => {
                 quote!(
                     fn from_meta_item(__item: &::syn::MetaItem) -> ::darling::Result<Self> {
-                        Ok(#ty_ident(::darling::FromMetaItem::from_meta_item(__item)?))
+                        Ok(Self(::darling::FromMetaItem::from_meta_item(__item)?))
                     }
                 )
             }
@@ -48,7 +46,7 @@ impl<'a> ToTokens for FmiImpl<'a> {
 
                         #default
 
-                        ::darling::export::Ok(#ty_ident {
+                        ::darling::export::Ok(Self {
                             #(#inits),*
                         }) #map
                     }
@@ -86,10 +84,16 @@ impl<'a> ToTokens for FmiImpl<'a> {
             }
         };
 
-        tokens.append(quote!(
-            impl #impl_generics ::darling::FromMetaItem for #ty_ident #ty_generics #where_clause {
-                #impl_block
-            }
-        ));
+        self.wrap(impl_block, tokens);
+    }
+}
+
+impl<'a> OuterFromImpl<'a> for FmiImpl<'a> {
+    fn trait_path(&self) -> Tokens {
+        quote!(::darling::FromMetaItem)
+    }
+
+    fn base(&'a self) -> &'a TraitImpl<'a> {
+        &self.base
     }
 }
