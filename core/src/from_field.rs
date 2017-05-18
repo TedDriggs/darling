@@ -1,4 +1,4 @@
-use syn::{Field, Ty};
+use syn::{Field, Ty, Visibility};
 
 use Result;
 
@@ -16,5 +16,11 @@ impl FromField for Field {
 impl FromField for Ty {
     fn from_field(field: &Field) -> Result<Self> {
         Ok(field.ty.clone())
+    }
+}
+
+impl FromField for Visibility {
+    fn from_field(field: &Field) -> Result<Self> {
+        Ok(field.vis.clone())
     }
 }
