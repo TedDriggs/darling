@@ -143,6 +143,12 @@ impl FromMetaItem for syn::MetaItem {
     }
 }
 
+impl FromMetaItem for syn::WhereClause {
+    fn from_string(value: &str) -> Result<Self> {
+        syn::parse_where_clause(value).or_else(|_| Err(Error::unknown_value(value)))
+    }
+}
+
 impl FromMetaItem for ident_case::RenameRule {
     fn from_string(value: &str) -> Result<Self> {
         value.parse().or_else(|_| Err(Error::unknown_value(value)))
