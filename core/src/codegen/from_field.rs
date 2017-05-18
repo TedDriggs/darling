@@ -85,11 +85,11 @@ impl<'a> ExtractAttribute for FromFieldImpl<'a> {
 
 impl<'a> OuterFromImpl<'a> for FromFieldImpl<'a> {
     fn trait_path(&self) -> syn::Path {
-        syn::parse_path("::darling::FromField").unwrap()
+        path!(::darling::FromField)
     }
 
     fn trait_bound(&self) -> syn::Path {
-        syn::parse_path("::darling::FromMetaItem").unwrap()
+        path!(::darling::FromMetaItem)
     }
 
     fn base(&'a self) -> &'a TraitImpl<'a> {

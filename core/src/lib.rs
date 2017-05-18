@@ -10,6 +10,9 @@ extern crate syn;
 
 extern crate ident_case;
 
+#[macro_use]
+mod macros;
+
 pub mod codegen;
 mod errors;
 mod from_field;

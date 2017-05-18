@@ -92,7 +92,7 @@ impl<'a> ToTokens for FmiImpl<'a> {
 
 impl<'a> OuterFromImpl<'a> for FmiImpl<'a> {
     fn trait_path(&self) -> syn::Path {
-        syn::parse_path("::darling::FromMetaItem").unwrap()
+        path!(::darling::FromMetaItem)
     }
 
     fn base(&'a self) -> &'a TraitImpl<'a> {

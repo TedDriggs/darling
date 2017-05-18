@@ -8,7 +8,7 @@ lazy_static! {
     /// The default path for extracting data from a meta item. This can be overridden
     /// using the `with` attribute.
     static ref FROM_META_ITEM: syn::Path = {
-        syn::parse_path("::darling::FromMetaItem::from_meta_item").unwrap()
+        path!(::darling::FromMetaItem::from_meta_item)
     };
 }
 
