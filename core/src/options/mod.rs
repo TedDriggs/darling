@@ -107,11 +107,15 @@ pub trait ParseBody: Sized {
         }
     }
 
+    /// Apply the next found variant to the object, returning an error
+    /// if parsing goes wrong.
     #[allow(unused_variables)]
     fn parse_variant(&mut self, variant: &syn::Variant) -> Result<()> {
         Err(Error::unsupported_format("enum variant"))
     }
 
+    /// Apply the next found struct field to the object, returning an error
+    /// if parsing goes wrong.
     #[allow(unused_variables)]
     fn parse_field(&mut self, field: &syn::Field) -> Result<()> {
         Err(Error::unsupported_format("struct field"))
