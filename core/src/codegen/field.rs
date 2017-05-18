@@ -74,7 +74,7 @@ impl<'a> ToTokens for MatchArm<'a> {
             let name_in_struct = self.0.name_in_struct;
             let with_path = self.0.with_path;
 
-            let mut extractor = quote!(#with_path(__inner)?);
+            let mut extractor = quote!(#with_path(__inner).map_err(|e| e.at(#name_str))?);
             
             if let Some(ref map) = self.0.map.as_ref() {
                 extractor = quote!(#map(#extractor));

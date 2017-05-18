@@ -7,11 +7,17 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 
 /// An error encountered during attribute parsing.
 #[derive(Debug)]
-pub struct Error(String);
+pub struct Error {
+    msg: String,
+    locations: Vec<String>,
+}
 
 impl Error {
     pub fn custom<T: fmt::Display>(msg: T) -> Self {
-        Error(msg.to_string())
+        Error {
+            msg: msg.to_string(),
+            locations: Vec::new(),
+        }
     }
 
     pub fn duplicate_field(name: &str) -> Self {
@@ -45,11 +51,18 @@ impl Error {
     pub fn too_many_items(max: usize) -> Self {
         Error::custom(format!("Got too many values; expected no more than {}", max))
     }
+
+    /// Adds a location to the error, such as a field or variant. 
+    /// Locations must be added in reverse order of specificity.
+    pub fn at<T: fmt::Display>(mut self, location: T) -> Self {
+        self.locations.insert(0, location.to_string());
+        self
+    }
 }
 
 impl StdError for Error {
     fn description(&self) -> &str {
-        &self.0
+        &self.msg
     }
 
     fn cause(&self) -> Option<&StdError> {
@@ -59,6 +72,11 @@ impl StdError for Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self.msg)?;
+        if !self.locations.is_empty() {
+            write!(f, " at {}", self.locations.join("/"))?;
+        }
+
+        Ok(())
     }
 }
