@@ -11,7 +11,7 @@ pub struct FromFieldImpl<'a> {
     pub vis: Option<&'a Ident>,
     pub ty: Option<&'a Ident>,
     pub attrs: Option<&'a Ident>,
-    pub body: TraitImpl<'a>,
+    pub base: TraitImpl<'a>,
     pub attr_names: Vec<&'a str>,
     pub forward_attrs: Option<&'a ForwardAttrs>,
     pub from_ident: bool,
@@ -21,12 +21,12 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
         let input = self.param_name();
 
-        let initializers = self.body.initializers();
+        let initializers = self.base.initializers();
         
         let default = if self.from_ident {
             quote!(let __default: Self = ::darling::export::From::from(#input.ident.clone());)
         } else {
-            self.body.fallback_decl()
+            self.base.fallback_decl()
         };
 
         let passed_ident = self.ident.as_ref().map(|i| quote!(#i: #input.ident.clone().unwrap(),));
@@ -36,7 +36,7 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
 
         /// Determine which attributes to forward (if any).
         let grab_attrs = self.extractor();
-        let map = self.body.map_fn();
+        let map = self.base.map_fn();
 
         self.wrap(quote!{
             fn from_field(#input: &::syn::Field) -> ::darling::Result<Self> {
@@ -71,15 +71,15 @@ impl<'a> ExtractAttribute for FromFieldImpl<'a> {
     }
 
     fn core_loop(&self) -> Tokens {
-        self.body.core_loop()
+        self.base.core_loop()
     }
 
     fn local_declarations(&self) -> Tokens {
-        self.body.local_declarations()
+        self.base.local_declarations()
     }
 
     fn immutable_declarations(&self) -> Tokens {
-        self.body.immutable_declarations()
+        self.base.immutable_declarations()
     }
 }
 
@@ -93,6 +93,6 @@ impl<'a> OuterFromImpl<'a> for FromFieldImpl<'a> {
     }
 
     fn base(&'a self) -> &'a TraitImpl<'a> {
-        &self.body
+        &self.base
     }
 }

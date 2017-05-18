@@ -48,7 +48,7 @@ impl<'a> From<&'a FromFieldOptions> for FromFieldImpl<'a> {
             vis: v.vis.as_ref(),
             ty: v.ty.as_ref(),
             attrs: v.base.attrs.as_ref(),
-            body: (&v.base.container).into(),
+            base: (&v.base.container).into(),
             attr_names: v.base.attr_names.as_strs(),
             forward_attrs: v.base.forward_attrs.as_ref(),
             from_ident: v.base.from_ident,
