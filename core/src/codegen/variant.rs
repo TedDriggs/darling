@@ -17,6 +17,9 @@ pub struct Variant<'a> {
     pub ty_ident: &'a Ident,
 
     pub data: VariantData<Field<'a>>,
+
+    /// Whether or not the variant should be skipped in the generated code.
+    pub skip: bool,
 }
 
 impl<'a> Variant<'a> {
@@ -33,11 +36,17 @@ pub struct UnitMatchArm<'a>(&'a Variant<'a>);
 
 impl<'a> ToTokens for UnitMatchArm<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
-        let name_in_attr = self.0.name_in_attr;
+        let val: &Variant<'a> = self.0;
 
-        if self.0.data.is_unit() {
-            let variant_ident = self.0.variant_ident;
-            let ty_ident = self.0.ty_ident;
+        if val.skip {
+            return;
+        }
+
+        let name_in_attr = val.name_in_attr;
+
+        if val.data.is_unit() {
+            let variant_ident = val.variant_ident;
+            let ty_ident = val.ty_ident;
 
             tokens.append(quote!(
                 #name_in_attr => ::darling::export::Ok(#ty_ident::#variant_ident),
@@ -55,6 +64,11 @@ pub struct DataMatchArm<'a>(&'a Variant<'a>);
 impl<'a> ToTokens for DataMatchArm<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
         let val: &Variant<'a> = self.0;
+
+        if val.skip {
+            return;
+        }
+
         let name_in_attr = val.name_in_attr;
         let variant_ident = val.variant_ident;
         let ty_ident = val.ty_ident;

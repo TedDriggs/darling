@@ -11,8 +11,9 @@ use darling::{FromMetaItem, FromDeriveInput};
 struct Wrapper<T>(pub T);
 
 impl<T: Add> Add for Wrapper<T> {
-    fn add(self, rhs: Self) -> Self {
-        self.0 + rhs.0
+    type Output = Wrapper<<T as Add>::Output>;
+    fn add(self, rhs: Self) -> Wrapper<<T as Add>::Output> {
+        Wrapper(self.0 + rhs.0)
     }
 }
 

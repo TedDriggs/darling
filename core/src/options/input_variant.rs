@@ -10,15 +10,17 @@ pub struct InputVariant {
     ident: syn::Ident,
     attr_name: Option<String>,
     data: VariantData<InputField>,
+    skip: bool,
 }
 
 impl InputVariant {
     pub fn as_codegen_variant<'a>(&'a self, ty_ident: &'a syn::Ident) -> codegen::Variant<'a> {
         codegen::Variant {
-            name_in_attr: self.attr_name.as_ref().map(|s| s.as_str()).unwrap_or(self.ident.as_ref()),
-            variant_ident: &self.ident,
             ty_ident,
-            data: self.data.as_ref().map(InputField::as_codegen_field)
+            variant_ident: &self.ident,
+            name_in_attr: self.attr_name.as_ref().map(|s| s.as_str()).unwrap_or(self.ident.as_ref()),
+            data: self.data.as_ref().map(InputField::as_codegen_field),
+            skip: self.skip,
         }
     }
 
@@ -27,6 +29,7 @@ impl InputVariant {
             ident: v.ident.clone(),
             attr_name: Default::default(),
             data: VariantData::empty_from(&v.data),
+            skip: Default::default(),
         }).parse_attributes(&v.attrs)?;
 
         starter.data = match v.data {
@@ -65,11 +68,19 @@ impl InputVariant {
     }
 }
 
+
 impl ParseAttribute for InputVariant {
     fn parse_nested(&mut self, mi: &syn::MetaItem) -> Result<()> {
         let name = mi.name().to_string();
         match name.as_str() {
-            "rename" => { self.attr_name = FromMetaItem::from_meta_item(mi)?; Ok(()) }
+            "rename" => {
+                self.attr_name = FromMetaItem::from_meta_item(mi)?;
+                Ok(())
+            }
+            "skip" => {
+                self.skip = FromMetaItem::from_meta_item(mi)?;
+                Ok(())
+            }
             n => Err(Error::unknown_field(n)),
         }
     }

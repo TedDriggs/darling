@@ -15,6 +15,23 @@ pub struct Lorem {
     dolor: u8,
 }
 
+/// Verify variant-level and field-level skip work correctly for enums.
+#[derive(Debug, FromMetaItem)]
+pub enum Sit {
+    Amet(bool),
+    
+    #[darling(skip)]
+    Foo {
+        hello: bool,
+    },
+
+    Bar {
+        hello: bool,
+        #[darling(skip)]
+        world: u8
+    }
+}
+
 #[test]
 fn verify_skipped_field_not_required() {
     let di = syn::parse_derive_input(r#"
