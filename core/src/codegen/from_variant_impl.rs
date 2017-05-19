@@ -77,11 +77,11 @@ impl<'a> ExtractAttribute for FromVariantImpl<'a> {
 
 impl<'a> OuterFromImpl<'a> for FromVariantImpl<'a> {
     fn trait_path(&self) -> syn::Path {
-        path!(::darling::FromVariant")
+        path!(::darling::FromVariant)
     }
 
     fn trait_bound(&self) -> syn::Path {
-        path!(::darling::FromMetaItem")
+        path!(::darling::FromMetaItem)
     }
 
     fn base(&'a self) -> &'a TraitImpl<'a> {
