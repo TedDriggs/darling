@@ -1,5 +1,5 @@
 use quote::{Tokens};
-use syn::{Generics, Ident, Path};
+use syn::{Generics, Ident, Path, WherePredicate};
 
 use codegen::{DefaultExpression, Field, Variant, VariantDataGen};
 use codegen::field;
@@ -12,6 +12,7 @@ pub struct TraitImpl<'a> {
     pub body: Body<Variant<'a>, Field<'a>>,
     pub default: Option<DefaultExpression<'a>>,
     pub map: Option<&'a Path>,
+    pub bound: Option<&'a [WherePredicate]>,
 }
 
 impl<'a> TraitImpl<'a> {

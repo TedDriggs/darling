@@ -24,12 +24,15 @@ pub struct Core {
     /// The rule that should be used to rename all fields/variants in the container.
     pub rename_rule: RenameRule,
 
-    /// An infallible function with the signature `FnOnce(T) -> T` which will be called after the 
+    /// An infallible function with the signature `FnOnce(T) -> T` which will be called after the
     /// target instance is successfully constructed.
     pub map: Option<syn::Path>,
 
     /// The body of the _deriving_ type.
     pub body: Body<InputVariant, InputField>,
+
+    /// The custom bound to apply to the generated impl
+    pub bound: Option<Vec<syn::WherePredicate>>,
 }
 
 impl Core {
@@ -42,6 +45,7 @@ impl Core {
             default: Default::default(),
             rename_rule: Default::default(),
             map: Default::default(),
+            bound: Default::default(),
         }
     }
 
@@ -49,7 +53,7 @@ impl Core {
         self.default.as_ref().map(|expr| {
             match *expr {
                 DefaultExpression::Explicit(ref path) => codegen::DefaultExpression::Explicit(path),
-                DefaultExpression::Inherit | 
+                DefaultExpression::Inherit |
                 DefaultExpression::Trait => codegen::DefaultExpression::Trait,
             }
         })
@@ -59,10 +63,23 @@ impl Core {
 impl ParseAttribute for Core {
     fn parse_nested(&mut self, mi: &syn::MetaItem) -> Result<()> {
         match mi.name() {
-            "default" => { self.default = FromMetaItem::from_meta_item(mi)?; Ok(()) }
-            "rename_all" => { self.rename_rule = FromMetaItem::from_meta_item(mi)?; Ok(()) },
-            "map" => { self.map = FromMetaItem::from_meta_item(mi)?; Ok(()) }
-            n => Err(Error::unknown_field(n))
+            "default" => {
+                self.default = FromMetaItem::from_meta_item(mi)?;
+                Ok(())
+            }
+            "rename_all" => {
+                self.rename_rule = FromMetaItem::from_meta_item(mi)?;
+                Ok(())
+            }
+            "map" => {
+                self.map = FromMetaItem::from_meta_item(mi)?;
+                Ok(())
+            }
+            "bound" => {
+                self.bound = FromMetaItem::from_meta_item(mi)?;
+                Ok(())
+            }
+            n => Err(Error::unknown_field(n)),
         }
     }
 }
@@ -84,12 +101,14 @@ impl ParseBody for Core {
         let f = InputField::from_field(field, Some(&self))?;
 
         match self.body {
-            Body::Struct(VariantData::Struct(ref mut fields))
-            | Body::Struct(VariantData::Tuple(ref mut fields)) => {
+            Body::Struct(VariantData::Struct(ref mut fields)) |
+            Body::Struct(VariantData::Tuple(ref mut fields)) => {
                 fields.push(f);
                 Ok(())
             }
-            Body::Struct(VariantData::Unit) => panic!("Core::parse_field should not be called on unit"),
+            Body::Struct(VariantData::Unit) => {
+                panic!("Core::parse_field should not be called on unit")
+            }
             Body::Enum(_) => panic!("Core::parse_field should never be called for an enum"),
         }
     }
@@ -106,6 +125,7 @@ impl<'a> From<&'a Core> for codegen::TraitImpl<'a> {
                 .map_enum_variants(|variant| variant.as_codegen_variant(&v.ident)),
             default: v.as_codegen_default(),
             map: v.map.as_ref(),
+            bound: v.bound.as_ref().map(|i| i.as_slice()),
         }
     }
 }

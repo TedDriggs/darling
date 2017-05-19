@@ -14,7 +14,7 @@ lazy_static! {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InputField {
-    pub target_name: syn::Ident,
+    pub ident: syn::Ident,
     pub attr_name: Option<String>,
     pub ty: syn::Ty,
     pub default: Option<DefaultExpression>,
@@ -27,8 +27,8 @@ impl InputField {
     /// Generate a view into this field that can be used for code generation.
     pub fn as_codegen_field<'a>(&'a self) -> codegen::Field<'a> {
         codegen::Field {
-            name_in_struct: &self.target_name,
-            name_in_attr: self.attr_name.as_ref().map(|n| n.as_str()).unwrap_or(self.target_name.as_ref()),
+            name_in_struct: &self.ident,
+            name_in_attr: self.attr_name.as_ref().map(|n| n.as_str()).unwrap_or(self.ident.as_ref()),
             ty: &self.ty,
             default_expression: self.as_codegen_default(),
             with_path: self.with.as_ref().unwrap_or(&FROM_META_ITEM),
@@ -43,15 +43,15 @@ impl InputField {
         self.default.as_ref().map(|expr| {
             match *expr {
                 DefaultExpression::Explicit(ref path) => codegen::DefaultExpression::Explicit(path),
-                DefaultExpression::Inherit => codegen::DefaultExpression::Inherit(&self.target_name),
+                DefaultExpression::Inherit => codegen::DefaultExpression::Inherit(&self.ident),
                 DefaultExpression::Trait => codegen::DefaultExpression::Trait,
             }
         })
     }
 
-    fn new(target_name: syn::Ident, ty: syn::Ty) -> Self {
+    fn new(ident: syn::Ident, ty: syn::Ty) -> Self {
         InputField {
-            target_name,
+            ident,
             ty,
             attr_name: None,
             default: None,
@@ -62,9 +62,9 @@ impl InputField {
     }
 
     pub fn from_field(f: &syn::Field, parent: Option<&Core>) -> Result<Self> {
-        let target_name = f.ident.clone().unwrap_or(syn::Ident::new("__unnamed"));
+        let ident = f.ident.clone().unwrap_or(syn::Ident::new("__unnamed"));
         let ty = f.ty.clone();
-        let base = Self::new(target_name, ty).parse_attributes(&f.attrs)?;
+        let base = Self::new(ident, ty).parse_attributes(&f.attrs)?;
         
         if let Some(container) = parent {
             base.with_inherited(container)
@@ -79,7 +79,7 @@ impl InputField {
         // explicit renamings take precedence over rename rules on the container,
         // but in the absence of an explicit name we apply the rule.
         if self.attr_name.is_none() {
-            self.attr_name = Some(parent.rename_rule.apply_to_field(&self.target_name));
+            self.attr_name = Some(parent.rename_rule.apply_to_field(&self.ident));
         }
 
         // Determine the default expression for this field, based on three pieces of information:
