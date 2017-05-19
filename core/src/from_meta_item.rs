@@ -1,4 +1,8 @@
+use std::cell::RefCell;
 use std::collections::hash_map::{Entry, HashMap};
+use std::rc::Rc;
+use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 
 use ident_case;
 use syn::{self, Lit, MetaItem, NestedMetaItem};
@@ -113,6 +117,12 @@ impl FromMetaItem for bool {
     }
 }
 
+impl FromMetaItem for AtomicBool {
+    fn from_meta_item(mi: &MetaItem) -> Result<Self> {
+        Ok(AtomicBool::new(FromMetaItem::from_meta_item(mi)?))
+    }
+}
+
 impl FromMetaItem for String {
     fn from_string(s: &str) -> Result<Self> {
         Ok(s.to_string())
@@ -149,6 +159,12 @@ impl FromMetaItem for syn::WhereClause {
     }
 }
 
+impl FromMetaItem for Vec<syn::WherePredicate> {
+    fn from_string(value: &str) -> Result<Self> {
+        syn::WhereClause::from_string(&format!("where {}", value)).map(|c| c.predicates)
+    }
+}
+
 impl FromMetaItem for ident_case::RenameRule {
     fn from_string(value: &str) -> Result<Self> {
         value.parse().or_else(|_| Err(Error::unknown_value(value)))
@@ -170,6 +186,24 @@ impl<T: FromMetaItem> FromMetaItem for Box<T> {
 impl<T: FromMetaItem> FromMetaItem for Result<T> {
     fn from_meta_item(item: &MetaItem) -> Result<Self> {
         Ok(FromMetaItem::from_meta_item(item))
+    }
+}
+
+impl<T: FromMetaItem> FromMetaItem for Rc<T> {
+    fn from_meta_item(item: &MetaItem) -> Result<Self> {
+        Ok(Rc::new(FromMetaItem::from_meta_item(item)?))
+    }
+}
+
+impl<T: FromMetaItem> FromMetaItem for Arc<T> {
+    fn from_meta_item(item: &MetaItem) -> Result<Self> {
+        Ok(Arc::new(FromMetaItem::from_meta_item(item)?))
+    }
+}
+
+impl<T: FromMetaItem> FromMetaItem for RefCell<T> {
+    fn from_meta_item(item: &MetaItem) -> Result<Self> {
+        Ok(RefCell::new(FromMetaItem::from_meta_item(item)?))
     }
 }
 
