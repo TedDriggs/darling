@@ -8,6 +8,12 @@ pub trait FromVariant: Sized {
     fn from_variant(variant: &Variant) -> Result<Self>;
 }
 
+impl FromVariant for () {
+    fn from_variant(_: &Variant) -> Result<Self> {
+        Ok(())
+    }
+}
+
 impl FromVariant for Variant {
     fn from_variant(variant: &Variant) -> Result<Self> {
         Ok(variant.clone())

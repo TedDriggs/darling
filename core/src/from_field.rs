@@ -1,4 +1,4 @@
-use syn::{Field, Ty, Visibility};
+use syn::{self, Field};
 
 use Result;
 
@@ -7,20 +7,32 @@ pub trait FromField: Sized {
     fn from_field(field: &Field) -> Result<Self>;
 }
 
+impl FromField for () {
+    fn from_field(_: &Field) -> Result<Self> {
+        Ok(())
+    }
+}
+
 impl FromField for Field {
     fn from_field(field: &Field) -> Result<Self> {
         Ok(field.clone())
     }
 }
 
-impl FromField for Ty {
+impl FromField for syn::Ty {
     fn from_field(field: &Field) -> Result<Self> {
         Ok(field.ty.clone())
     }
 }
 
-impl FromField for Visibility {
+impl FromField for syn::Visibility {
     fn from_field(field: &Field) -> Result<Self> {
         Ok(field.vis.clone())
+    }
+}
+
+impl FromField for Vec<syn::Attribute> {
+    fn from_field(field: &Field) -> Result<Self> {
+        Ok(field.attrs.clone())
     }
 }

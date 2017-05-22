@@ -13,6 +13,12 @@ pub trait FromDeriveInput: Sized {
     fn from_derive_input(input: &DeriveInput) -> Result<Self>;
 }
 
+impl FromDeriveInput for () {
+    fn from_derive_input(_: &DeriveInput) -> Result<Self> {
+        Ok(())
+    }
+}
+
 impl FromDeriveInput for DeriveInput {
     fn from_derive_input(input: &DeriveInput) -> Result<Self> {
         Ok(input.clone())
