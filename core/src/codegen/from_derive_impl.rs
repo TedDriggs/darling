@@ -3,6 +3,7 @@ use syn::{self, Ident};
 
 use codegen::{TraitImpl, ExtractAttribute, OuterFromImpl};
 use options::ForwardAttrs;
+use util::Body;
 
 pub struct FromDeriveInputImpl<'a> {
     pub ident: Option<&'a Ident>,
@@ -18,15 +19,30 @@ pub struct FromDeriveInputImpl<'a> {
 
 impl<'a> ToTokens for FromDeriveInputImpl<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
+        let ty_ident = self.struct_impl.ident;
         let input = self.param_name();
+        let map = self.struct_impl.map_fn();
         
+        if let Body::Struct(ref data) = self.struct_impl.body {
+            if data.is_newtype() {
+                self.wrap(quote!{
+                    fn from_derive_input(#input: &::syn::DeriveInput) -> ::darling::Result<Self> {
+                        ::darling::export::Ok(
+                            #ty_ident(::darling::FromDeriveInput::from_derive_input(#input)?)
+                        ) #map
+                    }
+                }, tokens);
+
+                return;
+            }
+        }
+
         let passed_ident = self.ident.as_ref().map(|i| quote!(#i: #input.ident.clone(),));
         let passed_vis = self.vis.as_ref().map(|i| quote!(#i: #input.vis.clone(),));
         let passed_generics = self.generics.as_ref().map(|i| quote!(#i: #input.generics.clone(),));
         let passed_attrs = self.attrs.as_ref().map(|i| quote!(#i: __fwd_attrs,));
         let passed_body = self.body.as_ref().map(|i| quote!(#i: ::darling::util::Body::from_body(&#input.body)?,));
 
-        let ty_ident = self.struct_impl.ident;
         let inits = self.struct_impl.initializers();
         let default = if let Some(true) = self.from_ident {
             quote!(let __default: Self = ::darling::export::From::from(#input.ident.clone());)
@@ -35,7 +51,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
         };
 
         let grab_attrs = self.extractor();
-        let map = self.struct_impl.map_fn();
+
 
         self.wrap(quote! {
             fn from_derive_input(#input: &::syn::DeriveInput) -> ::darling::Result<Self> {
