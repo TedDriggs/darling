@@ -1,9 +1,8 @@
 use quote::{Tokens, ToTokens};
 use syn;
 
-use ast::Style;
+use ast::{Body, Style, VariantData};
 use codegen::{Field, TraitImpl, OuterFromImpl, Variant};
-use util::{Body, VariantData};
 
 pub struct FmiImpl<'a> {
     pub base: TraitImpl<'a>,

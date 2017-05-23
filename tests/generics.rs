@@ -2,7 +2,7 @@
 extern crate darling;
 extern crate syn;
 
-use darling::{FromMetaItem, FromDeriveInput};
+use darling::FromDeriveInput;
 
 #[derive(Debug, Clone, FromMetaItem)]
 struct Wrapper<T>(pub T);
@@ -18,7 +18,8 @@ fn expansion() {
     let di = syn::parse_derive_input(r#"
         #[hello(lorem = "Hello")]
         pub struct Foo;
-    "#).unwrap();
+    "#)
+        .unwrap();
 
     let _parsed = Foo::<String>::from_derive_input(&di).unwrap();
 }

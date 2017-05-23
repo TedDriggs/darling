@@ -2,10 +2,9 @@ use ident_case::RenameRule;
 use syn;
 
 use {Result, Error, FromMetaItem};
-use ast::Style;
+use ast::{Body, Style, VariantData};
 use codegen;
 use options::{DefaultExpression, InputField, InputVariant, ParseAttribute, ParseBody};
-use util::{Body, VariantData};
 
 /// A struct or enum which should have `FromMetaItem` or `FromDeriveInput` implementations
 /// generated.

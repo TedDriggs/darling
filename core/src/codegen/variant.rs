@@ -1,8 +1,8 @@
 use quote::{Tokens, ToTokens};
 use syn::Ident;
 
+use ast::VariantData;
 use codegen::{Field, VariantDataGen};
-use util::VariantData;
 
 /// An enum variant.
 #[derive(Debug, Clone, PartialEq, Eq)]

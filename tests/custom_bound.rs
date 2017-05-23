@@ -4,8 +4,6 @@ extern crate syn;
 
 use std::ops::Add;
 
-use darling::{FromMetaItem, FromDeriveInput};
-
 #[derive(Debug, Clone, FromMetaItem)]
 #[darling(bound = "T: FromMetaItem + Add")]
 struct Wrapper<T>(pub T);
@@ -24,6 +22,4 @@ struct Foo<T> {
 }
 
 #[test]
-fn expansion() {
-
-}
+fn expansion() {}

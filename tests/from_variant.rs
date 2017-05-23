@@ -9,7 +9,7 @@ pub struct Lorem {
     ident: syn::Ident,
     into: Option<bool>,
     skip: Option<bool>,
-    data: darling::util::VariantData<syn::Ty>,
+    data: darling::ast::VariantData<syn::Ty>,
 }
 
 impl From<syn::Ident> for Lorem {
