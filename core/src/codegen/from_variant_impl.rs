@@ -2,7 +2,7 @@ use quote::{Tokens, ToTokens};
 use syn::{self, Ident};
 
 use codegen::{ExtractAttribute, OuterFromImpl, TraitImpl};
-use options::ForwardAttrs;
+use options::{DataShape, ForwardAttrs};
 
 pub struct FromVariantImpl<'a> {
     pub base: TraitImpl<'a>,
@@ -12,6 +12,7 @@ pub struct FromVariantImpl<'a> {
     pub attr_names: Vec<&'a str>,
     pub forward_attrs: Option<&'a ForwardAttrs>,
     pub from_ident: Option<bool>,
+    pub supports: Option<&'a DataShape>,
 }
 
 impl<'a> ToTokens for FromVariantImpl<'a> {
@@ -31,9 +32,16 @@ impl<'a> ToTokens for FromVariantImpl<'a> {
             self.base.fallback_decl()
         };
 
+        let supports = self.supports.map(|i| quote! {
+            #i
+            __validate_data(&#input.data)?;
+        });
+
         self.wrap(quote!(
             fn from_variant(#input: &::syn::Variant) -> ::darling::Result<Self> {
                 #extractor
+
+                #supports
 
                 #default
 

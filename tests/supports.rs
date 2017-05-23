@@ -6,13 +6,13 @@ use darling::ast;
 use darling::FromDeriveInput;
 
 #[derive(Debug,FromDeriveInput)]
-#[darling(attributes(from_variants), supports(enum_newtype, enum_unit))]
+#[darling(attributes(from_variants), supports(enum_any))]
 pub struct Container {
     body: ast::Body<Variant, ()>,
 }
 
 #[derive(Default, Debug, FromVariant)]
-#[darling(default, attributes(from_variants))]
+#[darling(default, attributes(from_variants), supports(newtype, unit))]
 pub struct Variant {
     into: Option<bool>,
     skip: Option<bool>,

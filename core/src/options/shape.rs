@@ -2,19 +2,18 @@ use quote::{Tokens, ToTokens};
 use syn::{MetaItem, NestedMetaItem};
 
 use {Error, FromMetaItem, Result};
-use util::Flag;
 
 #[derive(Debug, Clone)]
 pub struct Shape {
-    enum_values: InnerShape,
-    struct_values: InnerShape,
-    any: Flag,
+    enum_values: DataShape,
+    struct_values: DataShape,
+    any: bool,
 }
 
 impl Shape {
     pub fn all() -> Self {
         Shape {
-            any: Flag::present(),
+            any: true,
             ..Default::default()
         }
     }
@@ -23,8 +22,8 @@ impl Shape {
 impl Default for Shape {
     fn default() -> Self {
         Shape {
-            enum_values: InnerShape::new("enum"),
-            struct_values: InnerShape::new("struct"),
+            enum_values: DataShape::new("enum_"),
+            struct_values: DataShape::new("struct_"),
             any: Default::default(),
         }
     }
@@ -37,7 +36,7 @@ impl FromMetaItem for Shape {
             if let NestedMetaItem::MetaItem(MetaItem::Word(ref ident)) = *item {
                 let word = ident.as_ref();
                 if word == "any" {
-                    new.any = Flag::present();
+                    new.any = true;
                 }
                 else if word.starts_with("enum_") {
                     new.enum_values.set_word(word)?;
@@ -92,67 +91,84 @@ impl ToTokens for Shape {
     }
 }
 
-#[derive(Debug, Clone, Default)]
-struct InnerShape {
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct DataShape {
     prefix: &'static str,
-    newtype: Flag,
-    named: Flag,
-    tuple: Flag,
-    unit: Flag,
-    any: Flag,
+    newtype: bool,
+    named: bool,
+    tuple: bool,
+    unit: bool,
+    any: bool,
+    embedded: bool,
 }
 
-impl InnerShape {
+impl DataShape {
     fn new(prefix: &'static str) -> Self {
-        InnerShape {
+        DataShape {
             prefix,
+            embedded: true,
             ..Default::default()
         }
     }
 
     fn supports_none(&self) -> bool {
-        (self.newtype | self.named | self.tuple | self.unit | self.any).is_none()
+        !(self.any || self.newtype || self.named || self.tuple || self.unit)
     } 
 
     fn set_word(&mut self, word: &str) -> Result<()> {
         match word.trim_left_matches(self.prefix) {
-            "_newtype" => {
-                self.newtype = Flag::present();
+            "newtype" => {
+                self.newtype = true;
                 Ok(())
             }
-            "_named" => {
-                self.named = Flag::present();
+            "named" => {
+                self.named = true;
                 Ok(())
             }
-            "_tuple" => {
-                self.tuple = Flag::present();
+            "tuple" => {
+                self.tuple = true;
                 Ok(())
             }
-            "_unit" => {
-                self.unit = Flag::present();
+            "unit" => {
+                self.unit = true;
                 Ok(())
             }
-            "_any" => {
-                self.any = Flag::present();
+            "any" => {
+                self.any = true;
                 Ok(())
             }
-            other => Err(Error::unknown_value(other)),
+            _ => Err(Error::unknown_value(word)),
         }
     }
 }
 
-impl ToTokens for InnerShape {
+impl FromMetaItem for DataShape {
+    fn from_list(items: &[NestedMetaItem]) -> Result<Self> {
+        let mut new = DataShape::default();
+        for item in items {
+            if let NestedMetaItem::MetaItem(MetaItem::Word(ref ident)) = *item {
+                new.set_word(ident.as_ref())?;
+            } else {
+                return Err(Error::unsupported_format("non-word"));
+            }
+        }
+
+        Ok(new)
+    }
+}
+
+impl ToTokens for DataShape {
     fn to_tokens(&self, tokens: &mut Tokens) {
-        let body = if self.any == true {
+        let body = if self.any {
             quote!(::darling::export::Ok(()))
         } else if self.supports_none() {
-            let ty = self.prefix;
+            let ty = self.prefix.trim_right_matches("_");
             quote!(::darling::export::Err(::darling::Error::unsupported_format(#ty)))
         } else {
-            let unit = match_arm("unit", self.unit.into());
-            let newtype = match_arm("newtype", self.newtype.into());
-            let named = match_arm("named", self.named.into());
-            let tuple = match_arm("tuple", self.tuple.into());
+            let unit = match_arm("unit", self.unit);
+            let newtype = match_arm("newtype", self.newtype);
+            let named = match_arm("named", self.named);
+            let tuple = match_arm("tuple", self.tuple);
             quote! {
                 match *data {
                     ::syn::VariantData::Unit => #unit,
@@ -163,7 +179,15 @@ impl ToTokens for InnerShape {
             }
         };
 
-        tokens.append(body);
+        if self.embedded {
+            tokens.append(body);
+        } else {
+            tokens.append(quote! {
+                fn __validate_data(data: &::syn::VariantData) -> ::darling::Result<()> {
+                    #body
+                }
+            });
+        }
     }
 }
 
