@@ -29,7 +29,7 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
             self.base.fallback_decl()
         };
 
-        let passed_ident = self.ident.as_ref().map(|i| quote!(#i: #input.ident.clone().unwrap(),));
+        let passed_ident = self.ident.as_ref().map(|i| quote!(#i: #input.ident.clone(),));
         let passed_vis = self.vis.as_ref().map(|i| quote!(#i: #input.vis.clone(),));
         let passed_ty = self.ty.as_ref().map(|i| quote!(#i: #input.ty.clone(),));
         let passed_attrs = self.attrs.as_ref().map(|i| quote!(#i: __fwd_attrs,));
