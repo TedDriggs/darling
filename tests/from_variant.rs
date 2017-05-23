@@ -18,7 +18,7 @@ impl From<syn::Ident> for Lorem {
             ident,
             into: Default::default(),
             skip: Default::default(),
-            data: darling::util::VariantData::Unit,
+            data: darling::ast::Style::Unit.into(),
         }
     }
 }

@@ -3,7 +3,7 @@ use syn::{Generics, Ident, Path, WherePredicate};
 
 use codegen::{DefaultExpression, Field, Variant, VariantDataGen};
 use codegen::field;
-use util::Body;
+use ast::Body;
 
 #[derive(Debug)]
 pub struct TraitImpl<'a> {
@@ -21,7 +21,7 @@ impl<'a> TraitImpl<'a> {
     pub fn local_declarations(&self) -> Tokens {
         if let Body::Struct(ref vd) = self.body {
             let vdr = vd.as_ref().map(Field::as_declaration);
-            let decls = vdr.fields();
+            let decls = vdr.fields.as_slice();
             quote!(#(#decls)*)
         } else {
             quote!()
@@ -33,7 +33,7 @@ impl<'a> TraitImpl<'a> {
     pub fn immutable_declarations(&self) -> Tokens {
         if let Body::Struct(ref vd) = self.body {
             let vdr = vd.as_ref().map(|f| field::Declaration::new(f, false));
-            let decls = vdr.fields();
+            let decls = vdr.fields.as_slice();
             quote!(#(#decls)*)
         } else {
             quote!()

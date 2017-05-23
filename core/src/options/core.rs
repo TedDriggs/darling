@@ -2,6 +2,7 @@ use ident_case::RenameRule;
 use syn;
 
 use {Result, Error, FromMetaItem};
+use ast::Style;
 use codegen;
 use options::{DefaultExpression, InputField, InputVariant, ParseAttribute, ParseBody};
 use util::{Body, VariantData};
@@ -101,13 +102,12 @@ impl ParseBody for Core {
         let f = InputField::from_field(field, Some(&self))?;
 
         match self.body {
-            Body::Struct(VariantData::Struct(ref mut fields)) |
-            Body::Struct(VariantData::Tuple(ref mut fields)) => {
+            Body::Struct(VariantData { style: Style::Unit, .. }) => {
+                panic!("Core::parse_field should not be called on unit")
+            }
+            Body::Struct(VariantData { ref mut fields, .. }) => {
                 fields.push(f);
                 Ok(())
-            }
-            Body::Struct(VariantData::Unit) => {
-                panic!("Core::parse_field should not be called on unit")
             }
             Body::Enum(_) => panic!("Core::parse_field should never be called for an enum"),
         }

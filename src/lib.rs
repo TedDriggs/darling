@@ -37,7 +37,7 @@
 //! |`ident`|`syn::Ident`|The identifier of the passed-in type|
 //! |`vis`|`syn::Visibility`|The visibility of the passed-in type|
 //! |`generics`|`syn::Generics`|The generics of the passed-in type|
-//! |`body`|`darling::util::Body`|The body of the passed-in type|
+//! |`body`|`darling::ast::Body`|The body of the passed-in type|
 //! |`attrs`|`Vec<syn::Attribute>`|The forwarded attributes from the passed in type. These are controlled using the `forward_attrs` attribute.|
 //!
 //! ### `FromField`
@@ -63,6 +63,9 @@ pub use darling_core::{FromMetaItem, FromDeriveInput, FromField, FromVariant};
 
 #[doc(inline)]
 pub use darling_core::{Result, Error};
+
+#[doc(inline)]
+pub use darling_core::ast;
 
 #[doc(inline)]
 pub use darling_core::util;

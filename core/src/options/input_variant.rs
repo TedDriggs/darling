@@ -1,9 +1,9 @@
 use syn;
 
 use {FromMetaItem, Error, Result};
+use ast::{Style, VariantData};
 use codegen;
 use options::{Core, InputField, ParseAttribute};
-use util::VariantData;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InputVariant {
@@ -33,23 +33,19 @@ impl InputVariant {
         }).parse_attributes(&v.attrs)?;
 
         starter.data = match v.data {
-            syn::VariantData::Struct(ref fields) => {
-                let mut items = Vec::with_capacity(fields.len());
-                for item in fields {
-                    items.push(InputField::from_field(item, parent)?);
-                }
-
-                VariantData::Struct(items)
-            }
+            syn::VariantData::Unit => Style::Unit.into(),
+            syn::VariantData::Struct(ref fields) |
             syn::VariantData::Tuple(ref fields) => {
                 let mut items = Vec::with_capacity(fields.len());
                 for item in fields {
                     items.push(InputField::from_field(item, parent)?);
                 }
 
-                VariantData::Tuple(items)
+                VariantData {
+                    style: (&v.data).into(),
+                    fields: items,
+                }
             }
-            syn::VariantData::Unit => VariantData::Unit
         };
 
         Ok(if let Some(p) = parent {

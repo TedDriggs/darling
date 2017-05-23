@@ -1,6 +1,7 @@
 use quote::{Tokens, ToTokens};
 use syn;
 
+use ast::Style;
 use codegen::{Field, TraitImpl, OuterFromImpl, Variant};
 use util::{Body, VariantData};
 
@@ -13,14 +14,14 @@ impl<'a> ToTokens for FmiImpl<'a> {
         let base = &self.base;
 
         let impl_block = match base.body {
-            Body::Struct(VariantData::Unit) => {
+            Body::Struct(ref vd) if vd.style.is_unit() => {
                 quote!(
                     fn from_word() -> ::darling::Result<Self> {
                         Ok(Self)
                     }
                 )
             }
-            Body::Struct(VariantData::Tuple(ref fields)) if fields.len() == 1 => {
+            Body::Struct(VariantData { ref fields, style: Style::Tuple, .. }) if fields.len() == 1 => {
                 let ty_ident = base.ident;
                 quote!(
                     fn from_meta_item(__item: &::syn::MetaItem) -> ::darling::Result<Self> {
@@ -28,11 +29,11 @@ impl<'a> ToTokens for FmiImpl<'a> {
                     }
                 )
             }
-            Body::Struct(VariantData::Tuple(_)) => {
+            Body::Struct(VariantData { style: Style::Tuple, .. }) => {
                 panic!("Multi-field tuples are not supported");
             }
             Body::Struct(ref data) => {
-                let inits = data.fields().into_iter().map(Field::as_initializer);
+                let inits = data.fields.iter().map(Field::as_initializer);
                 let decls = base.local_declarations();
                 let core_loop = base.core_loop();
                 let default = base.fallback_decl();

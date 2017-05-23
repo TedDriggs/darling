@@ -1,8 +1,9 @@
 use quote::Tokens;
 
+use ast::Style;
 use codegen::field;
 use codegen::Field;
-use util::VariantData;
+use ast::VariantData;
 
 #[allow(dead_code)]
 pub struct VariantDataGen<'a>(pub &'a VariantData<Field<'a>>);
@@ -11,7 +12,7 @@ pub struct VariantDataGen<'a>(pub &'a VariantData<Field<'a>>);
 impl<'a> VariantDataGen<'a> {
     pub fn declarations(&self) -> Tokens {
         match *self.0 {
-            VariantData::Struct(ref fields) => {
+            VariantData { style: Style::Struct, ref fields } => {
                 let vdr = fields.into_iter().map(Field::as_declaration);
                 quote!(#(#vdr)*)
             }
@@ -22,7 +23,7 @@ impl<'a> VariantDataGen<'a> {
     /// Generate the loop which walks meta items looking for property matches.
     /// TODO: Mark this as `pub(in codegen)` once restricted visibility stabilizes.
     pub fn core_loop(&self) -> Tokens {
-        let arms: Vec<field::MatchArm> = self.0.as_ref().map(Field::as_match).into();
+        let arms: Vec<field::MatchArm> = self.0.as_ref().map(Field::as_match).fields;
 
         quote!(
             for __item in __items {
@@ -38,7 +39,7 @@ impl<'a> VariantDataGen<'a> {
     }
 
     pub fn initializers(&self) -> Tokens {
-        let inits: Vec<_> = self.0.as_ref().map(Field::as_initializer).into();
+        let inits: Vec<_> = self.0.as_ref().map(Field::as_initializer).fields;
 
         quote!(#(#inits),*)
     }

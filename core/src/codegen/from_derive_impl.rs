@@ -1,9 +1,9 @@
 use quote::{Tokens, ToTokens};
 use syn::{self, Ident};
 
+use ast::Body;
 use codegen::{TraitImpl, ExtractAttribute, OuterFromImpl};
 use options::ForwardAttrs;
-use util::Body;
 
 pub struct FromDeriveInputImpl<'a> {
     pub ident: Option<&'a Ident>,
@@ -41,7 +41,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
         let passed_vis = self.vis.as_ref().map(|i| quote!(#i: #input.vis.clone(),));
         let passed_generics = self.generics.as_ref().map(|i| quote!(#i: #input.generics.clone(),));
         let passed_attrs = self.attrs.as_ref().map(|i| quote!(#i: __fwd_attrs,));
-        let passed_body = self.body.as_ref().map(|i| quote!(#i: ::darling::util::Body::from_body(&#input.body)?,));
+        let passed_body = self.body.as_ref().map(|i| quote!(#i: ::darling::ast::Body::from_body(&#input.body)?,));
 
         let inits = self.struct_impl.initializers();
         let default = if let Some(true) = self.from_ident {
