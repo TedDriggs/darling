@@ -13,7 +13,7 @@ pub struct Field<'a> {
 
     /// The name presented to the author of the library. This will appear
     /// in the setters or temporary variables which contain the values.
-    pub name_in_struct: &'a Ident,
+    pub ident: &'a Ident,
 
     /// The type of the field in the input.
     pub ty: &'a Ty,
@@ -53,13 +53,13 @@ impl<'a> Declaration<'a> {
 
 impl<'a> ToTokens for Declaration<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
-        let name_in_struct = self.0.name_in_struct;
+        let ident = self.0.ident;
         let ty = self.0.ty;
 
         let mutable = if self.1 { quote!(mut) } else { quote!() };
 
         tokens.append(quote!(
-            let #mutable #name_in_struct: ::darling::export::Option<#ty> = None;
+            let #mutable #ident: ::darling::export::Option<#ty> = None;
         ));
     }
 }
@@ -71,7 +71,7 @@ impl<'a> ToTokens for MatchArm<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
         if !self.0.skip {
             let name_str = self.0.name_in_attr;
-            let name_in_struct = self.0.name_in_struct;
+            let ident = self.0.ident;
             let with_path = self.0.with_path;
 
             let mut extractor = quote!(#with_path(__inner).map_err(|e| e.at(#name_str))?);
@@ -82,8 +82,8 @@ impl<'a> ToTokens for MatchArm<'a> {
 
             tokens.append(quote!(
                 #name_str => {  
-                    if #name_in_struct.is_none() {
-                        #name_in_struct = ::darling::export::Some(#extractor);
+                    if #ident.is_none() {
+                        #ident = ::darling::export::Some(#extractor);
                     } else {
                         return ::darling::export::Err(::darling::Error::duplicate_field(#name_str));
                     }
@@ -99,11 +99,11 @@ pub struct Applicator<'a>(&'a Field<'a>);
 
 impl<'a> ToTokens for Applicator<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
-        let name_in_struct = self.0.name_in_struct;
+        let ident = self.0.ident;
 
         tokens.append(quote!(
-            if let Some(__override) = #name_in_struct {
-                self.#name_in_struct = __override;
+            if let Some(__override) = #ident {
+                self.#ident = __override;
             }
         ))
     }
@@ -115,14 +115,14 @@ pub struct Initializer<'a>(&'a Field<'a>);
 impl<'a> ToTokens for Initializer<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
         let name_str = self.0.name_in_attr;
-        let name_in_struct = self.0.name_in_struct;
+        let ident = self.0.ident;
         if let Some(ref expr) = self.0.default_expression {
-            tokens.append(quote!(#name_in_struct: match #name_in_struct {
+            tokens.append(quote!(#ident: match #ident {
                 ::darling::export::Some(__val) => __val,
                 ::darling::export::None => #expr,
             }));
         } else {
-            tokens.append(quote!(#name_in_struct: match #name_in_struct {
+            tokens.append(quote!(#ident: match #ident {
                 ::darling::export::Some(__val) => __val,
                 ::darling::export::None => 
                     return ::darling::export::Err(::darling::Error::missing_field(#name_str))

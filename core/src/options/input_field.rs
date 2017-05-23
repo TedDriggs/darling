@@ -27,7 +27,7 @@ impl InputField {
     /// Generate a view into this field that can be used for code generation.
     pub fn as_codegen_field<'a>(&'a self) -> codegen::Field<'a> {
         codegen::Field {
-            name_in_struct: &self.ident,
+            ident: &self.ident,
             name_in_attr: self.attr_name.as_ref().map(|n| n.as_str()).unwrap_or(self.ident.as_ref()),
             ty: &self.ty,
             default_expression: self.as_codegen_default(),
