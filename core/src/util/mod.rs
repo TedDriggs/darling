@@ -1,5 +1,5 @@
 //! Utility types for attribute parsing.
-use std::ops::Deref;
+use std::ops::{Deref, Not, BitAnd, BitOr};
 
 use syn;
 use {FromMetaItem, Result};
@@ -13,7 +13,7 @@ pub use self::ignored::Ignored;
 pub use self::over_ride::Override;
 
 /// Marker type equivalent to `Option<()>` for use in attribute parsing.
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct Flag(Option<()>);
 
 impl Flag {
@@ -35,6 +35,18 @@ impl FromMetaItem for Flag {
     }
 }
 
+impl From<Flag> for bool {
+    fn from(flag: Flag) -> Self {
+        flag.is_some()
+    }
+}
+
+impl From<bool> for Flag {
+    fn from(v: bool) -> Self {
+        if v { Flag::present() } else { Flag(None) }
+    }
+}
+
 impl PartialEq<Option<()>> for Flag {
     fn eq(&self, rhs: &Option<()>) -> bool {
         self.0 == *rhs
@@ -44,5 +56,39 @@ impl PartialEq<Option<()>> for Flag {
 impl PartialEq<Flag> for Option<()> {
     fn eq(&self, rhs: &Flag) -> bool {
         *self == rhs.0
+    }
+}
+
+impl PartialEq<bool> for Flag {
+    fn eq(&self, rhs: &bool) -> bool {
+        self.is_some() == *rhs
+    }
+}
+
+impl Not for Flag {
+    type Output = Self;
+
+    fn not(self) -> Self {
+        if self.is_some() {
+            Flag(None)
+        } else {
+            Flag::present()
+        }
+    }
+}
+
+impl BitAnd for Flag {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self {
+        (self.into() && rhs.into()).into()
+    }
+}
+
+impl BitOr for Flag {
+    type Output = Self;
+
+    fn bitor(self, rhs: Self) -> Self {
+        (self.into() || rhs.into()).into()
     }
 }

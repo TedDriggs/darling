@@ -67,6 +67,7 @@ impl<'a> From<&'a FdiOptions> for codegen::FromDeriveInputImpl<'a> {
             generics: v.generics.as_ref(),
             attrs: v.base.attrs.as_ref(),
             forward_attrs: v.base.forward_attrs.as_ref(),
+            supports: v.supports.as_ref(),
         }
     }
 }

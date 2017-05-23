@@ -3,7 +3,7 @@ use syn::{self, Ident};
 
 use ast::Body;
 use codegen::{TraitImpl, ExtractAttribute, OuterFromImpl};
-use options::ForwardAttrs;
+use options::{ForwardAttrs, Shape};
 
 pub struct FromDeriveInputImpl<'a> {
     pub ident: Option<&'a Ident>,
@@ -15,6 +15,7 @@ pub struct FromDeriveInputImpl<'a> {
     pub attr_names: Vec<&'a str>,
     pub forward_attrs: Option<&'a ForwardAttrs>,
     pub from_ident: Option<bool>,
+    pub supports: Option<&'a Shape>,
 }
 
 impl<'a> ToTokens for FromDeriveInputImpl<'a> {
@@ -43,6 +44,11 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
         let passed_attrs = self.attrs.as_ref().map(|i| quote!(#i: __fwd_attrs,));
         let passed_body = self.body.as_ref().map(|i| quote!(#i: ::darling::ast::Body::try_from(&#input.body)?,));
 
+        let supports = self.supports.map(|i| quote!{
+            #i
+            __validate_body(&#input.body)?;
+        });
+
         let inits = self.struct_impl.initializers();
         let default = if let Some(true) = self.from_ident {
             quote!(let __default: Self = ::darling::export::From::from(#input.ident.clone());)
@@ -56,6 +62,8 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
         self.wrap(quote! {
             fn from_derive_input(#input: &::syn::DeriveInput) -> ::darling::Result<Self> {
                 #grab_attrs
+
+                #supports
 
                 #default
 

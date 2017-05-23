@@ -1,9 +1,10 @@
+use quote::{Tokens, ToTokens};
 use syn::{MetaItem, NestedMetaItem};
 
 use {Error, FromMetaItem, Result};
 use util::Flag;
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Shape {
     enum_values: InnerShape,
     struct_values: InnerShape,
@@ -15,6 +16,16 @@ impl Shape {
         Shape {
             any: Flag::present(),
             ..Default::default()
+        }
+    }
+}
+
+impl Default for Shape {
+    fn default() -> Self {
+        Shape {
+            enum_values: InnerShape::new("enum"),
+            struct_values: InnerShape::new("struct"),
+            any: Default::default(),
         }
     }
 }
@@ -44,8 +55,46 @@ impl FromMetaItem for Shape {
     }
 }
 
+impl ToTokens for Shape {
+    fn to_tokens(&self, tokens: &mut Tokens) {
+        let fn_body = if self.any == true {
+            quote!(::darling::export::Ok(()))
+        }
+        else {
+            let en = &self.enum_values;
+            let st = &self.struct_values;
+            quote! {
+                match *__body {
+                    ::syn::Body::Enum(ref variants) => {
+                        fn validate_variant(data: &::syn::VariantData) -> ::darling::Result<()> {
+                            #en
+                        }
+
+                        for variant in variants {
+                            validate_variant(&variant.data)?;
+                        }
+
+                        Ok(())
+                    }
+                    ::syn::Body::Struct(ref data) => {
+                        #st
+                    }
+                }
+            }
+        };
+
+        tokens.append(quote!{
+            #[allow(unused_variables)]
+            fn __validate_body(__body: &::syn::Body) -> ::darling::Result<()> {
+                #fn_body
+            }
+        });
+    }
+}
+
 #[derive(Debug, Clone, Default)]
 struct InnerShape {
+    prefix: &'static str,
     newtype: Flag,
     named: Flag,
     tuple: Flag,
@@ -54,30 +103,75 @@ struct InnerShape {
 }
 
 impl InnerShape {
+    fn new(prefix: &'static str) -> Self {
+        InnerShape {
+            prefix,
+            ..Default::default()
+        }
+    }
+
+    fn supports_none(&self) -> bool {
+        (self.newtype | self.named | self.tuple | self.unit | self.any).is_none()
+    } 
+
     fn set_word(&mut self, word: &str) -> Result<()> {
-        match word.trim_left_matches("enum_").trim_left_matches("struct_") {
-            "newtype" => {
+        match word.trim_left_matches(self.prefix) {
+            "_newtype" => {
                 self.newtype = Flag::present();
                 Ok(())
             }
-            "named" => {
+            "_named" => {
                 self.named = Flag::present();
                 Ok(())
             }
-            "tuple" => {
+            "_tuple" => {
                 self.tuple = Flag::present();
                 Ok(())
             }
-            "unit" => {
+            "_unit" => {
                 self.unit = Flag::present();
                 Ok(())
             }
-            "any" => {
+            "_any" => {
                 self.any = Flag::present();
                 Ok(())
             }
             other => Err(Error::unknown_value(other)),
         }
+    }
+}
+
+impl ToTokens for InnerShape {
+    fn to_tokens(&self, tokens: &mut Tokens) {
+        let body = if self.any == true {
+            quote!(::darling::export::Ok(()))
+        } else if self.supports_none() {
+            let ty = self.prefix;
+            quote!(::darling::export::Err(::darling::Error::unsupported_format(#ty)))
+        } else {
+            let unit = match_arm("unit", self.unit.into());
+            let newtype = match_arm("newtype", self.newtype.into());
+            let named = match_arm("named", self.named.into());
+            let tuple = match_arm("tuple", self.tuple.into());
+            quote! {
+                match *data {
+                    ::syn::VariantData::Unit => #unit,
+                    ::syn::VariantData::Tuple(ref fields) if fields.len() == 1 => #newtype,
+                    ::syn::VariantData::Tuple(_) => #tuple,
+                    ::syn::VariantData::Struct(_) => #named,
+                }
+            }
+        };
+
+        tokens.append(body);
+    }
+}
+
+fn match_arm(name: &'static str, is_supported: bool) -> Tokens {
+    if is_supported {
+        quote!(::darling::export::Ok(()))
+    } else {
+        quote!(::darling::export::Err(::darling::Error::unsupported_format(#name)))
     }
 }
 
