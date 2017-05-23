@@ -1,8 +1,8 @@
 use syn::{self, Ident};
 
-use Result;
+use {FromMetaItem, Result};
 use codegen;
-use options::{ParseAttribute, ParseBody, OuterFrom};
+use options::{ParseAttribute, ParseBody, OuterFrom, Shape};
 
 #[derive(Debug)]
 pub struct FdiOptions {
@@ -15,6 +15,8 @@ pub struct FdiOptions {
     pub generics: Option<Ident>,
 
     pub body: Option<Ident>,
+
+    pub supports: Option<Shape>,
 }
 
 impl FdiOptions {
@@ -24,13 +26,17 @@ impl FdiOptions {
             vis: Default::default(),
             generics: Default::default(),
             body: Default::default(),
+            supports: Default::default(),
         }).parse_attributes(&di.attrs)?.parse_body(&di.body)
     }
 }
 
 impl ParseAttribute for FdiOptions {
     fn parse_nested(&mut self, mi: &syn::MetaItem) -> Result<()> {
-        self.base.parse_nested(mi)
+        match mi.name() {
+            "supports" => { self.supports = FromMetaItem::from_meta_item(mi)?; Ok(()) },
+            _ => self.base.parse_nested(mi)
+        }
     }
 }
 
