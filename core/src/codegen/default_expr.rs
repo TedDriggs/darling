@@ -7,6 +7,8 @@ const DEFAULT_STRUCT_NAME: &str = "__default";
 /// The fallback value for a field or container.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DefaultExpression<'a> {
+    /// Only valid on fields, `Inherit` indicates that the value should be taken from a pre-constructed
+    /// fallback object. The value in the variant is the ident of the field.
     Inherit(&'a Ident),
     Explicit(&'a Path),
     Trait,
@@ -31,6 +33,7 @@ impl<'a> ToTokens for DefaultExpression<'a> {
     }
 }
 
+/// Used only by containers, this wrapper type generates code to declare the fallback instance.
 pub struct DefaultDeclaration<'a>(&'a DefaultExpression<'a>);
 
 impl<'a> ToTokens for DefaultDeclaration<'a> {
