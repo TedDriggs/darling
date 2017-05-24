@@ -19,8 +19,12 @@ pub struct InputField {
     pub ty: syn::Ty,
     pub default: Option<DefaultExpression>,
     pub with: Option<syn::Path>,
+    
+    /// If `true`, generated code will not look for this field in the input meta item,
+    /// instead always falling back to either `InputField::default` or `Default::default`.
     pub skip: bool,
     pub map: Option<syn::Path>,
+    pub multiple: bool,
 }
 
 impl InputField {
@@ -34,6 +38,7 @@ impl InputField {
             with_path: self.with.as_ref().unwrap_or(&FROM_META_ITEM),
             skip: self.skip,
             map: self.map.as_ref(),
+            multiple: self.multiple,
         }
     }
 
@@ -58,6 +63,7 @@ impl InputField {
             with: None,
             skip: false,
             map: Default::default(),
+            multiple: false,
         }
     }
 
@@ -115,6 +121,7 @@ impl ParseAttribute for InputField {
             "with" => { self.with = Some(FromMetaItem::from_meta_item(mi)?); Ok(()) }
             "skip" => { self.skip = FromMetaItem::from_meta_item(mi)?; Ok(()) }
             "map" => { self.map = Some(FromMetaItem::from_meta_item(mi)?); Ok(()) }
+            "multiple" => { self.multiple = FromMetaItem::from_meta_item(mi)?; Ok(()) }
             n => Err(Error::unknown_field(n)),
         }
     }

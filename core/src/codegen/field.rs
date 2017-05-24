@@ -21,6 +21,7 @@ pub struct Field<'a> {
     pub with_path: &'a Path,
     pub map: Option<&'a Path>,
     pub skip: bool,
+    pub multiple: bool,
 }
 
 impl<'a> Field<'a> {
@@ -34,10 +35,6 @@ impl<'a> Field<'a> {
 
     pub fn as_initializer(&'a self) -> Initializer<'a> {
         Initializer(self)
-    }
-
-    pub fn as_applicator(&'a self) -> Applicator<'a> {
-        Applicator(self)
     }
 }
 
@@ -53,14 +50,17 @@ impl<'a> Declaration<'a> {
 
 impl<'a> ToTokens for Declaration<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
-        let ident = self.0.ident;
-        let ty = self.0.ty;
+        let field: &Field = self.0;
+        let ident = field.ident;
+        let ty = field.ty;
 
         let mutable = if self.1 { quote!(mut) } else { quote!() };
 
-        tokens.append(quote!(
-            let #mutable #ident: ::darling::export::Option<#ty> = None;
-        ));
+        tokens.append(if field.multiple {
+            quote!(let #mutable #ident: #ty = ::darling::export::Default::default();)
+        } else {
+            quote!(let #mutable #ident: ::darling::export::Option<#ty> = None;)
+        });
     }
 }
 
@@ -69,43 +69,45 @@ pub struct MatchArm<'a>(&'a Field<'a>);
 
 impl<'a> ToTokens for MatchArm<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
-        if !self.0.skip {
-            let name_str = self.0.name_in_attr;
-            let ident = self.0.ident;
-            let with_path = self.0.with_path;
+        let field: &Field = self.0;
+        if !field.skip {
+            let name_str = field.name_in_attr;
+            let ident = field.ident;
+            let with_path = field.with_path;
 
-            let mut extractor = quote!(#with_path(__inner).map_err(|e| e.at(#name_str))?);
+            /// Errors include the location of the bad input, so we compute that here.
+            /// Fields that take multiple values add the index of the error for convenience,
+            /// while single-value fields only expose the name in the input attribute.
+            let location = if field.multiple {
+                quote!(&format!("{}[{}]", #name_str, #ident.len()))
+            } else {
+                quote!(#name_str)
+            };
+
+            let mut extractor = quote!(#with_path(__inner).map_err(|e| e.at(#location))?);
             
-            if let Some(ref map) = self.0.map.as_ref() {
+            if let Some(ref map) = field.map.as_ref() {
                 extractor = quote!(#map(#extractor));
             }
 
-            tokens.append(quote!(
-                #name_str => {  
-                    if #ident.is_none() {
-                        #ident = ::darling::export::Some(#extractor);
-                    } else {
-                        return ::darling::export::Err(::darling::Error::duplicate_field(#name_str));
+            tokens.append(if field.multiple {
+                quote!(
+                    #name_str => {
+                        #ident.push(#extractor);
                     }
-                }
-            ));
+                )
+            } else {
+                quote!(
+                    #name_str => {  
+                        if #ident.is_none() {
+                            #ident = ::darling::export::Some(#extractor);
+                        } else {
+                            return ::darling::export::Err(::darling::Error::duplicate_field(#name_str));
+                        }
+                    }
+                )
+            });
         }
-    }
-}
-
-/// Adapter which emits tokens to apply a field to `self` if a value
-/// was provided.
-pub struct Applicator<'a>(&'a Field<'a>);
-
-impl<'a> ToTokens for Applicator<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
-        let ident = self.0.ident;
-
-        tokens.append(quote!(
-            if let Some(__override) = #ident {
-                self.#ident = __override;
-            }
-        ))
     }
 }
 
@@ -114,19 +116,36 @@ pub struct Initializer<'a>(&'a Field<'a>);
 
 impl<'a> ToTokens for Initializer<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
-        let name_str = self.0.name_in_attr;
-        let ident = self.0.ident;
-        if let Some(ref expr) = self.0.default_expression {
-            tokens.append(quote!(#ident: match #ident {
-                ::darling::export::Some(__val) => __val,
-                ::darling::export::None => #expr,
-            }));
+        let field: &Field = self.0;
+        let name_str = field.name_in_attr;
+        let ident = field.ident;
+        tokens.append(if field.multiple {
+            if let Some(ref expr) = field.default_expression {
+                quote!(#ident: if !#ident.is_empty() {
+                    #ident
+                } else {
+                    #expr
+                })
+            } else {
+                // This could just be `#ident`, but that breaks `cargo expand`, which is 
+                // necessary for sanity when working on proc macros.
+                //
+                // See https://github.com/dtolnay/cargo-expand/issues/14
+                quote!(#ident: #ident)
+            }
         } else {
-            tokens.append(quote!(#ident: match #ident {
-                ::darling::export::Some(__val) => __val,
-                ::darling::export::None => 
-                    return ::darling::export::Err(::darling::Error::missing_field(#name_str))
-            }));
-        }
+            if let Some(ref expr) = field.default_expression {
+                quote!(#ident: match #ident {
+                    ::darling::export::Some(__val) => __val,
+                    ::darling::export::None => #expr,
+                })
+            } else {
+                quote!(#ident: match #ident {
+                    ::darling::export::Some(__val) => __val,
+                    ::darling::export::None => 
+                        return ::darling::export::Err(::darling::Error::missing_field(#name_str))
+                })
+            }
+        });
     }
 }
