@@ -205,7 +205,6 @@ mod tests {
     
     use super::Shape;
     use {FromMetaItem};
-    use util::Flag;
 
     /// parse a string as a syn::MetaItem instance.
     fn pmi(s: &str) -> ::std::result::Result<syn::MetaItem, String> {
@@ -220,22 +219,22 @@ mod tests {
     #[test]
     fn supports_any() {
         let decl = fmi::<Shape>("ignore(any)");
-        assert_eq!(decl.any, Flag::present());
+        assert_eq!(decl.any, true);
     }
 
     #[test]
     fn supports_struct() {
         let decl = fmi::<Shape>("ignore(struct_any, struct_newtype)");
-        assert_eq!(decl.struct_values.any, Flag::present());
-        assert_eq!(decl.struct_values.newtype, Flag::present());
+        assert_eq!(decl.struct_values.any, true);
+        assert_eq!(decl.struct_values.newtype, true);
     }
 
     #[test]
     fn supports_mixed() {
         let decl = fmi::<Shape>("ignore(struct_newtype, enum_newtype, enum_tuple)");
-        assert_eq!(decl.struct_values.newtype, Flag::present());
-        assert_eq!(decl.enum_values.newtype, Flag::present());
-        assert_eq!(decl.enum_values.tuple, Flag::present());
-        assert_eq!(decl.struct_values.any, None);
+        assert_eq!(decl.struct_values.newtype, true);
+        assert_eq!(decl.enum_values.newtype, true);
+        assert_eq!(decl.enum_values.tuple, true);
+        assert_eq!(decl.struct_values.any, false);
     }
 }
