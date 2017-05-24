@@ -1,7 +1,12 @@
+//! Utility types for working with the AST.
+
 use syn;
 
 use {FromField, FromVariant, Result};
 
+/// A struct or enum body. 
+///
+/// `V` is the type which receives any encountered variants, and `F` receives struct fields.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Body<V = (), F = ()> {
     Enum(Vec<V>),
@@ -86,12 +91,13 @@ impl<V, F> Body<V, F> {
 }
 
 impl<V: FromVariant, F: FromField> Body<V, F> {
+    /// Attempt to convert from a `syn::Body` instance.
     pub fn try_from(body: &syn::Body) -> Result<Self> {
         match *body {
             syn::Body::Enum(ref variants) => {
                 Ok(Body::Enum(variants.into_iter()
                     .map(FromVariant::from_variant)
-                    .collect::<Result<Vec<V>>>()?))
+                    .collect::<Result<_>>()?))
             }
             syn::Body::Struct(ref data) => Ok(Body::Struct(VariantData::try_from(data)?)),
         }
@@ -112,7 +118,13 @@ impl<T> VariantData<T> {
         }
     }
 
-    /// Returns true if this variant's data makes it a
+    /// Splits the `VariantData` into its style and fields for further processing.
+    /// Returns an empty `Vec` for `Unit` data.
+    pub fn split(self) -> (Style, Vec<T>) {
+        (self.style, self.fields)
+    }
+
+    /// Returns true if this variant's data makes it a newtype.
     pub fn is_newtype(&self) -> bool {
         self.style == Style::Tuple && self.fields.len() == 1
     }
@@ -165,6 +177,12 @@ impl<T> From<Style> for VariantData<T> {
     }
 }
 
+impl<T, U: Into<Vec<T>>> From<(Style, U)> for VariantData<T> {
+    fn from((style, fields): (Style, U)) -> Self {
+        style.with_fields(fields)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Style {
     Tuple,
@@ -183,6 +201,14 @@ impl Style {
 
     pub fn is_struct(&self) -> bool {
         *self == Style::Struct
+    }
+
+    /// Creates a new `VariantData` of the specified style with the passed-in fields.
+    fn with_fields<T, U: Into<Vec<T>>>(self, fields: U) -> VariantData<T> {
+        VariantData {
+            style: self,
+            fields: fields.into(),
+        }
     }
 }
 
