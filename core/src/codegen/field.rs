@@ -57,6 +57,7 @@ impl<'a> ToTokens for Declaration<'a> {
         let mutable = if self.1 { quote!(mut) } else { quote!() };
 
         tokens.append(if field.multiple {
+            // This is NOT mutable, as it will be declared mutable only temporarily.
             quote!(let #mutable #ident: #ty = ::darling::export::Default::default();)
         } else {
             quote!(let #mutable #ident: ::darling::export::Option<#ty> = None;)
@@ -79,7 +80,10 @@ impl<'a> ToTokens for MatchArm<'a> {
             /// Fields that take multiple values add the index of the error for convenience,
             /// while single-value fields only expose the name in the input attribute.
             let location = if field.multiple {
-                quote!(&format!("{}[{}]", #name_str, #ident.len()))
+                // we use the local variable `len` here because location is accessed via
+                // a closure, and the borrow checker gets very unhappy if we try to immutably
+                // borrow `#ident` in that closure when it was declared `mut` outside.
+                quote!(&format!("{}[{}]", #name_str, __len))
             } else {
                 quote!(#name_str)
             };
@@ -93,6 +97,9 @@ impl<'a> ToTokens for MatchArm<'a> {
             tokens.append(if field.multiple {
                 quote!(
                     #name_str => {
+                        /// Store the index of the name we're assessing in case we need
+                        /// it for error reporting.
+                        let __len = #ident.len();
                         #ident.push(#extractor);
                     }
                 )
@@ -127,10 +134,6 @@ impl<'a> ToTokens for Initializer<'a> {
                     #expr
                 })
             } else {
-                // This could just be `#ident`, but that breaks `cargo expand`, which is 
-                // necessary for sanity when working on proc macros.
-                //
-                // See https://github.com/dtolnay/cargo-expand/issues/14
                 quote!(#ident: #ident)
             }
         } else {
