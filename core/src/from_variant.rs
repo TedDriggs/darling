@@ -1,4 +1,4 @@
-use syn::Variant;
+use syn::{self, Variant};
 
 use Result;
 
@@ -17,5 +17,17 @@ impl FromVariant for () {
 impl FromVariant for Variant {
     fn from_variant(variant: &Variant) -> Result<Self> {
         Ok(variant.clone())
+    }
+}
+
+impl FromVariant for syn::Ident {
+    fn from_variant(variant: &Variant) -> Result<Self> {
+        Ok(variant.ident.clone())
+    }
+}
+
+impl FromVariant for Vec<syn::Attribute> {
+    fn from_variant(variant: &Variant) -> Result<Self> {
+        Ok(variant.attrs.clone())
     }
 }

@@ -27,7 +27,8 @@ use {Error, Result};
 /// * As a raw string literal, e.g. `foo = r#"hello "world""#`.
 ///
 /// ## ()
-/// * Word with no value specified, e.g. `foo`. This is best used with `Option`.
+/// * Word with no value specified, e.g. `foo`. This is best used with `Option`. 
+///   See `darling::util::Flag` for a more strongly-typed alternative.
 ///
 /// ## Option
 /// * Any format produces `Some`.
@@ -189,6 +190,14 @@ impl<T: FromMetaItem> FromMetaItem for Result<T> {
     }
 }
 
+/// Parses the meta-item, and in case of error preserves a copy of the input for
+/// later analysis.
+impl<T: FromMetaItem> FromMetaItem for ::std::result::Result<T, MetaItem> {
+    fn from_meta_item(item: &MetaItem) -> Result<Self> {
+        T::from_meta_item(item).map(Ok).or_else(|_| Ok(Err(item.clone())))
+    }
+}
+
 impl<T: FromMetaItem> FromMetaItem for Rc<T> {
     fn from_meta_item(item: &MetaItem) -> Result<Self> {
         Ok(Rc::new(FromMetaItem::from_meta_item(item)?))
@@ -214,7 +223,11 @@ impl<V: FromMetaItem> FromMetaItem for HashMap<String, V> {
             if let syn::NestedMetaItem::MetaItem(ref inner) = *item {
                 match map.entry(inner.name().to_string()) {
                     Entry::Occupied(_) => return Err(Error::duplicate_field(inner.name())),
-                    Entry::Vacant(entry) => { entry.insert(FromMetaItem::from_meta_item(inner)?); }
+                    Entry::Vacant(entry) => { 
+                        entry.insert(
+                            FromMetaItem::from_meta_item(inner).map_err(|e| e.at(inner.name()))?
+                        ); 
+                    }
                 }
             }
         }
@@ -229,7 +242,7 @@ impl<V: FromMetaItem> FromMetaItem for HashMap<String, V> {
 mod tests {
     use syn;
     
-    use {FromMetaItem};
+    use {FromMetaItem, Result};
 
     /// parse a string as a syn::MetaItem instance.
     fn pmi(s: &str) -> ::std::result::Result<syn::MetaItem, String> {
@@ -289,5 +302,13 @@ mod tests {
         };
 
         assert_eq!(fmi::<HashMap<String, bool>>(r#"ignore(hello, world = false, there = "true")"#), comparison);
+    }
+
+    /// Tests that fallible parsing will always produce an outer `Ok` (from `fmi`),
+    /// and will accurately preserve the inner contents.
+    #[test]
+    fn darling_result_succeeds() {
+        fmi::<Result<()>>("ignore").unwrap();
+        fmi::<Result<()>>("ignore(world)").unwrap_err();
     }
 }

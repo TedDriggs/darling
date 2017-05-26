@@ -1,4 +1,5 @@
 //! Utility types for attribute parsing.
+
 use std::ops::{Deref, Not, BitAnd, BitOr};
 
 use syn;
@@ -17,6 +18,7 @@ pub use self::over_ride::Override;
 pub struct Flag(Option<()>);
 
 impl Flag {
+    /// Creates a new `Flag` which corresponds to the presence of a value.
     pub fn present() -> Self {
         Flag(Some(()))
     }
@@ -44,6 +46,12 @@ impl From<Flag> for bool {
 impl From<bool> for Flag {
     fn from(v: bool) -> Self {
         if v { Flag::present() } else { Flag(None) }
+    }
+}
+
+impl From<Option<()>> for Flag {
+    fn from(v: Option<()>) -> Self {
+        Flag::from(v.is_some())
     }
 }
 
