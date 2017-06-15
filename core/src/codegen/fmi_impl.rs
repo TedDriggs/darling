@@ -60,6 +60,8 @@ impl<'a> ToTokens for FmiImpl<'a> {
 
                 quote!(
                     fn from_list(__outer: &[::syn::NestedMetaItem]) -> ::darling::Result<Self> {
+                        // An enum must have exactly one value inside the parentheses if it's not a unit
+                        // match arm
                         match __outer.len() {
                             0 => ::darling::export::Err(::darling::Error::too_few_items(1)),
                             1 => {

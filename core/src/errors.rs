@@ -8,48 +8,79 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 /// An error encountered during attribute parsing.
 #[derive(Debug)]
 pub struct Error {
-    msg: String,
+    kind: ErrorKind,
     locations: Vec<String>,
 }
 
 impl Error {
-    pub fn custom<T: fmt::Display>(msg: T) -> Self {
+    fn new(kind: ErrorKind) -> Self {
         Error {
-            msg: msg.to_string(),
+            kind: kind,
             locations: Vec::new(),
         }
     }
 
+    pub fn custom<T: fmt::Display>(msg: T) -> Self {
+        Error::new(ErrorKind::Custom(msg.to_string()))
+    }
+
     pub fn duplicate_field(name: &str) -> Self {
-        Error::custom(format!("Encountered duplicate field `{}`", name))
+        Error::new(ErrorKind::DuplicateField(name.into()))
     }
 
     pub fn missing_field(name: &str) -> Self {
-        Error::custom(format!("Missing required field `{}`", name))
+        Error::new(ErrorKind::MissingField(name.into()))
     }
 
     pub fn unknown_field(name: &str) -> Self {
-        Error::custom(format!("Encountered unknown field `{}`", name))
+        Error::new(ErrorKind::UnexpectedField(name.into()))
     }
 
     pub fn unsupported_format(format: &str) -> Self {
-        Error::custom(format!("Encountered unsupported format `{}`", format))
+        Error::new(ErrorKind::UnexpectedFormat(format.into()))
     }
 
     pub fn unexpected_type(ty: &str) -> Self {
-        Error::custom(format!("Unexpected literal type `{}`", ty))
+        Error::new(ErrorKind::UnexpectedType(ty.into()))
     }
 
     pub fn unknown_value(value: &str) -> Self {
-        Error::custom(format!("Encountered unknown value `{}`", value))
+        Error::new(ErrorKind::UnknownValue(value.into()))
     }
 
     pub fn too_few_items(min: usize) -> Self {
-        Error::custom(format!("Didn't get enough values; expected {}", min))
+        Error::new(ErrorKind::TooFewItems(min))
     }
 
     pub fn too_many_items(max: usize) -> Self {
-        Error::custom(format!("Got too many values; expected no more than {}", max))
+        Error::new(ErrorKind::TooManyItems(max))
+    }
+
+    /// Bundle a set of multiple errors into a single `Error` instance.
+    pub fn multiple(mut errors: Vec<Error>) -> Self {
+        if errors.len() == 1 {
+            Error::new(ErrorKind::Multiple(errors))
+        } else if errors.len() > 1 {
+            errors.drain(0..1).next().unwrap()
+        } else {
+            panic!("Can't deal with 0 errors")
+        }
+    }
+
+    /// Add a new error at the same location as this error.
+    fn push(mut self, error: Error) -> Self {
+        if let ErrorKind::Multiple(ref mut items) = self.kind {
+            items.push(error);
+        } else {
+            let kind = self.kind;
+            return Error {
+                locations: self.locations,
+                kind: ErrorKind::Multiple(vec![Error::new(kind), error]),
+            };
+        }
+
+        // We have to let items go out of scope above to return `self`.
+        self
     }
 
     /// Adds a location to the error, such as a field or variant. 
@@ -62,7 +93,7 @@ impl Error {
 
 impl StdError for Error {
     fn description(&self) -> &str {
-        &self.msg
+        &self.kind.description()
     }
 
     fn cause(&self) -> Option<&StdError> {
@@ -72,11 +103,51 @@ impl StdError for Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.msg)?;
+        write!(f, "{}", self.description())?;
         if !self.locations.is_empty() {
             write!(f, " at {}", self.locations.join("/"))?;
         }
 
         Ok(())
+    }
+}
+
+#[derive(Debug)]
+enum ErrorKind {
+    /// An arbitrary error message.
+    Custom(String),
+    DuplicateField(String),
+    MissingField(String),
+    UnexpectedField(String),
+    UnexpectedFormat(String),
+    UnexpectedType(String),
+    UnknownValue(String),
+    TooFewItems(usize),
+    TooManyItems(usize),
+    /// A set of errors.
+    Multiple(Vec<Error>),
+    
+    // TODO make this variant take `!` so it can't exist
+    #[doc(hidden)]
+    __NonExhaustive
+}
+
+impl ErrorKind {
+    pub fn description(&self) -> &str {
+        use self::ErrorKind::*;
+        
+        match *self {
+            Custom(ref s) => s,
+            DuplicateField(_) => "Duplicate field",
+            MissingField(_) => "Missing field",
+            UnexpectedField(_) => "Unexpected field",
+            UnexpectedFormat(_) => "Unexpected meta-item format",
+            UnexpectedType(_) => "Unexpected literal type",
+            UnknownValue(_) => "Unknown literal value",
+            TooFewItems(_) => "Too few items",
+            TooManyItems(_) => "Too many items",
+            Multiple(_) => "Multiple errors",
+            __NonExhaustive => unreachable!(),
+        }
     }
 }
