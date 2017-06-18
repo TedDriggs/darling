@@ -15,7 +15,7 @@ mod macros;
 
 pub mod ast;
 pub mod codegen;
-mod errors;
+pub mod errors;
 mod from_field;
 mod from_derive_input;
 mod from_meta_item;
