@@ -17,8 +17,7 @@ pub struct TraitImpl<'a> {
 
 impl<'a> TraitImpl<'a> {
     /// Generate local variable declarations for all fields.
-    /// TODO: Mark this as `pub(in codegen)` once restricted visibility stabilizes.
-    pub fn local_declarations(&self) -> Tokens {
+    pub(in codegen) fn local_declarations(&self) -> Tokens {
         if let Body::Struct(ref vd) = self.body {
             let vdr = vd.as_ref().map(Field::as_declaration);
             let decls = vdr.fields.as_slice();
@@ -29,8 +28,7 @@ impl<'a> TraitImpl<'a> {
     }
 
     /// Generate immutable variable declarations for all fields.
-    /// TODO: Mark this as `pub(in codegen)` once restricted visiblity stabilizes.
-    pub fn immutable_declarations(&self) -> Tokens {
+    pub(in codegen) fn immutable_declarations(&self) -> Tokens {
         if let Body::Struct(ref vd) = self.body {
             let vdr = vd.as_ref().map(|f| field::Declaration::new(f, false));
             let decls = vdr.fields.as_slice();
@@ -40,18 +38,17 @@ impl<'a> TraitImpl<'a> {
         }
     }
 
-    pub fn map_fn(&self) -> Option<Tokens> {
+    pub(in codegen) fn map_fn(&self) -> Option<Tokens> {
         self.map.as_ref().map(|path| quote!(.map(#path)))
     }
 
     /// Generate local variable declaration and initialization for instance from which missing fields will be taken.
-    /// TODO: Mark this as `pub(in codegen)` once restricted visibility stabilizes.
-    pub fn fallback_decl(&self) -> Tokens {
+    pub(in codegen) fn fallback_decl(&self) -> Tokens {
         let default = self.default.as_ref().map(DefaultExpression::as_declaration);
         quote!(#default)
     }
 
-    pub fn initializers(&self) -> Tokens {
+    pub(in codegen) fn initializers(&self) -> Tokens {
         let foo = match self.body {
             Body::Enum(_) => panic!("Core loop on enums isn't supported"),
             Body::Struct(ref data) => { 
@@ -63,8 +60,7 @@ impl<'a> TraitImpl<'a> {
     }
 
     /// Generate the loop which walks meta items looking for property matches.
-    /// TODO: Mark this as `pub(in codegen)` once restricted visibility stabilizes.
-    pub fn core_loop(&self) -> Tokens {
+    pub(in codegen) fn core_loop(&self) -> Tokens {
         let foo = match self.body {
             Body::Enum(_) => panic!("Core loop on enums isn't supported"),
             Body::Struct(ref data) => { 
