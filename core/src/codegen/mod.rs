@@ -1,6 +1,7 @@
 use quote::Tokens;
 
 mod default_expr;
+mod error;
 mod field;
 mod fmi_impl;
 mod from_derive_impl;
@@ -56,52 +57,53 @@ pub trait ExtractAttribute {
         let will_parse_any = !self.attr_names().is_empty();
         let will_fwd_any = self.forwarded_attrs().map(|fa| !fa.is_empty()).unwrap_or_default();
 
-        if will_parse_any || will_fwd_any {
-            let input = self.param_name();
-
-            /// The block for parsing attributes whose names have been claimed by the target
-            /// struct. If no attributes were claimed, this is a pass-through.
-            let parse_handled = if will_parse_any {
-                let attr_names = self.attr_names();
-                let core_loop = self.core_loop();
-                quote!(
-                    #(#attr_names)|* => {
-                        if let ::syn::MetaItem::List(_, ref __items) = __attr.value {
-                            #core_loop
-                        } else {
-                            // darling currently only supports list-style
-                            continue
-                        }
-                    }
-                )
-            } else {
-                quote!()
-            };
-
-            /// Specifies the behavior for unhandled attributes. They will either be silently ignored or 
-            /// forwarded to the inner struct for later analysis.
-            let forward_unhandled = if will_fwd_any {
-                forwards_to_local(self.forwarded_attrs().unwrap())
-            } else {
-                quote!(_ => continue)
-            };
-
-            quote!(
+        if !(will_parse_any || will_fwd_any) {
+            return quote! {
                 #declarations
-                let mut __fwd_attrs: ::darling::export::Vec<::syn::Attribute> = vec![];
-
-                for __attr in &#input.attrs {
-                    // Filter attributes based on name
-                    match __attr.name() {
-                        #parse_handled
-                        #forward_unhandled
-                    }
-                })
-        } else {
-            quote!(
-                #declarations
-            )
+            };
         }
+
+        let input = self.param_name();
+
+        /// The block for parsing attributes whose names have been claimed by the target
+        /// struct. If no attributes were claimed, this is a pass-through.
+        let parse_handled = if will_parse_any {
+            let attr_names = self.attr_names();
+            let core_loop = self.core_loop();
+            quote!(
+                #(#attr_names)|* => {
+                    if let ::syn::MetaItem::List(_, ref __items) = __attr.value {
+                        #core_loop
+                    } else {
+                        // darling currently only supports list-style
+                        continue
+                    }
+                }
+            )
+        } else {
+            quote!()
+        };
+
+        /// Specifies the behavior for unhandled attributes. They will either be silently ignored or 
+        /// forwarded to the inner struct for later analysis.
+        let forward_unhandled = if will_fwd_any {
+            forwards_to_local(self.forwarded_attrs().unwrap())
+        } else {
+            quote!(_ => continue)
+        };
+
+        quote!(
+            #declarations
+            let mut __fwd_attrs: ::darling::export::Vec<::syn::Attribute> = vec![];
+
+            for __attr in &#input.attrs {
+                // Filter attributes based on name
+                match __attr.name() {
+                    #parse_handled
+                    #forward_unhandled
+                }
+            }
+        )
     }
 }
 

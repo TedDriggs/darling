@@ -1,8 +1,9 @@
-use quote::{Tokens};
+use quote::Tokens;
 use syn::{Generics, Ident, Path, WherePredicate};
 
 use codegen::{DefaultExpression, Field, Variant, VariantDataGen};
 use codegen::field;
+use codegen::error::{ErrorCheck, ErrorDeclaration};
 use ast::Body;
 
 #[derive(Debug)]
@@ -16,6 +17,16 @@ pub struct TraitImpl<'a> {
 }
 
 impl<'a> TraitImpl<'a> {
+    /// Gets the `let` declaration for errors accumulated during parsing.
+    pub fn declare_errors(&self) -> ErrorDeclaration {
+        ErrorDeclaration::new()
+    }
+
+    /// Gets the check which performs an early return if errors occurred during parsing.
+    pub fn check_errors(&self) -> ErrorCheck {
+        ErrorCheck::new()
+    }
+
     /// Generate local variable declarations for all fields.
     pub(in codegen) fn local_declarations(&self) -> Tokens {
         if let Body::Struct(ref vd) = self.body {
@@ -46,6 +57,16 @@ impl<'a> TraitImpl<'a> {
     pub(in codegen) fn fallback_decl(&self) -> Tokens {
         let default = self.default.as_ref().map(DefaultExpression::as_declaration);
         quote!(#default)
+    }
+
+    pub fn require_fields(&self) -> Tokens {
+        if let Body::Struct(ref vd) = self.body {
+            let check_nones = vd.as_ref().map(Field::as_presence_check);
+            let checks = check_nones.fields.as_slice();
+            quote!(#(#checks)*)
+        } else {
+            quote!()
+        }
     }
 
     pub(in codegen) fn initializers(&self) -> Tokens {

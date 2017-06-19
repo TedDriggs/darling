@@ -3,6 +3,7 @@ use syn::Ident;
 
 use ast::VariantData;
 use codegen::{Field, VariantDataGen};
+use codegen::error::{ErrorCheck, ErrorDeclaration};
 
 /// An enum variant.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -85,6 +86,8 @@ impl<'a> ToTokens for DataMatchArm<'a> {
         let vdg = VariantDataGen(&val.data);
 
         if val.data.is_struct() {
+            let declare_errors = ErrorDeclaration::new();
+            let check_errors = ErrorCheck::new();
             let decls = vdg.declarations();
             let core_loop = vdg.core_loop();
             let inits = vdg.initializers();
@@ -92,8 +95,11 @@ impl<'a> ToTokens for DataMatchArm<'a> {
             tokens.append(quote!(
                 #name_in_attr => {
                     if let ::syn::MetaItem::List(_, ref __items) = *__nested {
+                        #declare_errors
                         #decls
                         #core_loop
+                        #check_errors
+                        
                         ::darling::export::Ok(#ty_ident::#variant_ident {
                             #inits
                         })

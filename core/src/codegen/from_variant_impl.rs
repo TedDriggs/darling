@@ -37,11 +37,21 @@ impl<'a> ToTokens for FromVariantImpl<'a> {
             __validate_data(&#input.data)?;
         });
 
+        let error_declaration = self.base.declare_errors();
+        let require_fields = self.base.require_fields();
+        let error_check = self.base.check_errors();
+
         self.wrap(quote!(
             fn from_variant(#input: &::syn::Variant) -> ::darling::Result<Self> {
+                #error_declaration
+
                 #extractor
 
                 #supports
+
+                #require_fields
+
+                #error_check
 
                 #default
 
