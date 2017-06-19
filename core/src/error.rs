@@ -152,7 +152,7 @@ impl StdError for Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.description())?;
+        write!(f, "{}", self.kind)?;
         if !self.locations.is_empty() {
             write!(f, " at {}", self.locations.join("/"))?;
         }
