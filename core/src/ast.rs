@@ -2,7 +2,7 @@
 
 use syn;
 
-use {FromField, FromVariant, Result};
+use {Error, FromField, FromVariant, Result};
 
 /// A struct or enum body. 
 ///
@@ -95,9 +95,20 @@ impl<V: FromVariant, F: FromField> Body<V, F> {
     pub fn try_from(body: &syn::Body) -> Result<Self> {
         match *body {
             syn::Body::Enum(ref variants) => {
-                Ok(Body::Enum(variants.into_iter()
-                    .map(FromVariant::from_variant)
-                    .collect::<Result<_>>()?))
+                let mut items = Vec::with_capacity(variants.len());
+                let mut errors = Vec::new();
+                for v_result in variants.into_iter().map(FromVariant::from_variant) {
+                    match v_result {
+                        Ok(val) => items.push(val),
+                        Err(err) => errors.push(err)
+                    }
+                }
+
+                if !errors.is_empty() {
+                    Err(Error::multiple(errors))
+                } else {
+                    Ok(Body::Enum(items))
+                }
             }
             syn::Body::Struct(ref data) => Ok(Body::Struct(VariantData::try_from(data)?)),
         }
@@ -158,13 +169,30 @@ impl<T> VariantData<T> {
 
 impl<F: FromField> VariantData<F> {
     pub fn try_from(data: &syn::VariantData) -> Result<Self> {
-        Ok(VariantData {
-            style: data.into(),
-            fields: data.fields()
-                .into_iter()
-                .map(FromField::from_field)
-                .collect::<Result<Vec<F>>>()?,
-        })
+        let fields = data.fields();
+        let mut items = Vec::with_capacity(fields.len());
+        let mut errors = Vec::new();
+
+        for field in fields {
+            let f_result = FromField::from_field(field);
+            match f_result {
+                Ok(val) => items.push(val),
+                Err(err) => errors.push(if let Some(ref ident) = field.ident {
+                    err.at(ident.as_ref())
+                } else {
+                    err
+                })
+            }
+        }
+
+        if !errors.is_empty() {
+            Err(Error::multiple(errors))
+        } else {
+            Ok(VariantData {
+                style: data.into(),
+                fields: items,
+            })   
+        }
     }
 }
 
