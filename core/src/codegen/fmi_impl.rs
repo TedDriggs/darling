@@ -13,13 +13,17 @@ impl<'a> ToTokens for FmiImpl<'a> {
         let base = &self.base;
 
         let impl_block = match base.body {
+            // Unit structs allow empty bodies only.
             Body::Struct(ref vd) if vd.style.is_unit() => {
+                let ty_ident = base.ident;
                 quote!(
                     fn from_word() -> ::darling::Result<Self> {
-                        Ok(Self)
+                        Ok(#ty_ident)
                     }
                 )
             }
+
+            // Newtype structs proxy to the sole value they contain.
             Body::Struct(VariantData { ref fields, style: Style::Tuple, .. }) if fields.len() == 1 => {
                 let ty_ident = base.ident;
                 quote!(
