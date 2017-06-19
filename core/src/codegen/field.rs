@@ -64,7 +64,7 @@ impl<'a> ToTokens for Declaration<'a> {
             // This is NOT mutable, as it will be declared mutable only temporarily.
             quote!(let #mutable #ident: #ty = ::darling::export::Default::default();)
         } else {
-            quote!(let #mutable #ident: ::darling::export::Option<#ty> = None;)
+            quote!(let #mutable #ident: (bool, ::darling::export::Option<#ty>) = (false, None);)
         });
     }
 }
@@ -116,12 +116,15 @@ impl<'a> ToTokens for MatchArm<'a> {
             } else {
                 quote!(
                     #name_str => {  
-                        if #ident.is_none() {
+                        if !#ident.0 {
                             match #extractor {
                                 Ok(__val) => {
-                                    #ident = ::darling::export::Some(__val);
+                                    #ident = (true, ::darling::export::Some(__val));
                                 }
-                                Err(__err) => __errors.push(__err)
+                                Err(__err) => {
+                                    #ident = (true, None);
+                                    __errors.push(__err);
+                                }
                             }
                         } else {
                             __errors.push(::darling::Error::duplicate_field(#name_str));
@@ -152,12 +155,12 @@ impl<'a> ToTokens for Initializer<'a> {
             }
         } else {
             if let Some(ref expr) = field.default_expression {
-                quote!(#ident: match #ident {
+                quote!(#ident: match #ident.1 {
                     ::darling::export::Some(__val) => __val,
                     ::darling::export::None => #expr,
                 })
             } else {
-                quote!(#ident: #ident.expect("Uninitialized fields without defaults were already checked"))
+                quote!(#ident: #ident.1.expect("Uninitialized fields without defaults were already checked"))
             }
         });
     }
@@ -173,7 +176,7 @@ impl<'a> ToTokens for CheckMissing<'a> {
             let name_in_attr = self.0.name_in_attr;
 
             tokens.append(quote! {
-                if #ident.is_none() {
+                if !#ident.0 {
                     __errors.push(::darling::Error::missing_field(#name_in_attr));
                 }
             })

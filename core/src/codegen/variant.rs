@@ -87,7 +87,8 @@ impl<'a> ToTokens for DataMatchArm<'a> {
 
         if val.data.is_struct() {
             let declare_errors = ErrorDeclaration::new();
-            let check_errors = ErrorCheck::new();
+            let check_errors = ErrorCheck::with_location(name_in_attr);
+            let require_fields = vdg.require_fields();
             let decls = vdg.declarations();
             let core_loop = vdg.core_loop();
             let inits = vdg.initializers();
@@ -96,8 +97,13 @@ impl<'a> ToTokens for DataMatchArm<'a> {
                 #name_in_attr => {
                     if let ::syn::MetaItem::List(_, ref __items) = *__nested {
                         #declare_errors
+
                         #decls
+
                         #core_loop
+
+                        #require_fields
+
                         #check_errors
                         
                         ::darling::export::Ok(#ty_ident::#variant_ident {
@@ -111,7 +117,11 @@ impl<'a> ToTokens for DataMatchArm<'a> {
         } else if val.data.is_newtype() {
             tokens.append(quote!(
                 #name_in_attr => {
-                    ::darling::export::Ok(#ty_ident::#variant_ident(::darling::FromMetaItem::from_meta_item(__nested)?))
+                    ::darling::export::Ok(
+                        #ty_ident::#variant_ident(
+                            ::darling::FromMetaItem::from_meta_item(__nested)
+                                .map_err(|e| e.at(#name_in_attr))?)
+                    )
                 }
             ));
         } else {

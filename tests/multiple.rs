@@ -6,6 +6,7 @@ use darling::FromDeriveInput;
 
 #[derive(FromDeriveInput)]
 #[darling(attributes(hello))]
+#[allow(dead_code)]
 struct Lorem {
     ident: syn::Ident,
     ipsum: Ipsum,
