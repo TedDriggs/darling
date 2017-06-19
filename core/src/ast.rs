@@ -8,7 +8,7 @@ use {Error, FromField, FromVariant, Result};
 ///
 /// `V` is the type which receives any encountered variants, and `F` receives struct fields.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Body<V = (), F = ()> {
+pub enum Body<V, F> {
     Enum(Vec<V>),
     Struct(VariantData<F>),
 }
