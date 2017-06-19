@@ -21,6 +21,10 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
         let input = self.param_name();
 
+        let error_declaration = self.base.declare_errors();
+        let require_fields = self.base.require_fields();
+        let error_check = self.base.check_errors();
+
         let initializers = self.base.initializers();
         
         let default = if self.from_ident {
@@ -40,7 +44,13 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
 
         self.wrap(quote!{
             fn from_field(#input: &::syn::Field) -> ::darling::Result<Self> {
+                #error_declaration
+
                 #grab_attrs
+
+                #require_fields
+
+                #error_check
 
                 #default
 

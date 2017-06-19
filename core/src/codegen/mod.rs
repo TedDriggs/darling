@@ -1,6 +1,7 @@
 use quote::Tokens;
 
 mod default_expr;
+mod error;
 mod field;
 mod fmi_impl;
 mod from_derive_impl;

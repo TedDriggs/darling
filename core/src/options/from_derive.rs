@@ -58,7 +58,7 @@ impl ParseBody for FdiOptions {
 impl<'a> From<&'a FdiOptions> for codegen::FromDeriveInputImpl<'a> {
     fn from(v: &'a FdiOptions) -> Self {
         codegen::FromDeriveInputImpl {
-            struct_impl: (&v.base.container).into(),
+            base: (&v.base.container).into(),
             attr_names: v.base.attr_names.as_strs(),
             from_ident: Some(v.base.from_ident),
             ident: v.base.ident.as_ref(),

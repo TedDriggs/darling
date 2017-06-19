@@ -36,6 +36,10 @@ impl<'a> Field<'a> {
     pub fn as_initializer(&'a self) -> Initializer<'a> {
         Initializer(self)
     }
+
+    pub fn as_presence_check(&'a self) -> CheckMissing<'a> {
+        CheckMissing(self)
+    }
 }
 
 /// An individual field during variable declaration in the generated parsing method.
@@ -88,10 +92,9 @@ impl<'a> ToTokens for MatchArm<'a> {
                 quote!(#name_str)
             };
 
-            let mut extractor = quote!(#with_path(__inner).map_err(|e| e.at(#location))?);
-            
-            if let Some(ref map) = field.map.as_ref() {
-                extractor = quote!(#map(#extractor));
+            let mut extractor = quote!(#with_path(__inner).map_err(|e| e.at(#location)));
+            if let Some(ref map) = field.map {
+                extractor = quote!(#extractor.map(#map))
             }
 
             tokens.append(if field.multiple {
@@ -100,16 +103,28 @@ impl<'a> ToTokens for MatchArm<'a> {
                         /// Store the index of the name we're assessing in case we need
                         /// it for error reporting.
                         let __len = #ident.len();
-                        #ident.push(#extractor);
+                        match #extractor {
+                            Ok(__val) => {
+                                #ident.push(__val)
+                            }
+                            Err(__err) => {
+                                __errors.push(__err)
+                            }
+                        }
                     }
                 )
             } else {
                 quote!(
                     #name_str => {  
                         if #ident.is_none() {
-                            #ident = ::darling::export::Some(#extractor);
+                            match #extractor {
+                                Ok(__val) => {
+                                    #ident = ::darling::export::Some(__val);
+                                }
+                                Err(__err) => __errors.push(__err)
+                            }
                         } else {
-                            return ::darling::export::Err(::darling::Error::duplicate_field(#name_str));
+                            __errors.push(::darling::Error::duplicate_field(#name_str));
                         }
                     }
                 )
@@ -124,7 +139,6 @@ pub struct Initializer<'a>(&'a Field<'a>);
 impl<'a> ToTokens for Initializer<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
         let field: &Field = self.0;
-        let name_str = field.name_in_attr;
         let ident = field.ident;
         tokens.append(if field.multiple {
             if let Some(ref expr) = field.default_expression {
@@ -143,12 +157,26 @@ impl<'a> ToTokens for Initializer<'a> {
                     ::darling::export::None => #expr,
                 })
             } else {
-                quote!(#ident: match #ident {
-                    ::darling::export::Some(__val) => __val,
-                    ::darling::export::None => 
-                        return ::darling::export::Err(::darling::Error::missing_field(#name_str))
-                })
+                quote!(#ident: #ident.expect("Uninitialized fields without defaults were already checked"))
             }
         });
+    }
+}
+
+/// Creates an error if a field has no value and no default.
+pub struct CheckMissing<'a>(&'a Field<'a>);
+
+impl<'a> ToTokens for CheckMissing<'a> {
+    fn to_tokens(&self, tokens: &mut Tokens) {
+        if !self.0.multiple && self.0.default_expression.is_none() {
+            let ident = self.0.ident;
+            let name_in_attr = self.0.name_in_attr;
+
+            tokens.append(quote! {
+                if #ident.is_none() {
+                    __errors.push(::darling::Error::missing_field(#name_in_attr));
+                }
+            })
+        }
     }
 }

@@ -37,6 +37,9 @@ impl<'a> ToTokens for FmiImpl<'a> {
             }
             Body::Struct(ref data) => {
                 let inits = data.fields.iter().map(Field::as_initializer);
+                let declare_errors = base.declare_errors();
+                let require_fields = base.require_fields();
+                let check_errors = base.check_errors();
                 let decls = base.local_declarations();
                 let core_loop = base.core_loop();
                 let default = base.fallback_decl();
@@ -48,7 +51,13 @@ impl<'a> ToTokens for FmiImpl<'a> {
                         
                         #decls
 
+                        #declare_errors
+
                         #core_loop
+
+                        #require_fields
+
+                        #check_errors
 
                         #default
 

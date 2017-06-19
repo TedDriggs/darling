@@ -11,7 +11,7 @@ pub struct FromDeriveInputImpl<'a> {
     pub vis: Option<&'a Ident>,
     pub attrs: Option<&'a Ident>,
     pub body: Option<&'a Ident>,
-    pub struct_impl: TraitImpl<'a>,
+    pub base: TraitImpl<'a>,
     pub attr_names: Vec<&'a str>,
     pub forward_attrs: Option<&'a ForwardAttrs>,
     pub from_ident: Option<bool>,
@@ -20,11 +20,11 @@ pub struct FromDeriveInputImpl<'a> {
 
 impl<'a> ToTokens for FromDeriveInputImpl<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
-        let ty_ident = self.struct_impl.ident;
+        let ty_ident = self.base.ident;
         let input = self.param_name();
-        let map = self.struct_impl.map_fn();
+        let map = self.base.map_fn();
         
-        if let Body::Struct(ref data) = self.struct_impl.body {
+        if let Body::Struct(ref data) = self.base.body {
             if data.is_newtype() {
                 self.wrap(quote!{
                     fn from_derive_input(#input: &::syn::DeriveInput) -> ::darling::Result<Self> {
@@ -49,21 +49,30 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
             __validate_body(&#input.body)?;
         });
 
-        let inits = self.struct_impl.initializers();
+        let inits = self.base.initializers();
         let default = if let Some(true) = self.from_ident {
             quote!(let __default: Self = ::darling::export::From::from(#input.ident.clone());)
         } else {
-            self.struct_impl.fallback_decl()
+            self.base.fallback_decl()
         };
 
         let grab_attrs = self.extractor();
 
+        let declare_errors = self.base.declare_errors();
+        let require_fields = self.base.require_fields();
+        let check_errors = self.base.check_errors();
 
         self.wrap(quote! {
             fn from_derive_input(#input: &::syn::DeriveInput) -> ::darling::Result<Self> {
+                #declare_errors
+
                 #grab_attrs
 
                 #supports
+
+                #require_fields
+
+                #check_errors
 
                 #default
 
@@ -94,15 +103,15 @@ impl<'a> ExtractAttribute for FromDeriveInputImpl<'a> {
     }
 
     fn core_loop(&self) -> Tokens {
-        self.struct_impl.core_loop()
+        self.base.core_loop()
     }
 
     fn local_declarations(&self) -> Tokens {
-        self.struct_impl.local_declarations()
+        self.base.local_declarations()
     }
 
     fn immutable_declarations(&self) -> Tokens {
-        self.struct_impl.immutable_declarations()
+        self.base.immutable_declarations()
     }
 }
 
@@ -116,6 +125,6 @@ impl<'a> OuterFromImpl<'a> for FromDeriveInputImpl<'a> {
     }
 
     fn base(&'a self) -> &'a TraitImpl<'a> {
-        &self.struct_impl
+        &self.base
     }
 }

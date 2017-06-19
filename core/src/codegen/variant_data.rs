@@ -5,10 +5,8 @@ use codegen::field;
 use codegen::Field;
 use ast::VariantData;
 
-#[allow(dead_code)]
 pub struct VariantDataGen<'a>(pub &'a VariantData<Field<'a>>);
 
-#[allow(dead_code)]
 impl<'a> VariantDataGen<'a> {
     pub(in codegen) fn declarations(&self) -> Tokens {
         match *self.0 {
@@ -30,11 +28,21 @@ impl<'a> VariantDataGen<'a> {
                     let __name = __inner.name().to_string();
                     match __name.as_str() {
                         #(#arms)*
-                        __other => return ::darling::export::Err(::darling::Error::unknown_field(__other))
+                        __other => { __errors.push(::darling::Error::unknown_field(__other)); }
                     }
                 }
             }
         )
+    }
+
+    pub fn require_fields(&self) -> Tokens {
+        match *self.0 {
+            VariantData { style: Style::Struct, ref fields } => {
+                let checks = fields.into_iter().map(Field::as_presence_check);
+                quote!(#(#checks)*)
+            }
+            _ => panic!("VariantDataGen doesn't support tuples for requirement checks")
+        }
     }
 
     pub(in codegen) fn initializers(&self) -> Tokens {
