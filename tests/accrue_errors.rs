@@ -60,7 +60,6 @@ fn body_only_issues() {
 }
 
 #[derive(Debug, FromMetaItem)]
-#[darling(rename_all="snake_case")]
 enum Week {
     Monday,
     Tuesday {
