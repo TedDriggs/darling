@@ -43,7 +43,13 @@ impl Core {
             generics: di.generics.clone(),
             body: Body::empty_from(&di.body),
             default: Default::default(),
-            rename_rule: Default::default(),
+            // See https://github.com/TedDriggs/darling/issues/10: We default to snake_case
+            // for enums to help authors produce more idiomatic APIs.
+            rename_rule: if let syn::Body::Enum(_) = di.body {
+                RenameRule::SnakeCase
+            } else {
+                Default::default()
+            },
             map: Default::default(),
             bound: Default::default(),
         }
@@ -64,16 +70,26 @@ impl ParseAttribute for Core {
     fn parse_nested(&mut self, mi: &syn::MetaItem) -> Result<()> {
         match mi.name() {
             "default" => {
-                self.default = FromMetaItem::from_meta_item(mi)?;
-                Ok(())
+                if self.default.is_some() {
+                    Err(Error::duplicate_field("default"))
+                } else {
+                    self.default = FromMetaItem::from_meta_item(mi)?;
+                    Ok(())
+                }
             }
             "rename_all" => {
+                // WARNING: This may have been set based on body shape previously,
+                // so an overwrite may be permissible.
                 self.rename_rule = FromMetaItem::from_meta_item(mi)?;
                 Ok(())
             }
             "map" => {
-                self.map = FromMetaItem::from_meta_item(mi)?;
-                Ok(())
+                if self.map.is_some() {
+                    Err(Error::duplicate_field("map"))
+                } else {
+                    self.map = FromMetaItem::from_meta_item(mi)?;
+                    Ok(())
+                }
             }
             "bound" => {
                 self.bound = FromMetaItem::from_meta_item(mi)?;
