@@ -65,10 +65,7 @@ pub use darling_core::{FromMetaItem, FromDeriveInput, FromField, FromVariant};
 pub use darling_core::{Result, Error};
 
 #[doc(inline)]
-pub use darling_core::ast;
-
-#[doc(inline)]
-pub use darling_core::util;
+pub use darling_core::{ast, error, util};
 
 /// Core/std trait re-exports. This should help produce generated code which doesn't
 /// depend on `std` unnecessarily, and avoids problems caused by aliasing `std` or any
