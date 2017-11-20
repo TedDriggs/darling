@@ -3,3 +3,4 @@ target/
 Cargo.lock
 .vscode
 .rls.toml
+.DS_STORE

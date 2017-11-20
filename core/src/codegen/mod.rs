@@ -65,8 +65,8 @@ pub trait ExtractAttribute {
 
         let input = self.param_name();
 
-        /// The block for parsing attributes whose names have been claimed by the target
-        /// struct. If no attributes were claimed, this is a pass-through.
+        // The block for parsing attributes whose names have been claimed by the target
+        // struct. If no attributes were claimed, this is a pass-through.
         let parse_handled = if will_parse_any {
             let attr_names = self.attr_names();
             let core_loop = self.core_loop();
@@ -84,8 +84,8 @@ pub trait ExtractAttribute {
             quote!()
         };
 
-        /// Specifies the behavior for unhandled attributes. They will either be silently ignored or 
-        /// forwarded to the inner struct for later analysis.
+        // Specifies the behavior for unhandled attributes. They will either be silently ignored or
+        // forwarded to the inner struct for later analysis.
         let forward_unhandled = if will_fwd_any {
             forwards_to_local(self.forwarded_attrs().unwrap())
         } else {
