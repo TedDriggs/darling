@@ -9,15 +9,15 @@ use syn::{self, Lit, MetaItem, NestedMetaItem};
 
 use {Error, Result};
 
-/// Create an instance from an item in an attribute declaration. 
-/// 
+/// Create an instance from an item in an attribute declaration.
+///
 /// # Implementing `FromMetaItem`
 /// * Do not take a dependency on the `ident` of the passed-in meta item. The ident will be set by the field name of the containing struct.
 /// * Implement only the `from_*` methods that you intend to support. The default implementations will return useful errors.
 ///
 /// # Provided Implementations
 /// ## bool
-/// 
+///
 /// * Word with no value specified - becomes `true`.
 /// * As a boolean literal, e.g. `foo = true`.
 /// * As a string literal, e.g. `foo = "true"`.
@@ -27,7 +27,7 @@ use {Error, Result};
 /// * As a raw string literal, e.g. `foo = r#"hello "world""#`.
 ///
 /// ## ()
-/// * Word with no value specified, e.g. `foo`. This is best used with `Option`. 
+/// * Word with no value specified, e.g. `foo`. This is best used with `Option`.
 ///   See `darling::util::Flag` for a more strongly-typed alternative.
 ///
 /// ## Option
@@ -130,6 +130,66 @@ impl FromMetaItem for String {
     }
 }
 
+impl FromMetaItem for u8 {
+    fn from_string(s: &str) -> Result<Self> {
+        s.parse().or_else(|_| Err(Error::unknown_value(s)))
+    }
+}
+
+impl FromMetaItem for u16 {
+    fn from_string(s: &str) -> Result<Self> {
+        s.parse().or_else(|_| Err(Error::unknown_value(s)))
+    }
+}
+
+impl FromMetaItem for u32 {
+    fn from_string(s: &str) -> Result<Self> {
+        s.parse().or_else(|_| Err(Error::unknown_value(s)))
+    }
+}
+
+impl FromMetaItem for u64 {
+    fn from_string(s: &str) -> Result<Self> {
+        s.parse().or_else(|_| Err(Error::unknown_value(s)))
+    }
+}
+
+impl FromMetaItem for usize {
+    fn from_string(s: &str) -> Result<Self> {
+        s.parse().or_else(|_| Err(Error::unknown_value(s)))
+    }
+}
+
+impl FromMetaItem for i8 {
+    fn from_string(s: &str) -> Result<Self> {
+        s.parse().or_else(|_| Err(Error::unknown_value(s)))
+    }
+}
+
+impl FromMetaItem for i16 {
+    fn from_string(s: &str) -> Result<Self> {
+        s.parse().or_else(|_| Err(Error::unknown_value(s)))
+    }
+}
+
+impl FromMetaItem for i32 {
+    fn from_string(s: &str) -> Result<Self> {
+        s.parse().or_else(|_| Err(Error::unknown_value(s)))
+    }
+}
+
+impl FromMetaItem for i64 {
+    fn from_string(s: &str) -> Result<Self> {
+        s.parse().or_else(|_| Err(Error::unknown_value(s)))
+    }
+}
+
+impl FromMetaItem for isize {
+    fn from_string(s: &str) -> Result<Self> {
+        s.parse().or_else(|_| Err(Error::unknown_value(s)))
+    }
+}
+
 impl FromMetaItem for syn::Ident {
     fn from_string(value: &str) -> Result<Self> {
         Ok(syn::Ident::new(value))
@@ -223,10 +283,10 @@ impl<V: FromMetaItem> FromMetaItem for HashMap<String, V> {
             if let syn::NestedMetaItem::MetaItem(ref inner) = *item {
                 match map.entry(inner.name().to_string()) {
                     Entry::Occupied(_) => return Err(Error::duplicate_field(inner.name())),
-                    Entry::Vacant(entry) => { 
+                    Entry::Vacant(entry) => {
                         entry.insert(
                             FromMetaItem::from_meta_item(inner).map_err(|e| e.at(inner.name()))?
-                        ); 
+                        );
                     }
                 }
             }
@@ -241,7 +301,7 @@ impl<V: FromMetaItem> FromMetaItem for HashMap<String, V> {
 #[cfg(test)]
 mod tests {
     use syn;
-    
+
     use {FromMetaItem, Result};
 
     /// parse a string as a syn::MetaItem instance.
@@ -280,6 +340,12 @@ mod tests {
 
         // raw form
         assert_eq!(&fmi::<String>(r##"ignore = r#"world"#"##), "world");
+    }
+
+    #[test]
+    fn number_succeeds() {
+        assert_eq!(fmi::<u8>(r#"ignore = "2""#), 2u8);
+        assert_eq!(fmi::<i16>(r#"ignore="-25""#), -25i16);
     }
 
     #[test]

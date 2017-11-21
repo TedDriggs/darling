@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add `impl FromMetaItem` for integer types [#15](https://github.com/TedDriggs/darling/pull/15)
+
 ## v0.2.0 (June 18, 2017)
 
 - Added support for returning multiple errors from parsing [#5](https://github.com/TedDriggs/darling/pull/5)
