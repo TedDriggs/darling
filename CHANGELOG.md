@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.2.1 (November 28, 2017)
 
 - Add `impl FromMetaItem` for integer types [#15](https://github.com/TedDriggs/darling/pull/15)
 

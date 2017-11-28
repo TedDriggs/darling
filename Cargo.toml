@@ -1,6 +1,6 @@
 [package]
 name = "darling"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Ted Driggs <ted.driggs@outlook.com>"]
 repository = "https://github.com/TedDriggs/darling"
 documentation = "https://docs.rs/darling/0.2.0"
@@ -15,8 +15,8 @@ readme = "README.md"
 travis-ci = { repository = "TedDriggs/darling" }
 
 [dependencies]
-darling_core = { version = "=0.2.0", path = "core" }
-darling_macro = { version = "=0.2.0", path = "macro" }
+darling_core = { version = "=0.2.1", path = "core" }
+darling_macro = { version = "=0.2.1", path = "macro" }
 
 [dev-dependencies]
 syn = "0.11.11"
