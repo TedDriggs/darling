@@ -15,7 +15,7 @@ readme = "README.md"
 travis-ci = { repository = "TedDriggs/darling" }
 
 [dependencies]
-darling_core = { version = "=0.2.1", path = "core" }
+darling_core = { version = "=0.2.2", path = "core" }
 darling_macro = { version = "=0.2.1", path = "macro" }
 
 [dev-dependencies]
