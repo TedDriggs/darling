@@ -74,17 +74,20 @@ impl ToTokens for MyInputReceiver {
         // Generate the actual values to fill the format string.
         let field_list = fields
             .into_iter()
-            .map(|f| {
+            .enumerate()
+            .map(|(i, f)| {
                 let field_volume = f.volume.unwrap_or(volume);
-                // TODO, handle tuple structs
-                let ident = f.ident.as_ref().unwrap();
+
+                let index_as_ident = syn::Ident::from(format!("{}", i));
+                let field_ident = f.ident.as_ref().unwrap_or(&index_as_ident);
+
                 match field_volume {
-                    Volume::Normal => quote!(self.#ident),
+                    Volume::Normal => quote!(self.#field_ident),
                     Volume::Shout => {
-                        quote!(::std::string::ToString::to_string(&self.#ident).to_uppercase())
+                        quote!(::std::string::ToString::to_string(&self.#field_ident).to_uppercase())
                     }
                     Volume::Whisper => {
-                        quote!(::std::string::ToString::to_string(&self.#ident).to_lowercase())
+                        quote!(::std::string::ToString::to_string(&self.#field_ident).to_lowercase())
                     }
                 }
             })
