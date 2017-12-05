@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased Changes
+
+## v0.2.2 (December 5, 2017)
+
+- Update `lazy_static` to 1.0 [#15](https://github.com/TedDriggs/darling/pull/16). Thanks to @Ejiebong
+
 ## v0.2.1 (November 28, 2017)
 
 - Add `impl FromMetaItem` for integer types [#15](https://github.com/TedDriggs/darling/pull/15)

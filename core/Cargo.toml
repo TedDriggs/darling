@@ -16,6 +16,6 @@ default = ["syn/full"]
 
 [dependencies]
 ident_case = "1.0.0"
-lazy_static = "1"
+lazy_static = "1.0.0"
 syn = "0.11.11"
 quote = "0.3.15"
