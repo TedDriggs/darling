@@ -1,3 +1,5 @@
+//! This example shows how to do struct and field parsing using darling.
+
 #[macro_use]
 extern crate darling;
 
@@ -6,7 +8,9 @@ extern crate quote;
 extern crate syn;
 
 use darling::ast;
+use darling::FromDeriveInput;
 use quote::{Tokens, ToTokens};
+use syn::parse_derive_input;
 
 /// A speaking volume. Deriving `FromMetaItem` will cause this to be usable
 /// as a string value for a meta-item key.
@@ -116,20 +120,35 @@ struct MyFieldReceiver {
     /// We declare this as an `Option` so that during tokenization we can write
     /// `field.volume.unwrap_or(derive_input.volume)` to facilitate field-level
     /// overrides of struct-level settings.
+    #[darling(default)]
     volume: Option<Volume>,
 }
 
 fn main() {
-    println!(r#"
-View example source to see why this code would work:
-
-#[derive(MyTrait)]
+    let input = r#"#[derive(MyTrait)]
 #[my_trait(volume = "shout")]
-pub struct Foo {{
+pub struct Foo {
     #[my_trait(volume = "whisper")]
     bar: bool,
 
     baz: i64,
-}}
-    "#);
+}"#;
+
+    let parsed = parse_derive_input(input).unwrap();
+    let receiver = MyInputReceiver::from_derive_input(&parsed).unwrap();
+    let tokens = quote!(#receiver);
+
+    println!(r#"
+INPUT:
+
+{}
+
+PARSED AS:
+
+{:?}
+
+EMITS:
+
+{}
+    "#, input, receiver, tokens);
 }
