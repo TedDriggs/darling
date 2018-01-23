@@ -28,21 +28,31 @@ impl InputVariant {
         let mut starter = (InputVariant {
             ident: v.ident.clone(),
             attr_name: Default::default(),
-            data: VariantData::empty_from(&v.data),
+            data: VariantData::empty_from(&v.fields),
             skip: Default::default(),
         }).parse_attributes(&v.attrs)?;
 
-        starter.data = match v.data {
-            syn::VariantData::Unit => Style::Unit.into(),
-            syn::VariantData::Struct(ref fields) |
-            syn::VariantData::Tuple(ref fields) => {
-                let mut items = Vec::with_capacity(fields.len());
-                for item in fields {
+        starter.data = match v.fields {
+            syn::Fields::Unit => Style::Unit.into(),
+            syn::Fields::Unnamed(ref fields) => {
+                let mut items = Vec::with_capacity(fields.unnamed.len());
+                for item in &fields.unnamed {
                     items.push(InputField::from_field(item, parent)?);
                 }
 
                 VariantData {
-                    style: (&v.data).into(),
+                    style: v.fields.clone().into(),
+                    fields: items,
+                }
+            },
+            syn::Fields::Named(ref fields) => {
+                let mut items = Vec::with_capacity(fields.named.len());
+                for item in &fields.named {
+                    items.push(InputField::from_field(item, parent)?);
+                }
+
+                VariantData {
+                    style: v.fields.clone().into(),
                     fields: items,
                 }
             }
@@ -66,7 +76,7 @@ impl InputVariant {
 
 
 impl ParseAttribute for InputVariant {
-    fn parse_nested(&mut self, mi: &syn::MetaItem) -> Result<()> {
+    fn parse_nested(&mut self, mi: &syn::Meta) -> Result<()> {
         let name = mi.name().to_string();
         match name.as_str() {
             "rename" => {

@@ -1,5 +1,5 @@
 use quote::{Tokens, ToTokens};
-use syn::{MetaItem, NestedMetaItem};
+use syn::{Meta, NestedMeta};
 
 use {Error, FromMetaItem, Result};
 
@@ -30,10 +30,10 @@ impl Default for Shape {
 }
 
 impl FromMetaItem for Shape {
-    fn from_list(items: &[NestedMetaItem]) -> Result<Self> {
+    fn from_list(items: &[NestedMeta]) -> Result<Self> {
         let mut new = Shape::default();
         for item in items {
-            if let NestedMetaItem::MetaItem(MetaItem::Word(ref ident)) = *item {
+            if let NestedMeta::Meta(Meta::Word(ref ident)) = *item {
                 let word = ident.as_ref();
                 if word == "any" {
                     new.any = true;
@@ -64,30 +64,32 @@ impl ToTokens for Shape {
             let st = &self.struct_values;
             quote! {
                 match *__body {
-                    ::syn::Body::Enum(ref variants) => {
-                        fn validate_variant(data: &::syn::VariantData) -> ::darling::Result<()> {
+                    ::syn::Data::Enum(ref data) => {
+                        fn validate_variant(data: &::syn::Fields) -> ::darling::Result<()> {
                             #en
                         }
 
-                        for variant in variants {
-                            validate_variant(&variant.data)?;
+                        for variant in &data.variants {
+                            validate_variant(&variant.fields)?;
                         }
 
                         Ok(())
                     }
-                    ::syn::Body::Struct(ref data) => {
+                    ::syn::Data::Struct(ref data) => {
                         #st
                     }
+                    ::syn::Data::Union(_) => unreachable!(),
                 }
             }
         };
 
-        tokens.append(quote!{
+        // FIXME: Remove the &[]
+        tokens.append_all(&[quote!{
             #[allow(unused_variables)]
-            fn __validate_body(__body: &::syn::Body) -> ::darling::Result<()> {
+            fn __validate_body(__body: &::syn::Data) -> ::darling::Result<()> {
                 #fn_body
             }
-        });
+        }]);
     }
 }
 
@@ -143,10 +145,10 @@ impl DataShape {
 }
 
 impl FromMetaItem for DataShape {
-    fn from_list(items: &[NestedMetaItem]) -> Result<Self> {
+    fn from_list(items: &[NestedMeta]) -> Result<Self> {
         let mut new = DataShape::default();
         for item in items {
-            if let NestedMetaItem::MetaItem(MetaItem::Word(ref ident)) = *item {
+            if let NestedMeta::Meta(Meta::Word(ref ident)) = *item {
                 new.set_word(ident.as_ref())?;
             } else {
                 return Err(Error::unsupported_format("non-word"));
@@ -171,22 +173,24 @@ impl ToTokens for DataShape {
             let tuple = match_arm("tuple", self.tuple);
             quote! {
                 match *data {
-                    ::syn::VariantData::Unit => #unit,
-                    ::syn::VariantData::Tuple(ref fields) if fields.len() == 1 => #newtype,
-                    ::syn::VariantData::Tuple(_) => #tuple,
-                    ::syn::VariantData::Struct(_) => #named,
+                    ::syn::Fields::Unit => #unit,
+                    ::syn::Fields::Unnamed(ref fields) if fields.unnamed.len() == 1 => #newtype,
+                    ::syn::Fields::Unnamed(_) => #tuple,
+                    ::syn::Fields::Named(_) => #named,
                 }
             }
         };
 
         if self.embedded {
-            tokens.append(body);
+            // FIXME: Remove the &[]
+            tokens.append_all(&[body]);
         } else {
-            tokens.append(quote! {
-                fn __validate_data(data: &::syn::VariantData) -> ::darling::Result<()> {
+            // FIXME: Remove the &[]
+            tokens.append_all(&[quote! {
+                fn __validate_data(data: &::syn::Fields) -> ::darling::Result<()> {
                     #body
                 }
-            });
+            }]);
         }
     }
 }
@@ -206,8 +210,8 @@ mod tests {
     use super::Shape;
     use {FromMetaItem};
 
-    /// parse a string as a syn::MetaItem instance.
-    fn pmi(s: &str) -> ::std::result::Result<syn::MetaItem, String> {
+    /// parse a string as a syn::Meta instance.
+    fn pmi(s: &str) -> ::std::result::Result<syn::Meta, String> {
         Ok(syn::parse_outer_attr(&format!("#[{}]", s))?.value)
     }
 

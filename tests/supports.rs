@@ -20,7 +20,7 @@ pub struct Variant {
 
 #[test]
 fn expansion() {
-    let di = syn::parse_derive_input(r#"
+    let di = syn::parse_str(r#"
         enum Hello {
             World(bool),
             String(String),
@@ -32,7 +32,7 @@ fn expansion() {
 
 #[test]
 fn unsupported_shape() {
-    let di = syn::parse_derive_input(r#"
+    let di = syn::parse_str(r#"
         enum Hello {
             Foo(u16),
             World {

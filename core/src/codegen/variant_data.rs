@@ -24,7 +24,7 @@ impl<'a> VariantDataGen<'a> {
 
         quote!(
             for __item in __items {
-                if let ::syn::NestedMetaItem::MetaItem(ref __inner) = *__item {
+                if let ::syn::NestedMeta::Meta(ref __inner) = *__item {
                     let __name = __inner.name().to_string();
                     match __name.as_str() {
                         #(#arms)*

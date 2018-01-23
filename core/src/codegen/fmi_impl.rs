@@ -27,7 +27,7 @@ impl<'a> ToTokens for FmiImpl<'a> {
             Body::Struct(VariantData { ref fields, style: Style::Tuple, .. }) if fields.len() == 1 => {
                 let ty_ident = base.ident;
                 quote!(
-                    fn from_meta_item(__item: &::syn::MetaItem) -> ::darling::Result<Self> {
+                    fn from_meta_item(__item: &::syn::Meta) -> ::darling::Result<Self> {
                         Ok(#ty_ident(::darling::FromMetaItem::from_meta_item(__item)?))
                     }
                 )
@@ -44,11 +44,11 @@ impl<'a> ToTokens for FmiImpl<'a> {
                 let core_loop = base.core_loop();
                 let default = base.fallback_decl();
                 let map = base.map_fn();
-                
+
 
                 quote!(
-                    fn from_list(__items: &[::syn::NestedMetaItem]) -> ::darling::Result<Self> {
-                        
+                    fn from_list(__items: &[::syn::NestedMeta]) -> ::darling::Result<Self> {
+
                         #decls
 
                         #declare_errors
@@ -72,14 +72,14 @@ impl<'a> ToTokens for FmiImpl<'a> {
                 let struct_arms = variants.iter().map(Variant::as_data_match_arm);
 
                 quote!(
-                    fn from_list(__outer: &[::syn::NestedMetaItem]) -> ::darling::Result<Self> {
+                    fn from_list(__outer: &[::syn::NestedMeta]) -> ::darling::Result<Self> {
                         // An enum must have exactly one value inside the parentheses if it's not a unit
                         // match arm
                         match __outer.len() {
                             0 => ::darling::export::Err(::darling::Error::too_few_items(1)),
                             1 => {
-                                if let ::syn::NestedMetaItem::MetaItem(ref __nested) = __outer[0] {
-                                    match __nested.name() {
+                                if let ::syn::NestedMeta::Meta(ref __nested) = __outer[0] {
+                                    match __nested.name().as_ref() {
                                         #(#struct_arms)*
                                         __other => ::darling::export::Err(::darling::Error::unknown_value(__other))
                                     }

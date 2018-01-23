@@ -41,11 +41,11 @@ impl Core {
         Core {
             ident: di.ident.clone(),
             generics: di.generics.clone(),
-            body: Body::empty_from(&di.body),
+            body: Body::empty_from(&di.data),
             default: Default::default(),
             // See https://github.com/TedDriggs/darling/issues/10: We default to snake_case
             // for enums to help authors produce more idiomatic APIs.
-            rename_rule: if let syn::Body::Enum(_) = di.body {
+            rename_rule: if let syn::Data::Enum(_) = di.data{
                 RenameRule::SnakeCase
             } else {
                 Default::default()
@@ -67,8 +67,8 @@ impl Core {
 }
 
 impl ParseAttribute for Core {
-    fn parse_nested(&mut self, mi: &syn::MetaItem) -> Result<()> {
-        match mi.name() {
+    fn parse_nested(&mut self, mi: &syn::Meta) -> Result<()> {
+        match mi.name().as_ref() {
             "default" => {
                 if self.default.is_some() {
                     Err(Error::duplicate_field("default"))
@@ -95,7 +95,7 @@ impl ParseAttribute for Core {
                 self.bound = FromMetaItem::from_meta_item(mi)?;
                 Ok(())
             }
-            n => Err(Error::unknown_field(n)),
+            n => Err(Error::unknown_field(n.as_ref())),
         }
     }
 }

@@ -72,7 +72,7 @@ impl<'a> TraitImpl<'a> {
     pub(in codegen) fn initializers(&self) -> Tokens {
         let foo = match self.body {
             Body::Enum(_) => panic!("Core loop on enums isn't supported"),
-            Body::Struct(ref data) => { 
+            Body::Struct(ref data) => {
                 VariantDataGen(data)
             }
         };
@@ -84,7 +84,7 @@ impl<'a> TraitImpl<'a> {
     pub(in codegen) fn core_loop(&self) -> Tokens {
         let foo = match self.body {
             Body::Enum(_) => panic!("Core loop on enums isn't supported"),
-            Body::Struct(ref data) => { 
+            Body::Struct(ref data) => {
                 VariantDataGen(data)
             }
         };

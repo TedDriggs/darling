@@ -20,10 +20,10 @@
 //! * **Map function**: You can use `#[darling(map="path::to::function")]` to run code on a field before its stored in the struct.
 //! * **Default values**: You can use `#[darling(default)]` at the type or field level to use that type's default value to fill
 //!   in values not specified by the caller.
-//! * **Skipped fields**: You can skip a variant or field using `#[darling(skip)]`. Fields marked with this will fall back to
+//! * **Skipped fields**: You can skip a variant or field using `#[darling(skip)]`. VariantData marked with this will fall back to
 //!   `Default::default()` for their value, but you can override that with an explicit default or a value from the type-level default.
 //!
-//! ## Forwarded Fields
+//! ## Forwarded VariantData
 //! The traits `FromDeriveInput` and `FromField` support forwarding fields from the input AST directly 
 //! to the derived struct. These fields are matched up by identifier **before** `rename` attribute values are
 //! considered. The deriving struct is responsible for making sure the types of fields it does declare match this
@@ -37,7 +37,7 @@
 //! |`ident`|`syn::Ident`|The identifier of the passed-in type|
 //! |`vis`|`syn::Visibility`|The visibility of the passed-in type|
 //! |`generics`|`syn::Generics`|The generics of the passed-in type|
-//! |`body`|`darling::ast::Body`|The body of the passed-in type|
+//! |`body`|`darling::ast::Data`|The body of the passed-in type|
 //! |`attrs`|`Vec<syn::Attribute>`|The forwarded attributes from the passed in type. These are controlled using the `forward_attrs` attribute.|
 //!
 //! ### `FromField`
@@ -45,7 +45,7 @@
 //! |---|---|---|
 //! |`ident`|`syn::Ident`|The identifier of the passed-in field|
 //! |`vis`|`syn::Visibility`|The visibility of the passed-in field|
-//! |`ty`|`syn::Ty`|The type of the passed-in field|
+//! |`ty`|`syn::Type`|The type of the passed-in field|
 //! |`attrs`|`Vec<syn::Attribute>`|The forwarded attributes from the passed in field. These are controlled using the `forward_attrs` attribute.|
 
 extern crate core;

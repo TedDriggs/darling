@@ -15,10 +15,11 @@ pub enum Body<V, F> {
 
 impl<V, F> Body<V, F> {
     /// Creates an empty body of the same shape as the passed-in body.
-    pub fn empty_from(src: &syn::Body) -> Self {
+    pub fn empty_from(src: &syn::Data) -> Self {
         match *src {
-            syn::Body::Enum(_) => Body::Enum(vec![]),
-            syn::Body::Struct(ref vd) => Body::Struct(VariantData::empty_from(vd)),
+            syn::Data::Enum(_) => Body::Enum(vec![]),
+            syn::Data::Struct(ref vd) => Body::Struct(VariantData::empty_from(&vd.fields)),
+            syn::Data::Union(_) => unreachable!(),
         }
     }
 
@@ -91,13 +92,13 @@ impl<V, F> Body<V, F> {
 }
 
 impl<V: FromVariant, F: FromField> Body<V, F> {
-    /// Attempt to convert from a `syn::Body` instance.
-    pub fn try_from(body: &syn::Body) -> Result<Self> {
+    /// Attempt to convert from a `syn::Data` instance.
+    pub fn try_from(body: &syn::Data) -> Result<Self> {
         match *body {
-            syn::Body::Enum(ref variants) => {
-                let mut items = Vec::with_capacity(variants.len());
+            syn::Data::Enum(ref data) => {
+                let mut items = Vec::with_capacity(data.variants.len());
                 let mut errors = Vec::new();
-                for v_result in variants.into_iter().map(FromVariant::from_variant) {
+                for v_result in data.variants.clone().into_iter().map(|v| FromVariant::from_variant(&v)) {
                     match v_result {
                         Ok(val) => items.push(val),
                         Err(err) => errors.push(err)
@@ -110,7 +111,8 @@ impl<V: FromVariant, F: FromField> Body<V, F> {
                     Ok(Body::Enum(items))
                 }
             }
-            syn::Body::Struct(ref data) => Ok(Body::Struct(VariantData::try_from(data)?)),
+            syn::Data::Struct(ref data) => Ok(Body::Struct(VariantData::try_from(&data.fields)?)),
+            syn::Data::Union(_) => unreachable!(),
         }
     }
 }
@@ -122,7 +124,7 @@ pub struct VariantData<T> {
 }
 
 impl<T> VariantData<T> {
-    pub fn empty_from(vd: &syn::VariantData) -> Self {
+    pub fn empty_from(vd: &syn::Fields) -> Self {
         VariantData {
             style: vd.into(),
             fields: Vec::new(),
@@ -168,30 +170,55 @@ impl<T> VariantData<T> {
 }
 
 impl<F: FromField> VariantData<F> {
-    pub fn try_from(data: &syn::VariantData) -> Result<Self> {
-        let fields = data.fields();
-        let mut items = Vec::with_capacity(fields.len());
-        let mut errors = Vec::new();
+    pub fn try_from(fields: &syn::Fields) -> Result<Self> {
+        let (items, errors) = match *fields {
+            syn::Fields::Named(ref fields) => {
+                let mut items = Vec::with_capacity(fields.named.len());
+                let mut errors = Vec::new();
 
-        for field in fields {
-            let f_result = FromField::from_field(field);
-            match f_result {
-                Ok(val) => items.push(val),
-                Err(err) => errors.push(if let Some(ref ident) = field.ident {
-                    err.at(ident.as_ref())
-                } else {
-                    err
-                })
+                for field in &fields.named {
+                    let f_result = FromField::from_field(field);
+                    match f_result {
+                        Ok(val) => items.push(val),
+                        Err(err) => errors.push(if let Some(ref ident) = field.ident {
+                            err.at(ident.as_ref())
+                        } else {
+                            err
+                        })
+                    }
+                }
+
+                (items, errors)
             }
-        }
+            syn::Fields::Unnamed(ref fields) => {
+                let mut items = Vec::with_capacity(fields.unnamed.len());
+                let mut errors = Vec::new();
+
+                for field in &fields.unnamed {
+                    let f_result = FromField::from_field(field);
+                    match f_result {
+                        Ok(val) => items.push(val),
+                        Err(err) => errors.push(if let Some(ref ident) = field.ident {
+                            err.at(ident.as_ref())
+                        } else {
+                            err
+                        })
+                    }
+                }
+
+                (items, errors)
+            }
+            syn::Fields::Unit => (vec![], vec![]),
+        };
+
 
         if !errors.is_empty() {
             Err(Error::multiple(errors))
         } else {
             Ok(VariantData {
-                style: data.into(),
+                style: fields.into(),
                 fields: items,
-            })   
+            })
         }
     }
 }
@@ -240,18 +267,18 @@ impl Style {
     }
 }
 
-impl From<syn::VariantData> for Style {
-    fn from(vd: syn::VariantData) -> Self {
+impl From<syn::Fields> for Style {
+    fn from(vd: syn::Fields) -> Self {
         (&vd).into()
     }
 }
 
-impl<'a> From<&'a syn::VariantData> for Style {
-    fn from(vd: &syn::VariantData) -> Self {
+impl<'a> From<&'a syn::Fields> for Style {
+    fn from(vd: &syn::Fields) -> Self {
         match *vd {
-            syn::VariantData::Struct(_) => Style::Struct,
-            syn::VariantData::Tuple(_) => Style::Tuple,
-            syn::VariantData::Unit => Style::Unit,
+            syn::Fields::Named(_) => Style::Struct,
+            syn::Fields::Unnamed(_) => Style::Tuple,
+            syn::Fields::Unit => Style::Unit,
         }
     }
 }

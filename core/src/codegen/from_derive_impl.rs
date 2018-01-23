@@ -23,7 +23,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
         let ty_ident = self.base.ident;
         let input = self.param_name();
         let map = self.base.map_fn();
-        
+
         if let Body::Struct(ref data) = self.base.body {
             if data.is_newtype() {
                 self.wrap(quote!{
@@ -42,11 +42,11 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
         let passed_vis = self.vis.as_ref().map(|i| quote!(#i: #input.vis.clone(),));
         let passed_generics = self.generics.as_ref().map(|i| quote!(#i: #input.generics.clone(),));
         let passed_attrs = self.attrs.as_ref().map(|i| quote!(#i: __fwd_attrs,));
-        let passed_body = self.body.as_ref().map(|i| quote!(#i: ::darling::ast::Body::try_from(&#input.body)?,));
+        let passed_body = self.body.as_ref().map(|i| quote!(#i: ::darling::ast::Body::try_from(&#input.data)?,));
 
         let supports = self.supports.map(|i| quote!{
             #i
-            __validate_body(&#input.body)?;
+            __validate_body(&#input.data)?;
         });
 
         let inits = self.base.initializers();

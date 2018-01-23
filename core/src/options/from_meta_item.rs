@@ -12,12 +12,12 @@ impl FmiOptions {
     pub fn new(di: &syn::DeriveInput) -> Result<Self> {
         (FmiOptions {
             base: Core::start(di),
-        }).parse_attributes(&di.attrs)?.parse_body(&di.body)
+        }).parse_attributes(&di.attrs)?.parse_body(&di.data)
     }
 }
 
 impl ParseAttribute for FmiOptions {
-    fn parse_nested(&mut self, mi: &syn::MetaItem) -> Result<()> {
+    fn parse_nested(&mut self, mi: &syn::Meta) -> Result<()> {
         self.base.parse_nested(mi)
     }
 }

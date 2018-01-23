@@ -1,4 +1,4 @@
-use syn::{DeriveInput, Field, Ident, MetaItem};
+use syn::{DeriveInput, Field, Ident, Meta};
 
 use {FromMetaItem, Result};
 use codegen::FromVariantImpl;
@@ -17,7 +17,7 @@ impl FromVariantOptions {
             base: OuterFrom::start(di),
             data: Default::default(),
             supports: Default::default(),
-        }).parse_attributes(&di.attrs)?.parse_body(&di.body)
+        }).parse_attributes(&di.attrs)?.parse_body(&di.data)
     }
 }
 
@@ -37,8 +37,8 @@ impl<'a> From<&'a FromVariantOptions> for FromVariantImpl<'a> {
 }
 
 impl ParseAttribute for FromVariantOptions {
-    fn parse_nested(&mut self, mi: &MetaItem) -> Result<()> {
-        match mi.name() {
+    fn parse_nested(&mut self, mi: &Meta) -> Result<()> {
+        match mi.name().as_ref() {
             "supports" => { self.supports = FromMetaItem::from_meta_item(mi)?; Ok(()) }
             _ => self.base.parse_nested(mi)
         }

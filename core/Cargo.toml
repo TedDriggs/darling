@@ -16,6 +16,5 @@ default = ["syn/full"]
 
 [dependencies]
 ident_case = "1.0.0"
-lazy_static = "1.0.0"
-syn = "0.11.11"
-quote = "0.3.15"
+syn = { version = "0.12.10", features = ["extra-traits"] }
+quote = "0.4"
