@@ -21,7 +21,7 @@ pub use self::from_variant_impl::FromVariantImpl;
 pub use self::outer_from_impl::OuterFromImpl;
 pub use self::trait_impl::TraitImpl;
 pub use self::variant::Variant;
-pub use self::variant_data::VariantDataGen;
+pub use self::variant_data::FieldsGen;
 
 use options::ForwardAttrs;
 

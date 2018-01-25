@@ -1,8 +1,8 @@
 use quote::{Tokens, ToTokens};
 use syn::Ident;
 
-use ast::VariantData;
-use codegen::{Field, VariantDataGen};
+use ast::Fields;
+use codegen::{Field, FieldsGen};
 use codegen::error::{ErrorCheck, ErrorDeclaration};
 
 /// An enum variant.
@@ -17,7 +17,7 @@ pub struct Variant<'a> {
     /// The name of the parent enum type.
     pub ty_ident: &'a Ident,
 
-    pub data: VariantData<Field<'a>>,
+    pub data: Fields<Field<'a>>,
 
     /// Whether or not the variant should be skipped in the generated code.
     pub skip: bool,
@@ -83,7 +83,7 @@ impl<'a> ToTokens for DataMatchArm<'a> {
         }
 
 
-        let vdg = VariantDataGen(&val.data);
+        let vdg = FieldsGen(&val.data);
 
         if val.data.is_struct() {
             let declare_errors = ErrorDeclaration::new();

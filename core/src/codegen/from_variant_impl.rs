@@ -21,7 +21,7 @@ impl<'a> ToTokens for FromVariantImpl<'a> {
         let extractor = self.extractor();
         let passed_ident = self.ident.as_ref().map(|i| quote!(#i: #input.ident.clone(),));
         let passed_attrs = self.attrs.as_ref().map(|i| quote!(#i: __fwd_attrs,));
-        let passed_data = self.data.as_ref().map(|i| quote!(#i: ::darling::ast::VariantData::try_from(&#input.fields)?,));
+        let passed_data = self.data.as_ref().map(|i| quote!(#i: ::darling::ast::Fields::try_from(&#input.fields)?,));
 
         let inits = self.base.initializers();
         let map = self.base.map_fn();

@@ -2,7 +2,7 @@ use ident_case::RenameRule;
 use syn;
 
 use {Result, Error, FromMetaItem};
-use ast::{Data, Style, VariantData};
+use ast::{Data, Style, Fields};
 use codegen;
 use options::{DefaultExpression, InputField, InputVariant, ParseAttribute, ParseData};
 
@@ -117,10 +117,10 @@ impl ParseData for Core {
         let f = InputField::from_field(field, Some(&self))?;
 
         match self.body {
-            Data::Struct(VariantData { style: Style::Unit, .. }) => {
+            Data::Struct(Fields { style: Style::Unit, .. }) => {
                 panic!("Core::parse_field should not be called on unit")
             }
-            Data::Struct(VariantData { ref mut fields, .. }) => {
+            Data::Struct(Fields { ref mut fields, .. }) => {
                 fields.push(f);
                 Ok(())
             }

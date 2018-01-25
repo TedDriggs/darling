@@ -10,7 +10,7 @@ use {Error, FromField, FromVariant, Result};
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Data<V, F> {
     Enum(Vec<V>),
-    Struct(VariantData<F>),
+    Struct(Fields<F>),
 }
 
 impl<V, F> Data<V, F> {
@@ -18,7 +18,7 @@ impl<V, F> Data<V, F> {
     pub fn empty_from(src: &syn::Data) -> Self {
         match *src {
             syn::Data::Enum(_) => Data::Enum(vec![]),
-            syn::Data::Struct(ref vd) => Data::Struct(VariantData::empty_from(&vd.fields)),
+            syn::Data::Struct(ref vd) => Data::Struct(Fields::empty_from(&vd.fields)),
             syn::Data::Union(_) => unreachable!(),
         }
     }
@@ -51,9 +51,9 @@ impl<V, F> Data<V, F> {
         }
     }
 
-    /// Applies a function to the `VariantData` if this is a struct.
+    /// Applies a function to the `Fields` if this is a struct.
     pub fn map_struct<T, U>(self, mut map: T) -> Data<V, U>
-        where T: FnMut(VariantData<F>) -> VariantData<U>
+        where T: FnMut(Fields<F>) -> Fields<U>
     {
         match self {
             Data::Enum(v) => Data::Enum(v),
@@ -61,8 +61,8 @@ impl<V, F> Data<V, F> {
         }
     }
 
-    /// Consumes the `Data`, returning `VariantData<F>` if it was a struct.
-    pub fn take_struct(self) -> Option<VariantData<F>> {
+    /// Consumes the `Data`, returning `Fields<F>` if it was a struct.
+    pub fn take_struct(self) -> Option<Fields<F>> {
         match self {
             Data::Enum(_) => None,
             Data::Struct(f) => Some(f),
@@ -111,27 +111,27 @@ impl<V: FromVariant, F: FromField> Data<V, F> {
                     Ok(Data::Enum(items))
                 }
             }
-            syn::Data::Struct(ref data) => Ok(Data::Struct(VariantData::try_from(&data.fields)?)),
+            syn::Data::Struct(ref data) => Ok(Data::Struct(Fields::try_from(&data.fields)?)),
             syn::Data::Union(_) => unreachable!(),
         }
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct VariantData<T> {
+pub struct Fields<T> {
     pub style: Style,
     pub fields: Vec<T>,
 }
 
-impl<T> VariantData<T> {
+impl<T> Fields<T> {
     pub fn empty_from(vd: &syn::Fields) -> Self {
-        VariantData {
+        Fields {
             style: vd.into(),
             fields: Vec::new(),
         }
     }
 
-    /// Splits the `VariantData` into its style and fields for further processing.
+    /// Splits the `Fields` into its style and fields for further processing.
     /// Returns an empty `Vec` for `Unit` data.
     pub fn split(self) -> (Style, Vec<T>) {
         (self.style, self.fields)
@@ -154,22 +154,22 @@ impl<T> VariantData<T> {
         self.style.is_struct()
     }
 
-    pub fn as_ref<'a>(&'a self) -> VariantData<&'a T> {
-        VariantData {
+    pub fn as_ref<'a>(&'a self) -> Fields<&'a T> {
+        Fields {
             style: self.style,
             fields: self.fields.iter().collect(),
         }
     }
 
-    pub fn map<F, U>(self, map: F) -> VariantData<U> where F: FnMut(T) -> U {
-        VariantData {
+    pub fn map<F, U>(self, map: F) -> Fields<U> where F: FnMut(T) -> U {
+        Fields {
             style: self.style,
             fields: self.fields.into_iter().map(map).collect()
         }
     }
 }
 
-impl<F: FromField> VariantData<F> {
+impl<F: FromField> Fields<F> {
     pub fn try_from(fields: &syn::Fields) -> Result<Self> {
         let (items, errors) = match *fields {
             syn::Fields::Named(ref fields) => {
@@ -215,7 +215,7 @@ impl<F: FromField> VariantData<F> {
         if !errors.is_empty() {
             Err(Error::multiple(errors))
         } else {
-            Ok(VariantData {
+            Ok(Fields {
                 style: fields.into(),
                 fields: items,
             })
@@ -223,16 +223,16 @@ impl<F: FromField> VariantData<F> {
     }
 }
 
-impl<T> From<Style> for VariantData<T> {
+impl<T> From<Style> for Fields<T> {
     fn from(style: Style) -> Self {
-        VariantData {
+        Fields {
             style,
             fields: Vec::new(),
         }
     }
 }
 
-impl<T, U: Into<Vec<T>>> From<(Style, U)> for VariantData<T> {
+impl<T, U: Into<Vec<T>>> From<(Style, U)> for Fields<T> {
     fn from((style, fields): (Style, U)) -> Self {
         style.with_fields(fields)
     }
@@ -258,9 +258,9 @@ impl Style {
         *self == Style::Struct
     }
 
-    /// Creates a new `VariantData` of the specified style with the passed-in fields.
-    fn with_fields<T, U: Into<Vec<T>>>(self, fields: U) -> VariantData<T> {
-        VariantData {
+    /// Creates a new `Fields` of the specified style with the passed-in fields.
+    fn with_fields<T, U: Into<Vec<T>>>(self, fields: U) -> Fields<T> {
+        Fields {
             style: self,
             fields: fields.into(),
         }

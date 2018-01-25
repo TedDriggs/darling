@@ -1,7 +1,7 @@
 use syn;
 
 use {FromMetaItem, Error, Result};
-use ast::{Style, VariantData};
+use ast::{Style, Fields};
 use codegen;
 use options::{Core, InputField, ParseAttribute};
 
@@ -9,7 +9,7 @@ use options::{Core, InputField, ParseAttribute};
 pub struct InputVariant {
     ident: syn::Ident,
     attr_name: Option<String>,
-    data: VariantData<InputField>,
+    data: Fields<InputField>,
     skip: bool,
 }
 
@@ -28,7 +28,7 @@ impl InputVariant {
         let mut starter = (InputVariant {
             ident: v.ident.clone(),
             attr_name: Default::default(),
-            data: VariantData::empty_from(&v.fields),
+            data: Fields::empty_from(&v.fields),
             skip: Default::default(),
         }).parse_attributes(&v.attrs)?;
 
@@ -40,7 +40,7 @@ impl InputVariant {
                     items.push(InputField::from_field(item, parent)?);
                 }
 
-                VariantData {
+                Fields {
                     style: v.fields.clone().into(),
                     fields: items,
                 }
@@ -51,7 +51,7 @@ impl InputVariant {
                     items.push(InputField::from_field(item, parent)?);
                 }
 
-                VariantData {
+                Fields {
                     style: v.fields.clone().into(),
                     fields: items,
                 }

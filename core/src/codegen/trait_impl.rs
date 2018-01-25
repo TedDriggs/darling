@@ -1,7 +1,7 @@
 use quote::Tokens;
 use syn::{Generics, Ident, Path, WherePredicate};
 
-use codegen::{DefaultExpression, Field, Variant, VariantDataGen};
+use codegen::{DefaultExpression, Field, Variant, FieldsGen};
 use codegen::field;
 use codegen::error::{ErrorCheck, ErrorDeclaration};
 use ast::Data;
@@ -73,7 +73,7 @@ impl<'a> TraitImpl<'a> {
         let foo = match self.body {
             Data::Enum(_) => panic!("Core loop on enums isn't supported"),
             Data::Struct(ref data) => {
-                VariantDataGen(data)
+                FieldsGen(data)
             }
         };
 
@@ -85,7 +85,7 @@ impl<'a> TraitImpl<'a> {
         let foo = match self.body {
             Data::Enum(_) => panic!("Core loop on enums isn't supported"),
             Data::Struct(ref data) => {
-                VariantDataGen(data)
+                FieldsGen(data)
             }
         };
 

@@ -20,10 +20,10 @@
 //! * **Map function**: You can use `#[darling(map="path::to::function")]` to run code on a field before its stored in the struct.
 //! * **Default values**: You can use `#[darling(default)]` at the type or field level to use that type's default value to fill
 //!   in values not specified by the caller.
-//! * **Skipped fields**: You can skip a variant or field using `#[darling(skip)]`. VariantData marked with this will fall back to
+//! * **Skipped fields**: You can skip a variant or field using `#[darling(skip)]`. Fields marked with this will fall back to
 //!   `Default::default()` for their value, but you can override that with an explicit default or a value from the type-level default.
 //!
-//! ## Forwarded VariantData
+//! ## Forwarded Fields
 //! The traits `FromDeriveInput` and `FromField` support forwarding fields from the input AST directly 
 //! to the derived struct. These fields are matched up by identifier **before** `rename` attribute values are
 //! considered. The deriving struct is responsible for making sure the types of fields it does declare match this

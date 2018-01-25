@@ -81,7 +81,7 @@ impl<'a> ToTokens for MatchArm<'a> {
             let with_path = &field.with_path;
 
             // Errors include the location of the bad input, so we compute that here.
-            // VariantData that take multiple values add the index of the error for convenience,
+            // Fields that take multiple values add the index of the error for convenience,
             // while single-value fields only expose the name in the input attribute.
             let location = if field.multiple {
                 // we use the local variable `len` here because location is accessed via

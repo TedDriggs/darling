@@ -1,7 +1,7 @@
 use quote::{Tokens, ToTokens};
 use syn;
 
-use ast::{Data, Style, VariantData};
+use ast::{Data, Style, Fields};
 use codegen::{Field, TraitImpl, OuterFromImpl, Variant};
 
 pub struct FmiImpl<'a> {
@@ -24,7 +24,7 @@ impl<'a> ToTokens for FmiImpl<'a> {
             }
 
             // Newtype structs proxy to the sole value they contain.
-            Data::Struct(VariantData { ref fields, style: Style::Tuple, .. }) if fields.len() == 1 => {
+            Data::Struct(Fields { ref fields, style: Style::Tuple, .. }) if fields.len() == 1 => {
                 let ty_ident = base.ident;
                 quote!(
                     fn from_meta_item(__item: &::syn::Meta) -> ::darling::Result<Self> {
@@ -32,7 +32,7 @@ impl<'a> ToTokens for FmiImpl<'a> {
                     }
                 )
             }
-            Data::Struct(VariantData { style: Style::Tuple, .. }) => {
+            Data::Struct(Fields { style: Style::Tuple, .. }) => {
                 panic!("Multi-field tuples are not supported");
             }
             Data::Struct(ref data) => {
