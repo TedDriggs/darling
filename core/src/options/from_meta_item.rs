@@ -2,7 +2,7 @@ use syn;
 
 use Result;
 use codegen;
-use options::{Core, ParseAttribute, ParseBody};
+use options::{Core, ParseAttribute, ParseData};
 
 pub struct FmiOptions {
     base: Core
@@ -22,7 +22,7 @@ impl ParseAttribute for FmiOptions {
     }
 }
 
-impl ParseBody for FmiOptions {
+impl ParseData for FmiOptions {
     fn parse_variant(&mut self, variant: &syn::Variant) -> Result<()> {
         self.base.parse_variant(variant)
     }

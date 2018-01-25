@@ -1,7 +1,7 @@
 use syn::{self, Field, Ident, Meta};
 
 use {FromMetaItem, Result};
-use options::{Core, DefaultExpression, ForwardAttrs, ParseAttribute, ParseBody};
+use options::{Core, DefaultExpression, ForwardAttrs, ParseAttribute, ParseData};
 use util::IdentList;
 
 /// Reusable base for `FromDeriveInput`, `FromVariant`, `FromField`, and other top-level
@@ -57,7 +57,7 @@ impl ParseAttribute for OuterFrom {
     }
 }
 
-impl ParseBody for OuterFrom {
+impl ParseData for OuterFrom {
     fn parse_field(&mut self, field: &Field) -> Result<()> {
         match field.ident.as_ref().map(|v| v.as_ref()) {
             Some("ident") => { self.ident = field.ident.clone(); Ok(()) }

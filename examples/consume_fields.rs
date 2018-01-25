@@ -45,7 +45,7 @@ struct MyInputReceiver {
 
     /// Receives the body of the struct or enum. We don't care about
     /// struct fields because we previously told darling we only accept structs.
-    body: ast::Body<(), MyFieldReceiver>,
+    body: ast::Data<(), MyFieldReceiver>,
 
     /// The Input Receiver demands a volume, so use `Volume::Normal` if the
     /// caller doesn't provide one.

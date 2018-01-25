@@ -8,7 +8,7 @@ use darling::FromDeriveInput;
 #[derive(Debug,FromDeriveInput)]
 #[darling(attributes(from_variants), supports(enum_any))]
 pub struct Container {
-    body: ast::Body<Variant, ()>,
+    body: ast::Data<Variant, ()>,
 }
 
 #[derive(Default, Debug, FromVariant)]

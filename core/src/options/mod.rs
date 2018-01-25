@@ -83,7 +83,7 @@ fn parse_attr<T: ParseAttribute>(attr: &syn::Attribute, target: &mut T) -> Resul
     }
 }
 
-pub trait ParseBody: Sized {
+pub trait ParseData: Sized {
     fn parse_body(mut self, body: &syn::Data) -> Result<Self> {
         use syn::{Data, Fields};
 

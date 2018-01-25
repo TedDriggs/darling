@@ -1,7 +1,7 @@
 use quote::{Tokens, ToTokens};
 use syn::{self, Ident};
 
-use ast::Body;
+use ast::Data;
 use codegen::{TraitImpl, ExtractAttribute, OuterFromImpl};
 use options::{ForwardAttrs, Shape};
 
@@ -24,7 +24,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
         let input = self.param_name();
         let map = self.base.map_fn();
 
-        if let Body::Struct(ref data) = self.base.body {
+        if let Data::Struct(ref data) = self.base.body {
             if data.is_newtype() {
                 self.wrap(quote!{
                     fn from_derive_input(#input: &::syn::DeriveInput) -> ::darling::Result<Self> {
@@ -42,7 +42,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
         let passed_vis = self.vis.as_ref().map(|i| quote!(#i: #input.vis.clone(),));
         let passed_generics = self.generics.as_ref().map(|i| quote!(#i: #input.generics.clone(),));
         let passed_attrs = self.attrs.as_ref().map(|i| quote!(#i: __fwd_attrs,));
-        let passed_body = self.body.as_ref().map(|i| quote!(#i: ::darling::ast::Body::try_from(&#input.data)?,));
+        let passed_body = self.body.as_ref().map(|i| quote!(#i: ::darling::ast::Data::try_from(&#input.data)?,));
 
         let supports = self.supports.map(|i| quote!{
             #i

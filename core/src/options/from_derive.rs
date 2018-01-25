@@ -2,7 +2,7 @@ use syn::{self, Ident};
 
 use {FromMetaItem, Result};
 use codegen;
-use options::{ParseAttribute, ParseBody, OuterFrom, Shape};
+use options::{ParseAttribute, ParseData, OuterFrom, Shape};
 
 #[derive(Debug)]
 pub struct FdiOptions {
@@ -40,7 +40,7 @@ impl ParseAttribute for FdiOptions {
     }
 }
 
-impl ParseBody for FdiOptions {
+impl ParseData for FdiOptions {
     fn parse_variant(&mut self, variant: &syn::Variant) -> Result<()> {
         self.base.parse_variant(variant)
     }

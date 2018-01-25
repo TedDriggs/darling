@@ -2,7 +2,7 @@ use syn::{DeriveInput, Field, Ident, Meta};
 
 use {FromMetaItem, Result};
 use codegen::FromVariantImpl;
-use options::{OuterFrom, ParseAttribute, ParseBody, DataShape};
+use options::{OuterFrom, ParseAttribute, ParseData, DataShape};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FromVariantOptions {
@@ -45,7 +45,7 @@ impl ParseAttribute for FromVariantOptions {
     }
 }
 
-impl ParseBody for FromVariantOptions {
+impl ParseData for FromVariantOptions {
     fn parse_field(&mut self, field: &Field) -> Result<()> {
         match field.ident.as_ref().map(|i| i.as_ref()) {
             Some("data") => { self.data = field.ident.clone(); Ok(()) }

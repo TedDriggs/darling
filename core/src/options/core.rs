@@ -2,9 +2,9 @@ use ident_case::RenameRule;
 use syn;
 
 use {Result, Error, FromMetaItem};
-use ast::{Body, Style, VariantData};
+use ast::{Data, Style, VariantData};
 use codegen;
-use options::{DefaultExpression, InputField, InputVariant, ParseAttribute, ParseBody};
+use options::{DefaultExpression, InputField, InputVariant, ParseAttribute, ParseData};
 
 /// A struct or enum which should have `FromMetaItem` or `FromDeriveInput` implementations
 /// generated.
@@ -29,7 +29,7 @@ pub struct Core {
     pub map: Option<syn::Path>,
 
     /// The body of the _deriving_ type.
-    pub body: Body<InputVariant, InputField>,
+    pub body: Data<InputVariant, InputField>,
 
     /// The custom bound to apply to the generated impl
     pub bound: Option<Vec<syn::WherePredicate>>,
@@ -41,7 +41,7 @@ impl Core {
         Core {
             ident: di.ident.clone(),
             generics: di.generics.clone(),
-            body: Body::empty_from(&di.data),
+            body: Data::empty_from(&di.data),
             default: Default::default(),
             // See https://github.com/TedDriggs/darling/issues/10: We default to snake_case
             // for enums to help authors produce more idiomatic APIs.
@@ -100,16 +100,16 @@ impl ParseAttribute for Core {
     }
 }
 
-impl ParseBody for Core {
+impl ParseData for Core {
     fn parse_variant(&mut self, variant: &syn::Variant) -> Result<()> {
         let v = InputVariant::from_variant(variant, Some(&self))?;
 
         match self.body {
-            Body::Enum(ref mut variants) => {
+            Data::Enum(ref mut variants) => {
                 variants.push(v);
                 Ok(())
             }
-            Body::Struct(_) => panic!("Core::parse_variant should never be called for a struct"),
+            Data::Struct(_) => panic!("Core::parse_variant should never be called for a struct"),
         }
     }
 
@@ -117,14 +117,14 @@ impl ParseBody for Core {
         let f = InputField::from_field(field, Some(&self))?;
 
         match self.body {
-            Body::Struct(VariantData { style: Style::Unit, .. }) => {
+            Data::Struct(VariantData { style: Style::Unit, .. }) => {
                 panic!("Core::parse_field should not be called on unit")
             }
-            Body::Struct(VariantData { ref mut fields, .. }) => {
+            Data::Struct(VariantData { ref mut fields, .. }) => {
                 fields.push(f);
                 Ok(())
             }
-            Body::Enum(_) => panic!("Core::parse_field should never be called for an enum"),
+            Data::Enum(_) => panic!("Core::parse_field should never be called for an enum"),
         }
     }
 }

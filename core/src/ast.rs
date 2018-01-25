@@ -8,90 +8,90 @@ use {Error, FromField, FromVariant, Result};
 ///
 /// `V` is the type which receives any encountered variants, and `F` receives struct fields.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Body<V, F> {
+pub enum Data<V, F> {
     Enum(Vec<V>),
     Struct(VariantData<F>),
 }
 
-impl<V, F> Body<V, F> {
+impl<V, F> Data<V, F> {
     /// Creates an empty body of the same shape as the passed-in body.
     pub fn empty_from(src: &syn::Data) -> Self {
         match *src {
-            syn::Data::Enum(_) => Body::Enum(vec![]),
-            syn::Data::Struct(ref vd) => Body::Struct(VariantData::empty_from(&vd.fields)),
+            syn::Data::Enum(_) => Data::Enum(vec![]),
+            syn::Data::Struct(ref vd) => Data::Struct(VariantData::empty_from(&vd.fields)),
             syn::Data::Union(_) => unreachable!(),
         }
     }
 
-    /// Creates a new `Body<&'a V, &'a F>` instance from `Body<V, F>`.
-    pub fn as_ref<'a>(&'a self) -> Body<&'a V, &'a F> {
+    /// Creates a new `Data<&'a V, &'a F>` instance from `Data<V, F>`.
+    pub fn as_ref<'a>(&'a self) -> Data<&'a V, &'a F> {
         match *self {
-            Body::Enum(ref variants) => Body::Enum(variants.into_iter().collect()),
-            Body::Struct(ref data) => Body::Struct(data.as_ref()),
+            Data::Enum(ref variants) => Data::Enum(variants.into_iter().collect()),
+            Data::Struct(ref data) => Data::Struct(data.as_ref()),
         }
     }
 
     /// Applies a function `V -> U` on enum variants, if this is an enum.
-    pub fn map_enum_variants<T, U>(self, map: T) -> Body<U, F>
+    pub fn map_enum_variants<T, U>(self, map: T) -> Data<U, F>
         where T: FnMut(V) -> U
     {
         match self {
-            Body::Enum(v) => Body::Enum(v.into_iter().map(map).collect()),
-            Body::Struct(f) => Body::Struct(f),
+            Data::Enum(v) => Data::Enum(v.into_iter().map(map).collect()),
+            Data::Struct(f) => Data::Struct(f),
         }
     }
 
     /// Applies a function `F -> U` on struct fields, if this is a struct.
-    pub fn map_struct_fields<T, U>(self, map: T) -> Body<V, U>
+    pub fn map_struct_fields<T, U>(self, map: T) -> Data<V, U>
         where T: FnMut(F) -> U
     {
         match self {
-            Body::Enum(v) => Body::Enum(v),
-            Body::Struct(f) => Body::Struct(f.map(map)),
+            Data::Enum(v) => Data::Enum(v),
+            Data::Struct(f) => Data::Struct(f.map(map)),
         }
     }
 
     /// Applies a function to the `VariantData` if this is a struct.
-    pub fn map_struct<T, U>(self, mut map: T) -> Body<V, U>
+    pub fn map_struct<T, U>(self, mut map: T) -> Data<V, U>
         where T: FnMut(VariantData<F>) -> VariantData<U>
     {
         match self {
-            Body::Enum(v) => Body::Enum(v),
-            Body::Struct(f) => Body::Struct(map(f)),
+            Data::Enum(v) => Data::Enum(v),
+            Data::Struct(f) => Data::Struct(map(f)),
         }
     }
 
-    /// Consumes the `Body`, returning `VariantData<F>` if it was a struct.
+    /// Consumes the `Data`, returning `VariantData<F>` if it was a struct.
     pub fn take_struct(self) -> Option<VariantData<F>> {
         match self {
-            Body::Enum(_) => None,
-            Body::Struct(f) => Some(f),
+            Data::Enum(_) => None,
+            Data::Struct(f) => Some(f),
         }
     }
 
-    /// Consumes the `Body`, returning `Vec<V>` if it was an enum.
+    /// Consumes the `Data`, returning `Vec<V>` if it was an enum.
     pub fn take_enum(self) -> Option<Vec<V>> {
         match self {
-            Body::Enum(v) => Some(v),
-            Body::Struct(_) => None,
+            Data::Enum(v) => Some(v),
+            Data::Struct(_) => None,
         }
     }
 
-    /// Returns `true` if this instance is `Body::Enum`.
+    /// Returns `true` if this instance is `Data::Enum`.
     pub fn is_enum(&self) -> bool {
         match *self {
-            Body::Enum(_) => true,
-            Body::Struct(_) => false,
+            Data::Enum(_) => true,
+            Data::Struct(_) => false,
         }
     }
 
-    /// Returns `true` if this instance is `Body::Struct`.
+    /// Returns `true` if this instance is `Data::Struct`.
     pub fn is_struct(&self) -> bool {
         !self.is_enum()
     }
 }
 
-impl<V: FromVariant, F: FromField> Body<V, F> {
+impl<V: FromVariant, F: FromField> Data<V, F> {
     /// Attempt to convert from a `syn::Data` instance.
     pub fn try_from(body: &syn::Data) -> Result<Self> {
         match *body {
@@ -108,10 +108,10 @@ impl<V: FromVariant, F: FromField> Body<V, F> {
                 if !errors.is_empty() {
                     Err(Error::multiple(errors))
                 } else {
-                    Ok(Body::Enum(items))
+                    Ok(Data::Enum(items))
                 }
             }
-            syn::Data::Struct(ref data) => Ok(Body::Struct(VariantData::try_from(&data.fields)?)),
+            syn::Data::Struct(ref data) => Ok(Data::Struct(VariantData::try_from(&data.fields)?)),
             syn::Data::Union(_) => unreachable!(),
         }
     }

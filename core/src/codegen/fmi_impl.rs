@@ -1,7 +1,7 @@
 use quote::{Tokens, ToTokens};
 use syn;
 
-use ast::{Body, Style, VariantData};
+use ast::{Data, Style, VariantData};
 use codegen::{Field, TraitImpl, OuterFromImpl, Variant};
 
 pub struct FmiImpl<'a> {
@@ -14,7 +14,7 @@ impl<'a> ToTokens for FmiImpl<'a> {
 
         let impl_block = match base.body {
             // Unit structs allow empty bodies only.
-            Body::Struct(ref vd) if vd.style.is_unit() => {
+            Data::Struct(ref vd) if vd.style.is_unit() => {
                 let ty_ident = base.ident;
                 quote!(
                     fn from_word() -> ::darling::Result<Self> {
@@ -24,7 +24,7 @@ impl<'a> ToTokens for FmiImpl<'a> {
             }
 
             // Newtype structs proxy to the sole value they contain.
-            Body::Struct(VariantData { ref fields, style: Style::Tuple, .. }) if fields.len() == 1 => {
+            Data::Struct(VariantData { ref fields, style: Style::Tuple, .. }) if fields.len() == 1 => {
                 let ty_ident = base.ident;
                 quote!(
                     fn from_meta_item(__item: &::syn::Meta) -> ::darling::Result<Self> {
@@ -32,10 +32,10 @@ impl<'a> ToTokens for FmiImpl<'a> {
                     }
                 )
             }
-            Body::Struct(VariantData { style: Style::Tuple, .. }) => {
+            Data::Struct(VariantData { style: Style::Tuple, .. }) => {
                 panic!("Multi-field tuples are not supported");
             }
-            Body::Struct(ref data) => {
+            Data::Struct(ref data) => {
                 let inits = data.fields.iter().map(Field::as_initializer);
                 let declare_errors = base.declare_errors();
                 let require_fields = base.require_fields();
@@ -67,7 +67,7 @@ impl<'a> ToTokens for FmiImpl<'a> {
                     }
                 )
             }
-            Body::Enum(ref variants) => {
+            Data::Enum(ref variants) => {
                 let unit_arms = variants.iter().map(Variant::as_unit_match_arm);
                 let struct_arms = variants.iter().map(Variant::as_data_match_arm);
 

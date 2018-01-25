@@ -2,7 +2,7 @@ use syn::{self, Ident};
 
 use {Result};
 use codegen::FromFieldImpl;
-use options::{ParseAttribute, ParseBody, OuterFrom};
+use options::{ParseAttribute, ParseData, OuterFrom};
 
 #[derive(Debug)]
 pub struct FromFieldOptions {
@@ -27,7 +27,7 @@ impl ParseAttribute for FromFieldOptions {
     }
 }
 
-impl ParseBody for FromFieldOptions {
+impl ParseData for FromFieldOptions {
     fn parse_variant(&mut self, variant: &syn::Variant) -> Result<()> {
         self.base.parse_variant(variant)
     }
