@@ -13,6 +13,9 @@ pub enum Data<V, F> {
     Struct(Fields<F>),
 }
 
+#[deprecated(since="0.3", note="this has been renamed to Data")]
+pub type Body<V, F> = Data<V, F>;
+
 impl<V, F> Data<V, F> {
     /// Creates an empty body of the same shape as the passed-in body.
     pub fn empty_from(src: &syn::Data) -> Self {
@@ -122,6 +125,9 @@ pub struct Fields<T> {
     pub style: Style,
     pub fields: Vec<T>,
 }
+
+#[deprecated(since="0.3", note="this has been renamed to Fields")]
+pub type VariantData<T> = Fields<T>;
 
 impl<T> Fields<T> {
     pub fn empty_from(vd: &syn::Fields) -> Self {
