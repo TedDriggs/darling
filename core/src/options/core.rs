@@ -29,7 +29,7 @@ pub struct Core {
     pub map: Option<syn::Path>,
 
     /// The body of the _deriving_ type.
-    pub body: Data<InputVariant, InputField>,
+    pub data: Data<InputVariant, InputField>,
 
     /// The custom bound to apply to the generated impl
     pub bound: Option<Vec<syn::WherePredicate>>,
@@ -41,7 +41,7 @@ impl Core {
         Core {
             ident: di.ident.clone(),
             generics: di.generics.clone(),
-            body: Data::empty_from(&di.data),
+            data: Data::empty_from(&di.data),
             default: Default::default(),
             // See https://github.com/TedDriggs/darling/issues/10: We default to snake_case
             // for enums to help authors produce more idiomatic APIs.
@@ -104,7 +104,7 @@ impl ParseData for Core {
     fn parse_variant(&mut self, variant: &syn::Variant) -> Result<()> {
         let v = InputVariant::from_variant(variant, Some(&self))?;
 
-        match self.body {
+        match self.data {
             Data::Enum(ref mut variants) => {
                 variants.push(v);
                 Ok(())
@@ -116,7 +116,7 @@ impl ParseData for Core {
     fn parse_field(&mut self, field: &syn::Field) -> Result<()> {
         let f = InputField::from_field(field, Some(&self))?;
 
-        match self.body {
+        match self.data {
             Data::Struct(Fields { style: Style::Unit, .. }) => {
                 panic!("Core::parse_field should not be called on unit")
             }
@@ -134,7 +134,7 @@ impl<'a> From<&'a Core> for codegen::TraitImpl<'a> {
         codegen::TraitImpl {
             ident: &v.ident,
             generics: &v.generics,
-            body: v.body
+            data: v.data
                 .as_ref()
                 .map_struct_fields(InputField::as_codegen_field)
                 .map_enum_variants(|variant| variant.as_codegen_variant(&v.ident)),

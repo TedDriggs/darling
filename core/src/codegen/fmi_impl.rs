@@ -12,7 +12,7 @@ impl<'a> ToTokens for FmiImpl<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
         let base = &self.base;
 
-        let impl_block = match base.body {
+        let impl_block = match base.data {
             // Unit structs allow empty bodies only.
             Data::Struct(ref vd) if vd.style.is_unit() => {
                 let ty_ident = base.ident;

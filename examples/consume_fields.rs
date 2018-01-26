@@ -45,7 +45,7 @@ struct MyInputReceiver {
 
     /// Receives the body of the struct or enum. We don't care about
     /// struct fields because we previously told darling we only accept structs.
-    body: ast::Data<(), MyFieldReceiver>,
+    data: ast::Data<(), MyFieldReceiver>,
 
     /// The Input Receiver demands a volume, so use `Volume::Normal` if the
     /// caller doesn't provide one.
@@ -58,12 +58,12 @@ impl ToTokens for MyInputReceiver {
         let MyInputReceiver {
             ref ident,
             ref generics,
-            ref body,
+            ref data,
             volume,
         } = *self;
 
         let (imp, ty, wher) = generics.split_for_impl();
-        let fields = body.as_ref()
+        let fields = data.as_ref()
             .take_struct()
             .expect("Should never be enum")
             .fields;
@@ -71,7 +71,20 @@ impl ToTokens for MyInputReceiver {
         // Generate the format string which shows each field and its name
         let fmt_string = fields
             .iter()
-            .map(|f| format!("{:?} = {{}}", f.ident))
+            .enumerate()
+            .map(|(i, f)| {
+                // We have to preformat the ident in this case so we can fall back
+                // to the field index for unnamed fields. It's not easy to read,
+                // unfortunately.
+                format!(
+                    "{} = {{}}",
+                    f.ident.as_ref().map(|v| format!("{}", v)).unwrap_or_else(
+                        || {
+                            format!("{}", i)
+                        },
+                    )
+                )
+            })
             .collect::<Vec<_>>()
             .join(", ");
 
@@ -82,8 +95,9 @@ impl ToTokens for MyInputReceiver {
             .map(|(i, f)| {
                 let field_volume = f.volume.unwrap_or(volume);
 
-                let index_as_ident = syn::Ident::from(format!("{}", i));
-                let field_ident = f.ident.as_ref().unwrap_or(&index_as_ident);
+                // This works with named or indexed fields, so we'll fall back to the index so we can
+                // write the output as a key-value pair.
+                let field_ident = f.ident.as_ref().map(|v| quote!(#v)).unwrap_or_else(|| quote!(#i));
 
                 match field_volume {
                     Volume::Normal => quote!(self.#field_ident),

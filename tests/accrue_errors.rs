@@ -13,7 +13,7 @@ use darling::FromDeriveInput;
 struct Lorem {
     ipsum: String,
     dolor: Dolor,
-    body: ast::Data<(), LoremField>,
+    data: ast::Data<(), LoremField>,
 }
 
 #[derive(Debug, FromMetaItem)]
