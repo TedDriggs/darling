@@ -115,7 +115,7 @@ impl DataShape {
 
     fn supports_none(&self) -> bool {
         !(self.any || self.newtype || self.named || self.tuple || self.unit)
-    } 
+    }
 
     fn set_word(&mut self, word: &str) -> Result<()> {
         match word.trim_left_matches(self.prefix) {
@@ -206,36 +206,38 @@ fn match_arm(name: &'static str, is_supported: bool) -> Tokens {
 #[cfg(test)]
 mod tests {
     use syn;
-    
+    use quote::Tokens;
+
     use super::Shape;
     use {FromMetaItem};
 
     /// parse a string as a syn::Meta instance.
-    fn pmi(s: &str) -> ::std::result::Result<syn::Meta, String> {
-        Ok(syn::parse_outer_attr(&format!("#[{}]", s))?.value)
+    fn pmi(tokens: Tokens) -> ::std::result::Result<syn::Meta, String> {
+        let attribute: syn::Attribute = parse_quote!(#[#tokens]);
+        attribute.interpret_meta().ok_or("Unable to parse".into())
     }
 
-    fn fmi<T: FromMetaItem>(s: &str) -> T {
-        FromMetaItem::from_meta_item(&pmi(s).expect("Tests should pass well-formed input"))
+    fn fmi<T: FromMetaItem>(tokens: Tokens) -> T {
+        FromMetaItem::from_meta_item(&pmi(tokens).expect("Tests should pass well-formed input"))
             .expect("Tests should pass valid input")
     }
 
     #[test]
     fn supports_any() {
-        let decl = fmi::<Shape>("ignore(any)");
+        let decl = fmi::<Shape>(quote!(ignore(any)));
         assert_eq!(decl.any, true);
     }
 
     #[test]
     fn supports_struct() {
-        let decl = fmi::<Shape>("ignore(struct_any, struct_newtype)");
+        let decl = fmi::<Shape>(quote!(ignore(struct_any, struct_newtype)));
         assert_eq!(decl.struct_values.any, true);
         assert_eq!(decl.struct_values.newtype, true);
     }
 
     #[test]
     fn supports_mixed() {
-        let decl = fmi::<Shape>("ignore(struct_newtype, enum_newtype, enum_tuple)");
+        let decl = fmi::<Shape>(quote!(ignore(struct_newtype, enum_newtype, enum_tuple)));
         assert_eq!(decl.struct_values.newtype, true);
         assert_eq!(decl.enum_values.newtype, true);
         assert_eq!(decl.enum_values.tuple, true);

@@ -303,58 +303,60 @@ impl<V: FromMetaItem> FromMetaItem for HashMap<String, V> {
 #[cfg(test)]
 mod tests {
     use syn;
+    use quote::Tokens;
 
     use {FromMetaItem, Result};
 
     /// parse a string as a syn::Meta instance.
-    fn pmi(s: &str) -> ::std::result::Result<syn::Meta, String> {
-        Ok(&format!("#[{}]", s).parse()?.value)
+    fn pmi(tokens: Tokens) -> ::std::result::Result<syn::Meta, String> {
+        let attribute: syn::Attribute = parse_quote!(#[#tokens]);
+        attribute.interpret_meta().ok_or("Unable to parse".into())
     }
 
-    fn fmi<T: FromMetaItem>(s: &str) -> T {
-        FromMetaItem::from_meta_item(&pmi(s).expect("Tests should pass well-formed input"))
+    fn fmi<T: FromMetaItem>(tokens: Tokens) -> T {
+        FromMetaItem::from_meta_item(&pmi(tokens).expect("Tests should pass well-formed input"))
             .expect("Tests should pass valid input")
     }
 
     #[test]
     fn unit_succeeds() {
-        assert_eq!(fmi::<()>("ignore"), ());
+        assert_eq!(fmi::<()>(quote!(ignore)), ());
     }
 
     #[test]
     fn bool_succeeds() {
         // word format
-        assert_eq!(fmi::<bool>("ignore"), true);
+        assert_eq!(fmi::<bool>(quote!(ignore)), true);
 
         // bool literal
-        assert_eq!(fmi::<bool>("ignore = true"), true);
-        assert_eq!(fmi::<bool>("ignore = false"), false);
+        assert_eq!(fmi::<bool>(quote!(ignore = true)), true);
+        assert_eq!(fmi::<bool>(quote!(ignore = false)), false);
 
         // string literals
-        assert_eq!(fmi::<bool>(r#"ignore = "true""#), true);
-        assert_eq!(fmi::<bool>(r#"ignore = "false""#), false);
+        assert_eq!(fmi::<bool>(quote!(ignore = "true")), true);
+        assert_eq!(fmi::<bool>(quote!(ignore = "false")), false);
     }
 
     #[test]
     fn string_succeeds() {
         // cooked form
-        assert_eq!(&fmi::<String>(r#"ignore = "world""#), "world");
+        assert_eq!(&fmi::<String>(quote!(ignore = "world")), "world");
 
         // raw form
-        assert_eq!(&fmi::<String>(r##"ignore = r#"world"#"##), "world");
+        assert_eq!(&fmi::<String>(quote!(ignore = r#"world"#)), "world");
     }
 
     #[test]
     fn number_succeeds() {
-        assert_eq!(fmi::<u8>(r#"ignore = "2""#), 2u8);
-        assert_eq!(fmi::<i16>(r#"ignore="-25""#), -25i16);
+        assert_eq!(fmi::<u8>(quote!(ignore = "2")), 2u8);
+        assert_eq!(fmi::<i16>(quote!(ignore="-25")), -25i16);
     }
 
     #[test]
     fn meta_item_succeeds() {
         use syn::Meta;
 
-        assert_eq!(fmi::<Meta>("hello(world,today)"), pmi("hello(world,today)").unwrap());
+        assert_eq!(fmi::<Meta>(quote!(hello(world,today))), pmi(quote!(hello(world,today))).unwrap());
     }
 
     #[test]
@@ -369,14 +371,14 @@ mod tests {
             c
         };
 
-        assert_eq!(fmi::<HashMap<String, bool>>(r#"ignore(hello, world = false, there = "true")"#), comparison);
+        assert_eq!(fmi::<HashMap<String, bool>>(quote!(ignore(hello, world = false, there = "true"))), comparison);
     }
 
     /// Tests that fallible parsing will always produce an outer `Ok` (from `fmi`),
     /// and will accurately preserve the inner contents.
     #[test]
     fn darling_result_succeeds() {
-        fmi::<Result<()>>("ignore").unwrap();
-        fmi::<Result<()>>("ignore(world)").unwrap_err();
+        fmi::<Result<()>>(quote!(ignore)).unwrap();
+        fmi::<Result<()>>(quote!(ignore(world))).unwrap_err();
     }
 }
