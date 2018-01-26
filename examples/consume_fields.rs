@@ -10,9 +10,9 @@ extern crate syn;
 use darling::ast;
 use darling::FromDeriveInput;
 use quote::{Tokens, ToTokens};
-use syn::parse_derive_input;
+use syn::parse_str;
 
-/// A speaking volume. Deriving `FromMetaItem` will cause this to be usable
+/// A speaking volume. Deriving `FromMeta` will cause this to be usable
 /// as a string value for a meta-item key.
 #[derive(Debug, Clone, Copy, FromMetaItem)]
 #[darling(default)]
@@ -45,7 +45,7 @@ struct MyInputReceiver {
 
     /// Receives the body of the struct or enum. We don't care about
     /// struct fields because we previously told darling we only accept structs.
-    body: ast::Body<(), MyFieldReceiver>,
+    body: ast::Data<(), MyFieldReceiver>,
 
     /// The Input Receiver demands a volume, so use `Volume::Normal` if the
     /// caller doesn't provide one.
@@ -97,7 +97,7 @@ impl ToTokens for MyInputReceiver {
             })
             .collect::<Vec<_>>();
 
-        tokens.append(quote! {
+        tokens.append_all(quote! {
             impl #imp Speak for #ident #ty #wher {
                 fn speak(&self, writer: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                     write!(#fmt_string, #(#field_list),*)
@@ -115,7 +115,7 @@ struct MyFieldReceiver {
     ident: Option<syn::Ident>,
 
     /// This magic field name pulls the type from the input.
-    ty: syn::Ty,
+    ty: syn::Type,
 
     /// We declare this as an `Option` so that during tokenization we can write
     /// `field.volume.unwrap_or(derive_input.volume)` to facilitate field-level
@@ -134,7 +134,7 @@ pub struct Foo {
     baz: i64,
 }"#;
 
-    let parsed = parse_derive_input(input).unwrap();
+    let parsed = parse_str(input).unwrap();
     let receiver = MyInputReceiver::from_derive_input(&parsed).unwrap();
     let tokens = quote!(#receiver);
 

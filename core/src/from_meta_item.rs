@@ -5,7 +5,7 @@ use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 
 use ident_case;
-use syn::{self, Lit, MetaItem, NestedMetaItem};
+use syn::{self, Lit, Meta, NestedMeta};
 
 use {Error, Result};
 
@@ -37,20 +37,20 @@ use {Error, Result};
 /// * Allows for fallible parsing; will populate the target field with the result of the
 ///   parse attempt.
 pub trait FromMetaItem: Sized {
-    fn from_nested_meta_item(item: &NestedMetaItem) -> Result<Self> {
+    fn from_nested_meta_item(item: &NestedMeta) -> Result<Self> {
         match *item {
-            NestedMetaItem::Literal(ref lit) => Self::from_value(lit),
-            NestedMetaItem::MetaItem(ref mi) => Self::from_meta_item(mi),
+            NestedMeta::Literal(ref lit) => Self::from_value(lit),
+            NestedMeta::Meta(ref mi) => Self::from_meta_item(mi),
         }
     }
 
-    /// Create an instance from a `syn::MetaItem` by dispatching to the format-appropriate
+    /// Create an instance from a `syn::Meta` by dispatching to the format-appropriate
     /// trait function. This generally should not be overridden by implementers.
-    fn from_meta_item(item: &MetaItem) -> Result<Self> {
+    fn from_meta_item(item: &Meta) -> Result<Self> {
         match *item {
-            MetaItem::Word(_) => Self::from_word(),
-            MetaItem::List(_, ref items) => Self::from_list(items),
-            MetaItem::NameValue(_, ref val) => Self::from_value(val),
+            Meta::Word(_) => Self::from_word(),
+            Meta::List(ref value) => Self::from_list(&value.nested.clone().into_iter().collect::<Vec<syn::NestedMeta>>()[..]),
+            Meta::NameValue(ref value) => Self::from_value(&value.lit),
         }
     }
 
@@ -62,7 +62,7 @@ pub trait FromMetaItem: Sized {
 
     /// Create an instance from a list of nested meta items.
     #[allow(unused_variables)]
-    fn from_list(items: &[NestedMetaItem]) -> Result<Self> {
+    fn from_list(items: &[NestedMeta]) -> Result<Self> {
         Err(Error::unsupported_format("list"))
     }
 
@@ -71,8 +71,8 @@ pub trait FromMetaItem: Sized {
     /// and generally should not be overridden by implementers.
     fn from_value(value: &Lit) -> Result<Self> {
         match *value {
-            Lit::Bool(ref b) => Self::from_bool(b.clone()),
-            Lit::Str(ref s, _) => Self::from_string(s),
+            Lit::Bool(ref b) => Self::from_bool(b.value),
+            Lit::Str(ref s) => Self::from_string(&s.value()),
             ref _other => Err(Error::unexpected_type("other"))
         }
     }
@@ -119,7 +119,7 @@ impl FromMetaItem for bool {
 }
 
 impl FromMetaItem for AtomicBool {
-    fn from_meta_item(mi: &MetaItem) -> Result<Self> {
+    fn from_meta_item(mi: &Meta) -> Result<Self> {
         Ok(AtomicBool::new(FromMetaItem::from_meta_item(mi)?))
     }
 }
@@ -192,37 +192,39 @@ impl FromMetaItem for isize {
 
 impl FromMetaItem for syn::Ident {
     fn from_string(value: &str) -> Result<Self> {
-        Ok(syn::Ident::new(value))
+        Ok(syn::Ident::from(value))
     }
 }
 
 impl FromMetaItem for syn::Path {
     fn from_string(value: &str) -> Result<Self> {
-        syn::parse_path(value).or_else(|_| Err(Error::unknown_value(value)))
+        Ok(syn::parse_str::<syn::Path>(value).unwrap())
     }
 }
-
-impl FromMetaItem for syn::TyParamBound {
+/*
+impl FromMetaItem for syn::TypeParamBound {
     fn from_string(value: &str) -> Result<Self> {
-        syn::parse_ty_param_bound(value).or_else(|_| Err(Error::unknown_value(value)))
+        Ok(syn::TypeParamBound::from(value))
     }
 }
+*/
 
-impl FromMetaItem for syn::MetaItem {
-    fn from_meta_item(value: &syn::MetaItem) -> Result<Self> {
+impl FromMetaItem for syn::Meta {
+    fn from_meta_item(value: &syn::Meta) -> Result<Self> {
         Ok(value.clone())
     }
 }
 
 impl FromMetaItem for syn::WhereClause {
     fn from_string(value: &str) -> Result<Self> {
-        syn::parse_where_clause(value).or_else(|_| Err(Error::unknown_value(value)))
+        let ret: syn::WhereClause = syn::parse_str(value).unwrap();
+        Ok(ret)
     }
 }
 
 impl FromMetaItem for Vec<syn::WherePredicate> {
     fn from_string(value: &str) -> Result<Self> {
-        syn::WhereClause::from_string(&format!("where {}", value)).map(|c| c.predicates)
+        syn::WhereClause::from_string(&format!("where {}", value)).map(|c| c.predicates.into_iter().collect())
     }
 }
 
@@ -233,56 +235,56 @@ impl FromMetaItem for ident_case::RenameRule {
 }
 
 impl<T: FromMetaItem> FromMetaItem for Option<T> {
-    fn from_meta_item(item: &MetaItem) -> Result<Self> {
+    fn from_meta_item(item: &Meta) -> Result<Self> {
         Ok(Some(FromMetaItem::from_meta_item(item)?))
     }
 }
 
 impl<T: FromMetaItem> FromMetaItem for Box<T> {
-    fn from_meta_item(item: &MetaItem) -> Result<Self> {
+    fn from_meta_item(item: &Meta) -> Result<Self> {
         Ok(Box::new(FromMetaItem::from_meta_item(item)?))
     }
 }
 
 impl<T: FromMetaItem> FromMetaItem for Result<T> {
-    fn from_meta_item(item: &MetaItem) -> Result<Self> {
+    fn from_meta_item(item: &Meta) -> Result<Self> {
         Ok(FromMetaItem::from_meta_item(item))
     }
 }
 
 /// Parses the meta-item, and in case of error preserves a copy of the input for
 /// later analysis.
-impl<T: FromMetaItem> FromMetaItem for ::std::result::Result<T, MetaItem> {
-    fn from_meta_item(item: &MetaItem) -> Result<Self> {
+impl<T: FromMetaItem> FromMetaItem for ::std::result::Result<T, Meta> {
+    fn from_meta_item(item: &Meta) -> Result<Self> {
         T::from_meta_item(item).map(Ok).or_else(|_| Ok(Err(item.clone())))
     }
 }
 
 impl<T: FromMetaItem> FromMetaItem for Rc<T> {
-    fn from_meta_item(item: &MetaItem) -> Result<Self> {
+    fn from_meta_item(item: &Meta) -> Result<Self> {
         Ok(Rc::new(FromMetaItem::from_meta_item(item)?))
     }
 }
 
 impl<T: FromMetaItem> FromMetaItem for Arc<T> {
-    fn from_meta_item(item: &MetaItem) -> Result<Self> {
+    fn from_meta_item(item: &Meta) -> Result<Self> {
         Ok(Arc::new(FromMetaItem::from_meta_item(item)?))
     }
 }
 
 impl<T: FromMetaItem> FromMetaItem for RefCell<T> {
-    fn from_meta_item(item: &MetaItem) -> Result<Self> {
+    fn from_meta_item(item: &Meta) -> Result<Self> {
         Ok(RefCell::new(FromMetaItem::from_meta_item(item)?))
     }
 }
 
 impl<V: FromMetaItem> FromMetaItem for HashMap<String, V> {
-    fn from_list(nested: &[syn::NestedMetaItem]) -> Result<Self> {
+    fn from_list(nested: &[syn::NestedMeta]) -> Result<Self> {
         let mut map = HashMap::with_capacity(nested.len());
         for item in nested {
-            if let syn::NestedMetaItem::MetaItem(ref inner) = *item {
+            if let syn::NestedMeta::Meta(ref inner) = *item {
                 match map.entry(inner.name().to_string()) {
-                    Entry::Occupied(_) => return Err(Error::duplicate_field(inner.name())),
+                    Entry::Occupied(_) => return Err(Error::duplicate_field(inner.name().as_ref())),
                     Entry::Vacant(entry) => {
                         entry.insert(
                             FromMetaItem::from_meta_item(inner).map_err(|e| e.at(inner.name()))?
@@ -304,9 +306,9 @@ mod tests {
 
     use {FromMetaItem, Result};
 
-    /// parse a string as a syn::MetaItem instance.
-    fn pmi(s: &str) -> ::std::result::Result<syn::MetaItem, String> {
-        Ok(syn::parse_outer_attr(&format!("#[{}]", s))?.value)
+    /// parse a string as a syn::Meta instance.
+    fn pmi(s: &str) -> ::std::result::Result<syn::Meta, String> {
+        Ok(&format!("#[{}]", s).parse()?.value)
     }
 
     fn fmi<T: FromMetaItem>(s: &str) -> T {
@@ -350,9 +352,9 @@ mod tests {
 
     #[test]
     fn meta_item_succeeds() {
-        use syn::MetaItem;
+        use syn::Meta;
 
-        assert_eq!(fmi::<MetaItem>("hello(world,today)"), pmi("hello(world,today)").unwrap());
+        assert_eq!(fmi::<Meta>("hello(world,today)"), pmi("hello(world,today)").unwrap());
     }
 
     #[test]

@@ -2,7 +2,7 @@
 //! in a derive-input receiver.
 //!
 //! 1. Using `darling::Result` as a carrier to preserve the error for later display
-//! 1. Using `Result<T, syn::MetaItem>` to attempt a recovery in imperative code
+//! 1. Using `Result<T, syn::Meta>` to attempt a recovery in imperative code
 //! 1. Using the `map` darling meta-item to post-process the receiver before returning.
 
 #[macro_use]
@@ -11,7 +11,7 @@ extern crate darling;
 extern crate syn;
 
 use darling::{FromDeriveInput, FromMetaItem};
-use syn::parse_derive_input;
+use syn::parse_str;
 
 #[derive(Debug, FromDeriveInput)]
 #[darling(attributes(my_trait), map = "MyInputReceiver::autocorrect")]
@@ -25,9 +25,9 @@ pub struct MyInputReceiver {
     frequency: darling::Result<i64>,
 
     /// If this field fails to parse, the struct can still be built; the field
-    /// will contain an `Err` with the original `syn::MetaItem`. This can be used
+    /// will contain an `Err` with the original `syn::Meta`. This can be used
     /// for alternate parsing attempts before panicking.
-    amplitude: Result<u64, syn::MetaItem>,
+    amplitude: Result<u64, syn::Meta>,
 }
 
 impl MyInputReceiver {
@@ -66,7 +66,7 @@ fn main() {
 #[my_trait(name="Jon", amplitude = "-1", frequency = "1")]
 pub struct Foo;"#;
 
-    let parsed = parse_derive_input(input).unwrap();
+    let parsed = parse_str(input).unwrap();
     let receiver = MyInputReceiver::from_derive_input(&parsed).unwrap();
 
     println!(r#"
