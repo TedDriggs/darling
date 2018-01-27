@@ -2,6 +2,8 @@
 
 ## Unreleased Changes
 
+## v0.3.0 (January 26, 2018)
+
 ### Breaking Changes
 - Update `syn` to 0.12 [#20](https://github.com/TedDriggs/darling/pull/20). Thanks to @Eijebong
 - Update `quote` to 0.4 [#20](https://github.com/TedDriggs/darling/pull/20). Thanks to @Eijebong
