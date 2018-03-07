@@ -2,6 +2,9 @@
 
 ## Unreleased Changes
 
+## v0.3.1 (March 7, 2018)
+- Support proc-macro2/nightly [#24](https://github.com/TedDriggs/darling/pull/24). Thanks to @kdy1
+
 ## v0.3.0 (January 26, 2018)
 
 ### Breaking Changes
