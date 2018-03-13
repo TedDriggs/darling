@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased Changes
+## Unreleased Features
+_None_
+
+## v0.3.2 (March 13, 2018)
+- Derive `Default` on `darling::Ignored` (fixes [#25](https://github.com/TedDriggs/darling/issues/25)).
 
 ## v0.3.1 (March 7, 2018)
 - Support proc-macro2/nightly [#24](https://github.com/TedDriggs/darling/pull/24). Thanks to @kdy1
