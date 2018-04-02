@@ -19,8 +19,8 @@ darling_core = { version = "=0.3.2", path = "core" }
 darling_macro = { version = "=0.3.2", path = "macro" }
 
 [dev-dependencies]
-syn = "0.12.10"
-quote = "0.4"
+quote = "0.5"
+syn = "0.13"
 
 [workspace]
 members = ["macro", "core"]
