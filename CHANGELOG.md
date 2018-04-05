@@ -3,8 +3,11 @@
 ## Unreleased Features
 _None_
 
-## v0.3.3 (April 2, 2018)
+## v0.4.0 (April 5, 2018)
 - Update dependencies on `proc-macro`, `quote`, and `syn` [#26](https://github.com/TedDriggs/darling/pull/26). Thanks to @hcpl
+
+## v0.3.3 (April 2, 2018)
+**YANKED**
 
 ## v0.3.2 (March 13, 2018)
 - Derive `Default` on `darling::Ignored` (fixes [#25](https://github.com/TedDriggs/darling/issues/25)).
