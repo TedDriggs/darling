@@ -14,7 +14,7 @@ pub struct FromDeriveInputImpl<'a> {
     pub base: TraitImpl<'a>,
     pub attr_names: Vec<&'a str>,
     pub forward_attrs: Option<&'a ForwardAttrs>,
-    pub from_ident: Option<bool>,
+    pub from_ident: bool,
     pub supports: Option<&'a Shape>,
 }
 
@@ -50,7 +50,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
         });
 
         let inits = self.base.initializers();
-        let default = if let Some(true) = self.from_ident {
+        let default = if self.from_ident {
             quote!(let __default: Self = ::darling::export::From::from(#input.ident.clone());)
         } else {
             self.base.fallback_decl()

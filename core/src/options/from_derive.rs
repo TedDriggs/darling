@@ -60,7 +60,7 @@ impl<'a> From<&'a FdiOptions> for codegen::FromDeriveInputImpl<'a> {
         codegen::FromDeriveInputImpl {
             base: (&v.base.container).into(),
             attr_names: v.base.attr_names.as_strs(),
-            from_ident: Some(v.base.from_ident),
+            from_ident: v.base.from_ident,
             ident: v.base.ident.as_ref(),
             vis: v.vis.as_ref(),
             data: v.data.as_ref(),
