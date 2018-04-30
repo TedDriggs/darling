@@ -59,7 +59,7 @@ extern crate darling_macro;
 pub use darling_macro::*;
 
 #[doc(inline)]
-pub use darling_core::{FromMetaItem, FromDeriveInput, FromField, FromVariant};
+pub use darling_core::{FromMetaItem, FromDeriveInput, FromField, FromTypeParam, FromVariant};
 
 #[doc(inline)]
 pub use darling_core::{Result, Error};
