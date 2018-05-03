@@ -41,6 +41,17 @@ pub fn derive_field(input: TokenStream) -> TokenStream {
     result.into()
 }
 
+#[proc_macro_derive(FromTypeParam, attributes(darling))]
+pub fn derive_type_param(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+
+    let fdic = options::FromTypeParamOptions::new(&ast).unwrap();
+    let trait_impl = codegen::FromTypeParamImpl::from(&fdic);
+    let result = quote!(#trait_impl);
+
+    result.into()
+}
+
 #[proc_macro_derive(FromVariant, attributes(darling))]
 pub fn derive_variant(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();

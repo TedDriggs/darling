@@ -18,6 +18,7 @@ pub mod error;
 mod from_field;
 mod from_derive_input;
 mod from_meta_item;
+mod from_type_param;
 mod from_variant;
 pub mod options;
 pub mod util;
@@ -26,6 +27,7 @@ pub use error::{Result, Error};
 pub use from_derive_input::FromDeriveInput;
 pub use from_field::FromField;
 pub use from_meta_item::{FromMetaItem};
+pub use from_type_param::FromTypeParam;
 pub use from_variant::FromVariant;
 
 #[cfg(test)]
