@@ -24,8 +24,9 @@ fn expand_many() {
     let di: DeriveInput = syn::parse_str(r#"
         struct Baz<
             #[lorem(foo)] T,
-            #[lorem(bar = "x")] U: Eq + ?Sized
-        >(T, U);
+            #[lorem(bar = "x")] U: Eq + ?Sized,
+            #[lorem(foo = false)] V = (),
+        >(T, U, V);
     "#).unwrap();
     let params = di.generics.params;
 
@@ -41,5 +42,12 @@ fn expand_many() {
         let lorem = Lorem::from_type_param(ty).unwrap();
         assert_eq!(lorem.foo, false);
         assert_eq!(lorem.bar, Some("x".to_string()));
+    }
+    
+    {
+        let ty = extract_type(&params[2]);
+        let lorem = Lorem::from_type_param(ty).unwrap();
+        assert_eq!(lorem.foo, false);
+        assert_eq!(lorem.bar, None);
     }
 }
