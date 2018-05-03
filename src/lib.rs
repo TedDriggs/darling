@@ -4,7 +4,7 @@
 //!
 //! ## Design
 //! Darling takes considerable design inspiration from [`serde`]. A data structure that can be
-//! read from any attribute implements `FromMetaItem` (or has an implementation automatically 
+//! read from any attribute implements `FromMetaItem` (or has an implementation automatically
 //! generated using `derive`). Any crate can provide `FromMetaItem` implementations, even one not
 //! specifically geared towards proc-macro authors.
 //!
@@ -24,7 +24,7 @@
 //!   `Default::default()` for their value, but you can override that with an explicit default or a value from the type-level default.
 //!
 //! ## Forwarded Fields
-//! The traits `FromDeriveInput` and `FromField` support forwarding fields from the input AST directly 
+//! The traits `FromDeriveInput` and `FromField` support forwarding fields from the input AST directly
 //! to the derived struct. These fields are matched up by identifier **before** `rename` attribute values are
 //! considered. The deriving struct is responsible for making sure the types of fields it does declare match this
 //! table.
@@ -59,7 +59,7 @@ extern crate darling_macro;
 pub use darling_macro::*;
 
 #[doc(inline)]
-pub use darling_core::{FromMetaItem, FromDeriveInput, FromField, FromTypeParam, FromVariant};
+pub use darling_core::{FromMetaItem, FromDeriveInput, FromGenerics, FromField, FromTypeParam, FromVariant};
 
 #[doc(inline)]
 pub use darling_core::{Result, Error};
@@ -71,7 +71,7 @@ pub use darling_core::{ast, error, util};
 /// depend on `std` unnecessarily, and avoids problems caused by aliasing `std` or any
 /// of the referenced types.
 #[doc(hidden)]
-pub mod export {    
+pub mod export {
     pub use ::core::convert::From;
     pub use ::core::option::Option::{self, Some, None};
     pub use ::core::result::Result::{self, Ok, Err};

@@ -1,7 +1,8 @@
 # Changelog
 
 ## Unreleased Features
-_None_
+- Add `FromGenerics` trait
+- Add `FromTypeParam` trait [#30](https://github.com/TedDriggs/darling/pull/30). Thanks to @upsuper
 
 ## v0.4.0 (April 5, 2018)
 - Update dependencies on `proc-macro`, `quote`, and `syn` [#26](https://github.com/TedDriggs/darling/pull/26). Thanks to @hcpl

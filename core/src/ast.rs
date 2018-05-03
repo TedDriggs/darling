@@ -2,9 +2,9 @@
 
 use syn;
 
-use {Error, FromField, FromVariant, Result};
+use {Error, FromField, FromTypeParam, FromVariant, Result};
 
-/// A struct or enum body. 
+/// A struct or enum body.
 ///
 /// `V` is the type which receives any encountered variants, and `F` receives struct fields.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -286,5 +286,19 @@ impl<'a> From<&'a syn::Fields> for Style {
             syn::Fields::Unnamed(_) => Style::Tuple,
             syn::Fields::Unit => Style::Unit,
         }
+    }
+}
+
+pub struct Generics<P, W = syn::WhereClause> {
+    pub params: Vec<P>,
+    pub where_clause: Option<W>,
+}
+
+impl<P: FromTypeParam> Generics<P, syn::WhereClause> {
+    pub fn try_from(generics: &syn::Generics) -> Result<Self> {
+        Ok(Generics {
+            params: generics.type_params().map(FromTypeParam::from_type_param).collect::<Result<Vec<P>>>()?,
+            where_clause: generics.where_clause.clone(),
+        })
     }
 }
