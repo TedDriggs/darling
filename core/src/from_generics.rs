@@ -1,6 +1,6 @@
 use syn::Generics;
 
-use {FromTypeParam, Result};
+use Result;
 
 /// Creates an instance by parsing an entire generics declaration, including the
 /// `where` clause.
@@ -20,11 +20,8 @@ impl FromGenerics for Generics {
     }
 }
 
-impl<T: FromTypeParam> FromGenerics for Vec<T> {
+impl<T: FromGenerics> FromGenerics for Result<T> {
     fn from_generics(generics: &Generics) -> Result<Self> {
-        generics
-            .type_params()
-            .map(FromTypeParam::from_type_param)
-            .collect()
+        Ok(FromGenerics::from_generics(generics))
     }
 }

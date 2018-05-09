@@ -24,3 +24,9 @@ impl FromTypeParam for Vec<syn::Attribute> {
         Ok(type_param.attrs.clone())
     }
 }
+
+impl FromTypeParam for syn::Ident {
+    fn from_type_param(type_param: &TypeParam) -> Result<Self> {
+        Ok(type_param.ident.clone())
+    }
+}
