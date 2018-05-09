@@ -1,7 +1,11 @@
 # Changelog
 
 ## Unreleased Features
-- Add `FromGenerics` trait
+- Add `ast::Generics` and `ast::GenericParam` to work with generics in a manner similar to `ast::Data`
+- Add `ast::GenericParamExt` to support alternate representations of generic parameters
+- Add `util::WithOriginal` to get a parsed representation and syn's own struct for a syntax block
+- Add `FromGenerics` and `FromGenericParam` traits (without derive support)
+- Change generated code for `generics` magic field to invoke `FromGenerics` trait during parsing
 - Add `FromTypeParam` trait [#30](https://github.com/TedDriggs/darling/pull/30). Thanks to @upsuper
 
 ## v0.4.0 (April 5, 2018)
