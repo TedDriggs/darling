@@ -8,6 +8,8 @@ pub struct FromTypeParamImpl<'a> {
     pub base: TraitImpl<'a>,
     pub ident: Option<&'a Ident>,
     pub attrs: Option<&'a Ident>,
+    pub bounds: Option<&'a Ident>,
+    pub default: Option<&'a Ident>,
     pub attr_names: Vec<&'a str>,
     pub forward_attrs: Option<&'a ForwardAttrs>,
     pub from_ident: bool,
@@ -30,6 +32,8 @@ impl<'a> ToTokens for FromTypeParamImpl<'a> {
 
         let passed_ident = self.ident.as_ref().map(|i| quote!(#i: #input.ident.clone(),));
         let passed_attrs = self.attrs.as_ref().map(|i| quote!(#i: __fwd_attrs,));
+        let passed_bounds = self.bounds.as_ref().map(|i| quote!(#i: #input.bounds.clone().into_iter().collect::<Vec<_>>(),));
+        let passed_default = self.default.as_ref().map(|i| quote!(#i: #input.default.clone(),));
         let initializers = self.base.initializers();
 
         let map = self.base.map_fn();
@@ -48,6 +52,8 @@ impl<'a> ToTokens for FromTypeParamImpl<'a> {
 
                 ::darling::export::Ok(Self {
                     #passed_ident
+                    #passed_bounds
+                    #passed_default
                     #passed_attrs
                     #initializers
                 }) #map

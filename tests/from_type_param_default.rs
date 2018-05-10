@@ -10,6 +10,7 @@ use syn::{DeriveInput, GenericParam, TypeParam};
 struct Lorem {
     foo: bool,
     bar: Option<String>,
+    default: Option<syn::Type>,
 }
 
 fn extract_type(param: &GenericParam) -> &TypeParam {
@@ -42,12 +43,14 @@ fn expand_many() {
         let lorem = Lorem::from_type_param(ty).unwrap();
         assert_eq!(lorem.foo, false);
         assert_eq!(lorem.bar, Some("x".to_string()));
+        assert!(lorem.default.is_none());
     }
-    
+
     {
         let ty = extract_type(&params[2]);
         let lorem = Lorem::from_type_param(ty).unwrap();
         assert_eq!(lorem.foo, false);
         assert_eq!(lorem.bar, None);
+        assert!(lorem.default.is_some());
     }
 }
