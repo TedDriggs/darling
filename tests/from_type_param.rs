@@ -9,6 +9,7 @@ use syn::{DeriveInput, GenericParam, Ident, TypeParam};
 #[derive(FromTypeParam)]
 struct Lorem {
     ident: Ident,
+    bounds: Vec<syn::TypeParamBound>,
     foo: bool,
     bar: Option<String>,
 }
@@ -19,6 +20,7 @@ impl From<Ident> for Lorem {
             ident,
             foo: false,
             bar: None,
+            bounds: Default::default(),
         }
     }
 }
@@ -54,5 +56,6 @@ fn expand_many() {
         assert_eq!(lorem.ident.as_ref(), "U");
         assert_eq!(lorem.foo, false);
         assert_eq!(lorem.bar, Some("x".to_string()));
+        assert_eq!(lorem.bounds.len(), 2);
     }
 }

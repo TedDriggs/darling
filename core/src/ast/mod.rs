@@ -4,7 +4,11 @@ use syn;
 
 use {Error, FromField, FromVariant, Result};
 
-/// A struct or enum body. 
+mod generics;
+
+pub use self::generics::{GenericParam, GenericParamExt, Generics};
+
+/// A struct or enum body.
 ///
 /// `V` is the type which receives any encountered variants, and `F` receives struct fields.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -13,7 +17,7 @@ pub enum Data<V, F> {
     Struct(Fields<F>),
 }
 
-#[deprecated(since="0.3", note="this has been renamed to Data")]
+#[deprecated(since = "0.3", note = "this has been renamed to Data")]
 pub type Body<V, F> = Data<V, F>;
 
 impl<V, F> Data<V, F> {
@@ -36,7 +40,8 @@ impl<V, F> Data<V, F> {
 
     /// Applies a function `V -> U` on enum variants, if this is an enum.
     pub fn map_enum_variants<T, U>(self, map: T) -> Data<U, F>
-        where T: FnMut(V) -> U
+    where
+        T: FnMut(V) -> U,
     {
         match self {
             Data::Enum(v) => Data::Enum(v.into_iter().map(map).collect()),
@@ -46,7 +51,8 @@ impl<V, F> Data<V, F> {
 
     /// Applies a function `F -> U` on struct fields, if this is a struct.
     pub fn map_struct_fields<T, U>(self, map: T) -> Data<V, U>
-        where T: FnMut(F) -> U
+    where
+        T: FnMut(F) -> U,
     {
         match self {
             Data::Enum(v) => Data::Enum(v),
@@ -56,7 +62,8 @@ impl<V, F> Data<V, F> {
 
     /// Applies a function to the `Fields` if this is a struct.
     pub fn map_struct<T, U>(self, mut map: T) -> Data<V, U>
-        where T: FnMut(Fields<F>) -> Fields<U>
+    where
+        T: FnMut(Fields<F>) -> Fields<U>,
     {
         match self {
             Data::Enum(v) => Data::Enum(v),
@@ -101,10 +108,14 @@ impl<V: FromVariant, F: FromField> Data<V, F> {
             syn::Data::Enum(ref data) => {
                 let mut items = Vec::with_capacity(data.variants.len());
                 let mut errors = Vec::new();
-                for v_result in data.variants.clone().into_iter().map(|v| FromVariant::from_variant(&v)) {
+                for v_result in data.variants
+                    .clone()
+                    .into_iter()
+                    .map(|v| FromVariant::from_variant(&v))
+                {
                     match v_result {
                         Ok(val) => items.push(val),
-                        Err(err) => errors.push(err)
+                        Err(err) => errors.push(err),
                     }
                 }
 
@@ -126,7 +137,7 @@ pub struct Fields<T> {
     pub fields: Vec<T>,
 }
 
-#[deprecated(since="0.3", note="this has been renamed to Fields")]
+#[deprecated(since = "0.3", note = "this has been renamed to Fields")]
 pub type VariantData<T> = Fields<T>;
 
 impl<T> Fields<T> {
@@ -167,10 +178,13 @@ impl<T> Fields<T> {
         }
     }
 
-    pub fn map<F, U>(self, map: F) -> Fields<U> where F: FnMut(T) -> U {
+    pub fn map<F, U>(self, map: F) -> Fields<U>
+    where
+        F: FnMut(T) -> U,
+    {
         Fields {
             style: self.style,
-            fields: self.fields.into_iter().map(map).collect()
+            fields: self.fields.into_iter().map(map).collect(),
         }
     }
 }
@@ -190,7 +204,7 @@ impl<F: FromField> Fields<F> {
                             err.at(ident.as_ref())
                         } else {
                             err
-                        })
+                        }),
                     }
                 }
 
@@ -208,7 +222,7 @@ impl<F: FromField> Fields<F> {
                             err.at(ident.as_ref())
                         } else {
                             err
-                        })
+                        }),
                     }
                 }
 
@@ -216,7 +230,6 @@ impl<F: FromField> Fields<F> {
             }
             syn::Fields::Unit => (vec![], vec![]),
         };
-
 
         if !errors.is_empty() {
             Err(Error::multiple(errors))
