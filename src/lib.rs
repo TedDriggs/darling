@@ -8,8 +8,8 @@
 //! generated using `derive`). Any crate can provide `FromMetaItem` implementations, even one not
 //! specifically geared towards proc-macro authors.
 //!
-//! Proc-macro crates should provide their own structs which implement or derive `FromDeriveInput` and
-//! `FromField` to gather settings relevant to their operation.
+//! Proc-macro crates should provide their own structs which implement or derive `FromDeriveInput`,
+//! `FromField`, `FromVariant`, `FromGenerics`, _et alia_ to gather settings relevant to their operation.
 //!
 //! ## Attributes
 //! There are a number of attributes that `darling` exposes to enable finer-grained control over the code
@@ -24,10 +24,10 @@
 //!   `Default::default()` for their value, but you can override that with an explicit default or a value from the type-level default.
 //!
 //! ## Forwarded Fields
-//! The traits `FromDeriveInput` and `FromField` support forwarding fields from the input AST directly
-//! to the derived struct. These fields are matched up by identifier **before** `rename` attribute values are
-//! considered. The deriving struct is responsible for making sure the types of fields it does declare match this
-//! table.
+//! All derivable traits except `FromMetaItem` support forwarding some fields from the input AST to the derived struct.
+//! These fields are matched up by identifier **before** `rename` attribute values are considered,
+//! allowing you to use their names for your own properties.
+//! The deriving struct is responsible for making sure the types of fields it chooses to declare are compatible with this table.
 //!
 //! A deriving struct is free to include or exclude any of the fields below.
 //!
@@ -36,7 +36,7 @@
 //! |---|---|---|
 //! |`ident`|`syn::Ident`|The identifier of the passed-in type|
 //! |`vis`|`syn::Visibility`|The visibility of the passed-in type|
-//! |`generics`|`syn::Generics`|The generics of the passed-in type|
+//! |`generics`|`T: darling::FromGenerics`|The generics of the passed-in type. This can be `syn::Generics`, `darling::ast::Generics`, or any compatible type.|
 //! |`body`|`darling::ast::Data`|The body of the passed-in type|
 //! |`attrs`|`Vec<syn::Attribute>`|The forwarded attributes from the passed in type. These are controlled using the `forward_attrs` attribute.|
 //!
