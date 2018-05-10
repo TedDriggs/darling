@@ -1,5 +1,5 @@
-use syn::{Generics, Path, TraitBound, TraitBoundModifier, TypeParamBound, GenericParam};
-use quote::{Tokens, ToTokens};
+use quote::{ToTokens, Tokens};
+use syn::{GenericParam, Generics, Path, TraitBound, TraitBoundModifier, TypeParamBound};
 
 use codegen::TraitImpl;
 
@@ -37,11 +37,11 @@ fn compute_impl_bounds(bound: Path, mut generics: Generics) -> Generics {
     }
 
     let added_bound = TypeParamBound::Trait(TraitBound {
-            paren_token: None,
-            modifier: TraitBoundModifier::None,
-            lifetimes: None,
-            path: bound,
-        });
+        paren_token: None,
+        modifier: TraitBoundModifier::None,
+        lifetimes: None,
+        path: bound,
+    });
 
     for mut param in generics.params.iter_mut() {
         if let &mut GenericParam::Type(ref mut typ) = param {

@@ -57,7 +57,9 @@ pub trait ExtractAttribute {
         let declarations = self.declarations();
 
         let will_parse_any = !self.attr_names().is_empty();
-        let will_fwd_any = self.forwarded_attrs().map(|fa| !fa.is_empty()).unwrap_or_default();
+        let will_fwd_any = self.forwarded_attrs()
+            .map(|fa| !fa.is_empty())
+            .unwrap_or_default();
 
         if !(will_parse_any || will_fwd_any) {
             return quote! {

@@ -1,6 +1,6 @@
 use syn;
 
-use {FromMetaItem, Result, Error};
+use {Error, FromMetaItem, Result};
 
 mod core;
 mod forward_attrs;
@@ -9,8 +9,8 @@ mod from_field;
 mod from_meta_item;
 mod from_type_param;
 mod from_variant;
-mod input_variant;
 mod input_field;
+mod input_variant;
 mod outer_from;
 mod shape;
 
@@ -21,8 +21,8 @@ pub use self::from_field::FromFieldOptions;
 pub use self::from_meta_item::FmiOptions;
 pub use self::from_type_param::FromTypeParamOptions;
 pub use self::from_variant::FromVariantOptions;
-pub use self::input_variant::InputVariant;
 pub use self::input_field::InputField;
+pub use self::input_variant::InputVariant;
 pub use self::outer_from::OuterFrom;
 pub use self::shape::{DataShape, Shape};
 
@@ -65,7 +65,7 @@ pub trait ParseAttribute: Sized {
 
 fn parse_attr<T: ParseAttribute>(attr: &syn::Attribute, target: &mut T) -> Result<()> {
     if attr.is_sugared_doc {
-        return Ok(())
+        return Ok(());
     }
 
     match attr.interpret_meta() {
@@ -79,7 +79,7 @@ fn parse_attr<T: ParseAttribute>(attr: &syn::Attribute, target: &mut T) -> Resul
             }
 
             Ok(())
-        },
+        }
         Some(ref item) => panic!("Wasn't able to parse: `{:?}`", item),
         None => panic!("Unable to parse {:?}", attr),
     }
@@ -90,24 +90,22 @@ pub trait ParseData: Sized {
         use syn::{Data, Fields};
 
         match *body {
-            Data::Struct(ref data) => {
-                match data.fields {
-                    Fields::Unit => Ok(self),
-                    Fields::Named(ref fields) => {
-                        for field in &fields.named {
-                            self.parse_field(field)?;
-                        }
-                        Ok(self)
+            Data::Struct(ref data) => match data.fields {
+                Fields::Unit => Ok(self),
+                Fields::Named(ref fields) => {
+                    for field in &fields.named {
+                        self.parse_field(field)?;
                     }
-                    Fields::Unnamed(ref fields) => {
-                        for field in &fields.unnamed {
-                            self.parse_field(field)?;
-                        }
-
-                        Ok(self)
-                    }
+                    Ok(self)
                 }
-            }
+                Fields::Unnamed(ref fields) => {
+                    for field in &fields.unnamed {
+                        self.parse_field(field)?;
+                    }
+
+                    Ok(self)
+                }
+            },
             Data::Enum(ref data) => {
                 for variant in &data.variants {
                     self.parse_variant(variant)?;

@@ -1,8 +1,8 @@
 use syn::{self, Field, Ident, Meta};
 
-use {FromMetaItem, Result};
 use options::{Core, DefaultExpression, ForwardAttrs, ParseAttribute, ParseData};
 use util::IdentList;
+use {FromMetaItem, Result};
 
 /// Reusable base for `FromDeriveInput`, `FromVariant`, `FromField`, and other top-level
 /// `From*` traits.
@@ -43,8 +43,14 @@ impl OuterFrom {
 impl ParseAttribute for OuterFrom {
     fn parse_nested(&mut self, mi: &Meta) -> Result<()> {
         match mi.name().as_ref() {
-            "attributes" => { self.attr_names = FromMetaItem::from_meta_item(mi)?; Ok(()) }
-            "forward_attrs" => { self.forward_attrs = FromMetaItem::from_meta_item(mi)?; Ok(()) },
+            "attributes" => {
+                self.attr_names = FromMetaItem::from_meta_item(mi)?;
+                Ok(())
+            }
+            "forward_attrs" => {
+                self.forward_attrs = FromMetaItem::from_meta_item(mi)?;
+                Ok(())
+            }
             "from_ident" => {
                 // HACK: Declaring that a default is present will cause fields to
                 // generate correct code, but control flow isn't that obvious.
@@ -52,7 +58,7 @@ impl ParseAttribute for OuterFrom {
                 self.from_ident = true;
                 Ok(())
             }
-            _ => self.container.parse_nested(mi)
+            _ => self.container.parse_nested(mi),
         }
     }
 }
@@ -60,9 +66,15 @@ impl ParseAttribute for OuterFrom {
 impl ParseData for OuterFrom {
     fn parse_field(&mut self, field: &Field) -> Result<()> {
         match field.ident.as_ref().map(|v| v.as_ref()) {
-            Some("ident") => { self.ident = field.ident.clone(); Ok(()) }
-            Some("attrs") => { self.attrs = field.ident.clone(); Ok(()) }
-            _ => self.container.parse_field(field)
+            Some("ident") => {
+                self.ident = field.ident.clone();
+                Ok(())
+            }
+            Some("attrs") => {
+                self.attrs = field.ident.clone();
+                Ok(())
+            }
+            _ => self.container.parse_field(field),
         }
     }
 }

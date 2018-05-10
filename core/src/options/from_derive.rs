@@ -1,8 +1,8 @@
 use syn::{self, Ident};
 
-use {FromMetaItem, Result};
 use codegen;
-use options::{ParseAttribute, ParseData, OuterFrom, Shape};
+use options::{OuterFrom, ParseAttribute, ParseData, Shape};
+use {FromMetaItem, Result};
 
 #[derive(Debug)]
 pub struct FdiOptions {
@@ -27,15 +27,19 @@ impl FdiOptions {
             generics: Default::default(),
             data: Default::default(),
             supports: Default::default(),
-        }).parse_attributes(&di.attrs)?.parse_body(&di.data)
+        }).parse_attributes(&di.attrs)?
+            .parse_body(&di.data)
     }
 }
 
 impl ParseAttribute for FdiOptions {
     fn parse_nested(&mut self, mi: &syn::Meta) -> Result<()> {
         match mi.name().as_ref() {
-            "supports" => { self.supports = FromMetaItem::from_meta_item(mi)?; Ok(()) },
-            _ => self.base.parse_nested(mi)
+            "supports" => {
+                self.supports = FromMetaItem::from_meta_item(mi)?;
+                Ok(())
+            }
+            _ => self.base.parse_nested(mi),
         }
     }
 }
@@ -47,10 +51,19 @@ impl ParseData for FdiOptions {
 
     fn parse_field(&mut self, field: &syn::Field) -> Result<()> {
         match field.ident.as_ref().map(|v| v.as_ref()) {
-            Some("vis") => { self.vis = field.ident.clone(); Ok(()) }
-            Some("data") => { self.data = field.ident.clone(); Ok(()) }
-            Some("generics") => { self.generics = field.ident.clone(); Ok(()) }
-            _ => self.base.parse_field(field)
+            Some("vis") => {
+                self.vis = field.ident.clone();
+                Ok(())
+            }
+            Some("data") => {
+                self.data = field.ident.clone();
+                Ok(())
+            }
+            Some("generics") => {
+                self.generics = field.ident.clone();
+                Ok(())
+            }
+            _ => self.base.parse_field(field),
         }
     }
 }

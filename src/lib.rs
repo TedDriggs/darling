@@ -67,10 +67,11 @@ extern crate darling_macro;
 pub use darling_macro::*;
 
 #[doc(inline)]
-pub use darling_core::{FromMetaItem, FromDeriveInput,  FromGenericParam, FromGenerics, FromField, FromTypeParam, FromVariant};
+pub use darling_core::{FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMetaItem,
+                       FromTypeParam, FromVariant};
 
 #[doc(inline)]
-pub use darling_core::{Result, Error};
+pub use darling_core::{Error, Result};
 
 #[doc(inline)]
 pub use darling_core::{ast, error, util};
@@ -80,9 +81,9 @@ pub use darling_core::{ast, error, util};
 /// of the referenced types.
 #[doc(hidden)]
 pub mod export {
-    pub use ::core::convert::From;
-    pub use ::core::option::Option::{self, Some, None};
-    pub use ::core::result::Result::{self, Ok, Err};
-    pub use ::core::default::Default;
-    pub use ::std::vec::Vec;
+    pub use core::convert::From;
+    pub use core::default::Default;
+    pub use core::option::Option::{self, None, Some};
+    pub use core::result::Result::{self, Err, Ok};
+    pub use std::vec::Vec;
 }

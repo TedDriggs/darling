@@ -1,6 +1,6 @@
 //! Utility types for attribute parsing.
 
-use std::ops::{Deref, Not, BitAnd, BitOr};
+use std::ops::{BitAnd, BitOr, Deref, Not};
 
 use syn;
 use {FromMetaItem, Result};
@@ -47,7 +47,11 @@ impl From<Flag> for bool {
 
 impl From<bool> for Flag {
     fn from(v: bool) -> Self {
-        if v { Flag::present() } else { Flag(None) }
+        if v {
+            Flag::present()
+        } else {
+            Flag(None)
+        }
     }
 }
 

@@ -5,7 +5,7 @@ extern crate syn;
 use darling::ast;
 use darling::FromDeriveInput;
 
-#[derive(Debug,FromDeriveInput)]
+#[derive(Debug, FromDeriveInput)]
 #[darling(attributes(from_variants), supports(enum_any))]
 pub struct Container {
     data: ast::Data<Variant, ()>,
@@ -20,26 +20,30 @@ pub struct Variant {
 
 #[test]
 fn expansion() {
-    let di = syn::parse_str(r#"
+    let di = syn::parse_str(
+        r#"
         enum Hello {
             World(bool),
             String(String),
         }
-    "#).unwrap();
+    "#,
+    ).unwrap();
 
     Container::from_derive_input(&di).unwrap();
 }
 
 #[test]
 fn unsupported_shape() {
-    let di = syn::parse_str(r#"
+    let di = syn::parse_str(
+        r#"
         enum Hello {
             Foo(u16),
             World {
                 name: String
             },
         }
-    "#).unwrap();
+    "#,
+    ).unwrap();
 
     Container::from_derive_input(&di).unwrap_err();
 }

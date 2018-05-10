@@ -1,8 +1,8 @@
 use syn::{self, Ident};
 
-use {Result};
 use codegen::FromFieldImpl;
-use options::{ParseAttribute, ParseData, OuterFrom};
+use options::{OuterFrom, ParseAttribute, ParseData};
+use Result;
 
 #[derive(Debug)]
 pub struct FromFieldOptions {
@@ -17,7 +17,8 @@ impl FromFieldOptions {
             base: OuterFrom::start(di),
             vis: Default::default(),
             ty: Default::default(),
-        }).parse_attributes(&di.attrs)?.parse_body(&di.data)
+        }).parse_attributes(&di.attrs)?
+            .parse_body(&di.data)
     }
 }
 
@@ -34,9 +35,15 @@ impl ParseData for FromFieldOptions {
 
     fn parse_field(&mut self, field: &syn::Field) -> Result<()> {
         match field.ident.as_ref().map(|v| v.as_ref()) {
-            Some("vis") => { self.vis = field.ident.clone(); Ok(()) },
-            Some("ty") => { self.ty = field.ident.clone(); Ok(()) }
-            _ => self.base.parse_field(field)
+            Some("vis") => {
+                self.vis = field.ident.clone();
+                Ok(())
+            }
+            Some("ty") => {
+                self.ty = field.ident.clone();
+                Ok(())
+            }
+            _ => self.base.parse_field(field),
         }
     }
 }

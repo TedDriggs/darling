@@ -1,8 +1,8 @@
 use syn::{DeriveInput, Field, Ident, Meta};
 
-use {FromMetaItem, Result};
 use codegen::FromVariantImpl;
-use options::{OuterFrom, ParseAttribute, ParseData, DataShape};
+use options::{DataShape, OuterFrom, ParseAttribute, ParseData};
+use {FromMetaItem, Result};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FromVariantOptions {
@@ -17,7 +17,8 @@ impl FromVariantOptions {
             base: OuterFrom::start(di),
             fields: Default::default(),
             supports: Default::default(),
-        }).parse_attributes(&di.attrs)?.parse_body(&di.data)
+        }).parse_attributes(&di.attrs)?
+            .parse_body(&di.data)
     }
 }
 
@@ -39,8 +40,11 @@ impl<'a> From<&'a FromVariantOptions> for FromVariantImpl<'a> {
 impl ParseAttribute for FromVariantOptions {
     fn parse_nested(&mut self, mi: &Meta) -> Result<()> {
         match mi.name().as_ref() {
-            "supports" => { self.supports = FromMetaItem::from_meta_item(mi)?; Ok(()) }
-            _ => self.base.parse_nested(mi)
+            "supports" => {
+                self.supports = FromMetaItem::from_meta_item(mi)?;
+                Ok(())
+            }
+            _ => self.base.parse_nested(mi),
         }
     }
 }
@@ -48,8 +52,11 @@ impl ParseAttribute for FromVariantOptions {
 impl ParseData for FromVariantOptions {
     fn parse_field(&mut self, field: &Field) -> Result<()> {
         match field.ident.as_ref().map(|i| i.as_ref()) {
-            Some("fields") => { self.fields = field.ident.clone(); Ok(()) }
-            _ => self.base.parse_field(field)
+            Some("fields") => {
+                self.fields = field.ident.clone();
+                Ok(())
+            }
+            _ => self.base.parse_field(field),
         }
     }
 }

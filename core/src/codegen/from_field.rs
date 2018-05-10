@@ -1,7 +1,7 @@
-use quote::{Tokens, ToTokens};
+use quote::{ToTokens, Tokens};
 use syn::{self, Ident};
 
-use codegen::{TraitImpl, ExtractAttribute, OuterFromImpl};
+use codegen::{ExtractAttribute, OuterFromImpl, TraitImpl};
 use options::ForwardAttrs;
 
 /// `impl FromField` generator. This is used for parsing an individual
@@ -33,7 +33,9 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
             self.base.fallback_decl()
         };
 
-        let passed_ident = self.ident.as_ref().map(|i| quote!(#i: #input.ident.clone(),));
+        let passed_ident = self.ident
+            .as_ref()
+            .map(|i| quote!(#i: #input.ident.clone(),));
         let passed_vis = self.vis.as_ref().map(|i| quote!(#i: #input.vis.clone(),));
         let passed_ty = self.ty.as_ref().map(|i| quote!(#i: #input.ty.clone(),));
         let passed_attrs = self.attrs.as_ref().map(|i| quote!(#i: __fwd_attrs,));
@@ -42,28 +44,31 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
         let grab_attrs = self.extractor();
         let map = self.base.map_fn();
 
-        self.wrap(quote!{
-            fn from_field(#input: &::syn::Field) -> ::darling::Result<Self> {
-                #error_declaration
+        self.wrap(
+            quote!{
+                fn from_field(#input: &::syn::Field) -> ::darling::Result<Self> {
+                    #error_declaration
 
-                #grab_attrs
+                    #grab_attrs
 
-                #require_fields
+                    #require_fields
 
-                #error_check
+                    #error_check
 
-                #default
+                    #default
 
-                ::darling::export::Ok(Self {
-                    #passed_ident
-                    #passed_ty
-                    #passed_vis
-                    #passed_attrs
-                    #initializers
-                }) #map
+                    ::darling::export::Ok(Self {
+                        #passed_ident
+                        #passed_ty
+                        #passed_vis
+                        #passed_attrs
+                        #initializers
+                    }) #map
 
-            }
-        }, tokens);
+                }
+            },
+            tokens,
+        );
     }
 }
 

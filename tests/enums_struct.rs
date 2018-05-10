@@ -5,19 +5,12 @@ extern crate darling;
 extern crate syn;
 
 #[derive(Debug, FromMetaItem)]
-#[darling(rename_all="snake_case")]
+#[darling(rename_all = "snake_case")]
 enum Message {
-    Hello {
-        user: String,
-        silent: bool
-    },
+    Hello { user: String, silent: bool },
     Ping,
-    Goodbye {
-        user: String,
-    }
+    Goodbye { user: String },
 }
 
 #[test]
-fn expansion() {
-    
-}
+fn expansion() {}

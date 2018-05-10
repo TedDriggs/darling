@@ -1,10 +1,10 @@
 use std::ops::Deref;
 
-use syn::{Ident, NestedMeta, Meta};
+use syn::{Ident, Meta, NestedMeta};
 
-use {FromMetaItem, Result, Error};
+use {Error, FromMetaItem, Result};
 
-/// A list of `syn::Ident` instances. This type is used to extract a list of words from an 
+/// A list of `syn::Ident` instances. This type is used to extract a list of words from an
 /// attribute.
 ///
 /// # Usage
@@ -51,7 +51,7 @@ impl FromMetaItem for IdentList {
             if let NestedMeta::Meta(Meta::Word(ref ident)) = *nmi {
                 idents.push(ident.clone());
             } else {
-                return Err(Error::unexpected_type("non-word"))
+                return Err(Error::unexpected_type("non-word"));
             }
         }
 

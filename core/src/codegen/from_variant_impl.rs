@@ -1,4 +1,4 @@
-use quote::{Tokens, ToTokens};
+use quote::{ToTokens, Tokens};
 use syn::{self, Ident};
 
 use codegen::{ExtractAttribute, OuterFromImpl, TraitImpl};
@@ -19,9 +19,13 @@ impl<'a> ToTokens for FromVariantImpl<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
         let input = self.param_name();
         let extractor = self.extractor();
-        let passed_ident = self.ident.as_ref().map(|i| quote!(#i: #input.ident.clone(),));
+        let passed_ident = self.ident
+            .as_ref()
+            .map(|i| quote!(#i: #input.ident.clone(),));
         let passed_attrs = self.attrs.as_ref().map(|i| quote!(#i: __fwd_attrs,));
-        let passed_fields = self.fields.as_ref().map(|i| quote!(#i: ::darling::ast::Fields::try_from(&#input.fields)?,));
+        let passed_fields = self.fields
+            .as_ref()
+            .map(|i| quote!(#i: ::darling::ast::Fields::try_from(&#input.fields)?,));
 
         let inits = self.base.initializers();
         let map = self.base.map_fn();
@@ -32,16 +36,19 @@ impl<'a> ToTokens for FromVariantImpl<'a> {
             self.base.fallback_decl()
         };
 
-        let supports = self.supports.map(|i| quote! {
-            #i
-            __validate_data(&#input.fields)?;
+        let supports = self.supports.map(|i| {
+            quote! {
+                #i
+                __validate_data(&#input.fields)?;
+            }
         });
 
         let error_declaration = self.base.declare_errors();
         let require_fields = self.base.require_fields();
         let error_check = self.base.check_errors();
 
-        self.wrap(quote!(
+        self.wrap(
+            quote!(
             fn from_variant(#input: &::syn::Variant) -> ::darling::Result<Self> {
                 #error_declaration
 
@@ -62,7 +69,9 @@ impl<'a> ToTokens for FromVariantImpl<'a> {
                     #inits
                 }) #map
             }
-        ), tokens);
+        ),
+            tokens,
+        );
     }
 }
 
@@ -91,7 +100,6 @@ impl<'a> ExtractAttribute for FromVariantImpl<'a> {
         self.base.core_loop()
     }
 }
-
 
 impl<'a> OuterFromImpl<'a> for FromVariantImpl<'a> {
     fn trait_path(&self) -> syn::Path {

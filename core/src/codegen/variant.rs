@@ -1,9 +1,9 @@
-use quote::{Tokens, ToTokens};
+use quote::{ToTokens, Tokens};
 use syn::Ident;
 
 use ast::Fields;
-use codegen::{Field, FieldsGen};
 use codegen::error::{ErrorCheck, ErrorDeclaration};
+use codegen::{Field, FieldsGen};
 
 /// An enum variant.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -81,7 +81,6 @@ impl<'a> ToTokens for DataMatchArm<'a> {
 
             return;
         }
-
 
         let vdg = FieldsGen(&val.data);
 

@@ -1,4 +1,4 @@
-use quote::{Tokens, ToTokens};
+use quote::{ToTokens, Tokens};
 use syn::{self, Ident};
 
 use codegen::{ExtractAttribute, OuterFromImpl, TraitImpl};
@@ -30,35 +30,44 @@ impl<'a> ToTokens for FromTypeParamImpl<'a> {
             self.base.fallback_decl()
         };
 
-        let passed_ident = self.ident.as_ref().map(|i| quote!(#i: #input.ident.clone(),));
+        let passed_ident = self.ident
+            .as_ref()
+            .map(|i| quote!(#i: #input.ident.clone(),));
         let passed_attrs = self.attrs.as_ref().map(|i| quote!(#i: __fwd_attrs,));
-        let passed_bounds = self.bounds.as_ref().map(|i| quote!(#i: #input.bounds.clone().into_iter().collect::<Vec<_>>(),));
-        let passed_default = self.default.as_ref().map(|i| quote!(#i: #input.default.clone(),));
+        let passed_bounds = self.bounds
+            .as_ref()
+            .map(|i| quote!(#i: #input.bounds.clone().into_iter().collect::<Vec<_>>(),));
+        let passed_default = self.default
+            .as_ref()
+            .map(|i| quote!(#i: #input.default.clone(),));
         let initializers = self.base.initializers();
 
         let map = self.base.map_fn();
 
-        self.wrap(quote! {
-            fn from_type_param(#input: &::syn::TypeParam) -> ::darling::Result<Self> {
-                #error_declaration
+        self.wrap(
+            quote! {
+                fn from_type_param(#input: &::syn::TypeParam) -> ::darling::Result<Self> {
+                    #error_declaration
 
-                #grab_attrs
+                    #grab_attrs
 
-                #require_fields
+                    #require_fields
 
-                #error_check
+                    #error_check
 
-                #default
+                    #default
 
-                ::darling::export::Ok(Self {
-                    #passed_ident
-                    #passed_bounds
-                    #passed_default
-                    #passed_attrs
-                    #initializers
-                }) #map
-            }
-        }, tokens);
+                    ::darling::export::Ok(Self {
+                        #passed_ident
+                        #passed_bounds
+                        #passed_default
+                        #passed_attrs
+                        #initializers
+                    }) #map
+                }
+            },
+            tokens,
+        );
     }
 }
 

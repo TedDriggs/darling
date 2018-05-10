@@ -1,4 +1,4 @@
-use quote::{Tokens, ToTokens};
+use quote::{ToTokens, Tokens};
 use syn::{Ident, Path};
 
 /// This will be in scope during struct initialization after option parsing.
@@ -26,7 +26,7 @@ impl<'a> ToTokens for DefaultExpression<'a> {
             DefaultExpression::Inherit(ident) => {
                 let dsn = Ident::new(DEFAULT_STRUCT_NAME, ::proc_macro2::Span::call_site());
                 quote!(#dsn.#ident)
-            },
+            }
             DefaultExpression::Explicit(path) => quote!(#path()),
             DefaultExpression::Trait => quote!(::darling::export::Default::default()),
         });

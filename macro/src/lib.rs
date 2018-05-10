@@ -7,7 +7,7 @@ extern crate darling_core;
 
 use proc_macro::TokenStream;
 
-use darling_core::{options, codegen};
+use darling_core::{codegen, options};
 
 #[proc_macro_derive(FromMetaItem, attributes(darling))]
 pub fn derive_from_meta_item(input: TokenStream) -> TokenStream {

@@ -1,15 +1,13 @@
-use quote::{Tokens, ToTokens};
+use quote::{ToTokens, Tokens};
 
 /// Declares the local variable into which errors will be accumulated.
 pub struct ErrorDeclaration {
-    __hidden: ()
+    __hidden: (),
 }
 
 impl ErrorDeclaration {
     pub fn new() -> Self {
-        ErrorDeclaration {
-            __hidden: ()
-        }
+        ErrorDeclaration { __hidden: () }
     }
 }
 
@@ -24,14 +22,14 @@ impl ToTokens for ErrorDeclaration {
 /// Returns early if attribute or body parsing has caused any errors.
 pub struct ErrorCheck<'a> {
     location: Option<&'a str>,
-    __hidden: ()
+    __hidden: (),
 }
 
 impl<'a> ErrorCheck<'a> {
     pub fn new() -> Self {
         ErrorCheck {
             location: None,
-            __hidden: ()
+            __hidden: (),
         }
     }
 

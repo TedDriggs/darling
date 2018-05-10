@@ -1,8 +1,8 @@
-use quote::{Tokens, ToTokens};
+use quote::{ToTokens, Tokens};
 use syn::{self, Ident};
 
 use ast::Data;
-use codegen::{TraitImpl, ExtractAttribute, OuterFromImpl};
+use codegen::{ExtractAttribute, OuterFromImpl, TraitImpl};
 use options::{ForwardAttrs, Shape};
 
 pub struct FromDeriveInputImpl<'a> {
@@ -26,27 +26,38 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
 
         if let Data::Struct(ref data) = self.base.data {
             if data.is_newtype() {
-                self.wrap(quote!{
-                    fn from_derive_input(#input: &::syn::DeriveInput) -> ::darling::Result<Self> {
-                        ::darling::export::Ok(
-                            #ty_ident(::darling::FromDeriveInput::from_derive_input(#input)?)
-                        ) #map
-                    }
-                }, tokens);
+                self.wrap(
+                    quote!{
+                        fn from_derive_input(#input: &::syn::DeriveInput) -> ::darling::Result<Self> {
+                            ::darling::export::Ok(
+                                #ty_ident(::darling::FromDeriveInput::from_derive_input(#input)?)
+                            ) #map
+                        }
+                    },
+                    tokens,
+                );
 
                 return;
             }
         }
 
-        let passed_ident = self.ident.as_ref().map(|i| quote!(#i: #input.ident.clone(),));
+        let passed_ident = self.ident
+            .as_ref()
+            .map(|i| quote!(#i: #input.ident.clone(),));
         let passed_vis = self.vis.as_ref().map(|i| quote!(#i: #input.vis.clone(),));
-        let passed_generics = self.generics.as_ref().map(|i| quote!(#i: ::darling::FromGenerics::from_generics(&#input.generics)?,));
+        let passed_generics = self.generics
+            .as_ref()
+            .map(|i| quote!(#i: ::darling::FromGenerics::from_generics(&#input.generics)?,));
         let passed_attrs = self.attrs.as_ref().map(|i| quote!(#i: __fwd_attrs,));
-        let passed_body = self.data.as_ref().map(|i| quote!(#i: ::darling::ast::Data::try_from(&#input.data)?,));
+        let passed_body = self.data
+            .as_ref()
+            .map(|i| quote!(#i: ::darling::ast::Data::try_from(&#input.data)?,));
 
-        let supports = self.supports.map(|i| quote!{
-            #i
-            __validate_body(&#input.data)?;
+        let supports = self.supports.map(|i| {
+            quote!{
+                #i
+                __validate_body(&#input.data)?;
+            }
         });
 
         let inits = self.base.initializers();
@@ -62,30 +73,33 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
         let require_fields = self.base.require_fields();
         let check_errors = self.base.check_errors();
 
-        self.wrap(quote! {
-            fn from_derive_input(#input: &::syn::DeriveInput) -> ::darling::Result<Self> {
-                #declare_errors
+        self.wrap(
+            quote! {
+                fn from_derive_input(#input: &::syn::DeriveInput) -> ::darling::Result<Self> {
+                    #declare_errors
 
-                #grab_attrs
+                    #grab_attrs
 
-                #supports
+                    #supports
 
-                #require_fields
+                    #require_fields
 
-                #check_errors
+                    #check_errors
 
-                #default
+                    #default
 
-                ::darling::export::Ok(#ty_ident {
-                    #passed_ident
-                    #passed_generics
-                    #passed_vis
-                    #passed_attrs
-                    #passed_body
-                    #inits
-                }) #map
-            }
-        }, tokens);
+                    ::darling::export::Ok(#ty_ident {
+                        #passed_ident
+                        #passed_generics
+                        #passed_vis
+                        #passed_attrs
+                        #passed_body
+                        #inits
+                    }) #map
+                }
+            },
+            tokens,
+        );
     }
 }
 

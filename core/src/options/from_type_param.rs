@@ -1,8 +1,8 @@
 use syn::{self, Ident};
 
-use {Result};
 use codegen::FromTypeParamImpl;
-use options::{ParseAttribute, ParseData, OuterFrom};
+use options::{OuterFrom, ParseAttribute, ParseData};
+use Result;
 
 #[derive(Debug)]
 pub struct FromTypeParamOptions {
@@ -17,7 +17,8 @@ impl FromTypeParamOptions {
             base: OuterFrom::start(di),
             bounds: None,
             default: None,
-        }).parse_attributes(&di.attrs)?.parse_body(&di.data)
+        }).parse_attributes(&di.attrs)?
+            .parse_body(&di.data)
     }
 }
 
@@ -34,9 +35,15 @@ impl ParseData for FromTypeParamOptions {
 
     fn parse_field(&mut self, field: &syn::Field) -> Result<()> {
         match field.ident.as_ref().map(|v| v.as_ref()) {
-            Some("bounds") => { self.bounds = field.ident.clone(); Ok(()) },
-            Some("default") => { self.default = field.ident.clone(); Ok(()) },
-            _ => self.base.parse_field(field)
+            Some("bounds") => {
+                self.bounds = field.ident.clone();
+                Ok(())
+            }
+            Some("default") => {
+                self.default = field.ident.clone();
+                Ok(())
+            }
+            _ => self.base.parse_field(field),
         }
     }
 }

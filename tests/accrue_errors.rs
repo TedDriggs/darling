@@ -18,7 +18,7 @@ struct Lorem {
 
 #[derive(Debug, FromMetaItem)]
 struct Dolor {
-    sit: bool
+    sit: bool,
 }
 
 #[derive(Debug, FromField)]
@@ -30,12 +30,14 @@ struct LoremField {
 
 #[test]
 fn bad_type_and_missing_fields() {
-    let input = syn::parse_str(r#"
+    let input = syn::parse_str(
+        r#"
     #[accrue(ipsum = true, dolor(amet = "Hi"))]
     pub struct NonConforming {
         foo: ()
     }
-    "#).unwrap();
+    "#,
+    ).unwrap();
 
     let s_result: ::darling::Error = Lorem::from_derive_input(&input).unwrap_err();
     //assert_eq!(3, s_result.len());
@@ -46,13 +48,15 @@ fn bad_type_and_missing_fields() {
 
 #[test]
 fn body_only_issues() {
-    let input = syn::parse_str(r#"
+    let input = syn::parse_str(
+        r#"
     #[accrue(ipsum = "Hello", dolor(sit))]
     pub struct NonConforming {
         foo: (),
         bar: bool,
     }
-    "#).unwrap();
+    "#,
+    ).unwrap();
 
     let s_err: ::darling::Error = Lorem::from_derive_input(&input).unwrap_err();
     println!("{:?}", s_err);
@@ -62,28 +66,27 @@ fn body_only_issues() {
 #[derive(Debug, FromMetaItem)]
 enum Week {
     Monday,
-    Tuesday {
-        morning: bool,
-        afternoon: String,
-    },
+    Tuesday { morning: bool, afternoon: String },
     Wednesday(Dolor),
 }
 
 #[derive(Debug, FromDeriveInput)]
 #[darling(attributes(accrue))]
 struct Month {
-    schedule: Week
+    schedule: Week,
 }
 
 #[test]
 fn error_in_enum_fields() {
-    let input = syn::parse_str(r#"
+    let input = syn::parse_str(
+        r#"
     #[accrue(schedule(tuesday(morning = "yes")))]
     pub struct NonConforming {
         foo: (),
         bar: bool,
     }
-    "#).unwrap();
+    "#,
+    ).unwrap();
 
     let s_err: ::darling::Error = Month::from_derive_input(&input).unwrap_err();
     assert_eq!(2, s_err.len());
@@ -94,13 +97,15 @@ fn error_in_enum_fields() {
 
 #[test]
 fn error_in_newtype_variant() {
-    let input = syn::parse_str(r#"
+    let input = syn::parse_str(
+        r#"
     #[accrue(schedule(wednesday(sit = "yes")))]
     pub struct NonConforming {
         foo: (),
         bar: bool,
     }
-    "#).unwrap();
+    "#,
+    ).unwrap();
 
     let s_err: ::darling::Error = Month::from_derive_input(&input).unwrap_err();
     assert_eq!(1, s_err.len());

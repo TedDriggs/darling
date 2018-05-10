@@ -1,8 +1,8 @@
-use quote::{Tokens, ToTokens};
+use quote::{ToTokens, Tokens};
 use syn;
 
-use ast::{Data, Style, Fields};
-use codegen::{Field, TraitImpl, OuterFromImpl, Variant};
+use ast::{Data, Fields, Style};
+use codegen::{Field, OuterFromImpl, TraitImpl, Variant};
 
 pub struct FmiImpl<'a> {
     pub base: TraitImpl<'a>,
@@ -24,7 +24,12 @@ impl<'a> ToTokens for FmiImpl<'a> {
             }
 
             // Newtype structs proxy to the sole value they contain.
-            Data::Struct(Fields { ref fields, style: Style::Tuple, .. }) if fields.len() == 1 => {
+            Data::Struct(Fields {
+                ref fields,
+                style: Style::Tuple,
+                ..
+            }) if fields.len() == 1 =>
+            {
                 let ty_ident = base.ident;
                 quote!(
                     fn from_meta_item(__item: &::syn::Meta) -> ::darling::Result<Self> {
@@ -32,7 +37,10 @@ impl<'a> ToTokens for FmiImpl<'a> {
                     }
                 )
             }
-            Data::Struct(Fields { style: Style::Tuple, .. }) => {
+            Data::Struct(Fields {
+                style: Style::Tuple,
+                ..
+            }) => {
                 panic!("Multi-field tuples are not supported");
             }
             Data::Struct(ref data) => {
@@ -44,7 +52,6 @@ impl<'a> ToTokens for FmiImpl<'a> {
                 let core_loop = base.core_loop();
                 let default = base.fallback_decl();
                 let map = base.map_fn();
-
 
                 quote!(
                     fn from_list(__items: &[::syn::NestedMeta]) -> ::darling::Result<Self> {

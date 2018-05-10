@@ -1,9 +1,8 @@
 use syn;
 
-use ::{FromMetaItem, Error, Result};
 use codegen;
 use options::{Core, DefaultExpression, ParseAttribute};
-
+use {Error, FromMetaItem, Result};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InputField {
@@ -25,10 +24,15 @@ impl InputField {
     pub fn as_codegen_field<'a>(&'a self) -> codegen::Field<'a> {
         codegen::Field {
             ident: &self.ident,
-            name_in_attr: self.attr_name.as_ref().map(|n| n.as_str()).unwrap_or(self.ident.as_ref()),
+            name_in_attr: self.attr_name
+                .as_ref()
+                .map(|n| n.as_str())
+                .unwrap_or(self.ident.as_ref()),
             ty: &self.ty,
             default_expression: self.as_codegen_default(),
-            with_path: self.with.clone().unwrap_or(parse_quote!(::darling::FromMetaItem::from_meta_item)),
+            with_path: self.with
+                .clone()
+                .unwrap_or(parse_quote!(::darling::FromMetaItem::from_meta_item)),
             skip: self.skip,
             map: self.map.as_ref(),
             multiple: self.multiple,
@@ -38,12 +42,10 @@ impl InputField {
     /// Generate a codegen::DefaultExpression for this field. This requires the field name
     /// in the `Inherit` case.
     fn as_codegen_default<'a>(&'a self) -> Option<codegen::DefaultExpression<'a>> {
-        self.default.as_ref().map(|expr| {
-            match *expr {
-                DefaultExpression::Explicit(ref path) => codegen::DefaultExpression::Explicit(path),
-                DefaultExpression::Inherit => codegen::DefaultExpression::Inherit(&self.ident),
-                DefaultExpression::Trait => codegen::DefaultExpression::Trait,
-            }
+        self.default.as_ref().map(|expr| match *expr {
+            DefaultExpression::Explicit(ref path) => codegen::DefaultExpression::Explicit(path),
+            DefaultExpression::Inherit => codegen::DefaultExpression::Inherit(&self.ident),
+            DefaultExpression::Trait => codegen::DefaultExpression::Trait,
         })
     }
 
@@ -61,7 +63,10 @@ impl InputField {
     }
 
     pub fn from_field(f: &syn::Field, parent: Option<&Core>) -> Result<Self> {
-        let ident = f.ident.clone().unwrap_or(syn::Ident::new("__unnamed", ::proc_macro2::Span::call_site()));
+        let ident = f.ident.clone().unwrap_or(syn::Ident::new(
+            "__unnamed",
+            ::proc_macro2::Span::call_site(),
+        ));
         let ty = f.ty.clone();
         let base = Self::new(ident, ty).parse_attributes(&f.attrs)?;
 
@@ -109,12 +114,30 @@ impl ParseAttribute for InputField {
     fn parse_nested(&mut self, mi: &syn::Meta) -> Result<()> {
         let name = mi.name().to_string();
         match name.as_str() {
-            "rename" => { self.attr_name = FromMetaItem::from_meta_item(mi)?; Ok(()) }
-            "default" => { self.default = FromMetaItem::from_meta_item(mi)?; Ok(()) }
-            "with" => { self.with = Some(FromMetaItem::from_meta_item(mi)?); Ok(()) }
-            "skip" => { self.skip = FromMetaItem::from_meta_item(mi)?; Ok(()) }
-            "map" => { self.map = Some(FromMetaItem::from_meta_item(mi)?); Ok(()) }
-            "multiple" => { self.multiple = FromMetaItem::from_meta_item(mi)?; Ok(()) }
+            "rename" => {
+                self.attr_name = FromMetaItem::from_meta_item(mi)?;
+                Ok(())
+            }
+            "default" => {
+                self.default = FromMetaItem::from_meta_item(mi)?;
+                Ok(())
+            }
+            "with" => {
+                self.with = Some(FromMetaItem::from_meta_item(mi)?);
+                Ok(())
+            }
+            "skip" => {
+                self.skip = FromMetaItem::from_meta_item(mi)?;
+                Ok(())
+            }
+            "map" => {
+                self.map = Some(FromMetaItem::from_meta_item(mi)?);
+                Ok(())
+            }
+            "multiple" => {
+                self.multiple = FromMetaItem::from_meta_item(mi)?;
+                Ok(())
+            }
             n => Err(Error::unknown_field(n)),
         }
     }

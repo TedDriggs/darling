@@ -13,16 +13,18 @@ struct Lorem(bool);
 #[derive(Debug, FromDeriveInput)]
 #[darling(attributes(newtype))]
 struct DemoContainer {
-    lorem: Lorem
+    lorem: Lorem,
 }
 
 #[test]
 fn generated() {
-    let di = syn::parse_str(r#"
+    let di = syn::parse_str(
+        r#"
         #[derive(Baz)]
         #[newtype(lorem = false)]
         pub struct Foo;
-    "#).unwrap();
+    "#,
+    ).unwrap();
 
     let c = DemoContainer::from_derive_input(&di).unwrap();
 

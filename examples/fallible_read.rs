@@ -36,7 +36,11 @@ impl MyInputReceiver {
     /// skipped fields or to perform corrections that don't lend themselves to being
     /// done elsewhere.
     fn autocorrect(self) -> Self {
-        let Self { name, frequency, amplitude } = self;
+        let Self {
+            name,
+            frequency,
+            amplitude,
+        } = self;
 
         // Amplitude doesn't have a sign, so if we received a negative number then
         // we'll go ahead and make it positive.
@@ -69,7 +73,8 @@ pub struct Foo;"#;
     let parsed = parse_str(input).unwrap();
     let receiver = MyInputReceiver::from_derive_input(&parsed).unwrap();
 
-    println!(r#"
+    println!(
+        r#"
 INPUT:
 
 {}
@@ -77,5 +82,7 @@ INPUT:
 PARSED AS:
 
 {:?}
-    "#, input, receiver);
+    "#,
+        input, receiver
+    );
 }

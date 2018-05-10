@@ -34,12 +34,14 @@ fn extract_type(param: &GenericParam) -> &TypeParam {
 
 #[test]
 fn expand_many() {
-    let di: DeriveInput = syn::parse_str(r#"
+    let di: DeriveInput = syn::parse_str(
+        r#"
         struct Baz<
             #[lorem(foo)] T,
             #[lorem(bar = "x")] U: Eq + ?Sized
         >(T, U);
-    "#).unwrap();
+    "#,
+    ).unwrap();
     let params = di.generics.params;
 
     {

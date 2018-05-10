@@ -1,7 +1,7 @@
 use syn::NestedMeta;
 
-use {FromMetaItem, Result};
 use util::IdentList;
+use {FromMetaItem, Result};
 
 /// A rule about which attributes to forward to the generated struct.
 #[derive(Debug, Clone, PartialEq, Eq)]

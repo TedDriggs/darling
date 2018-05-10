@@ -1,16 +1,19 @@
 use quote::Tokens;
 
+use ast::Fields;
 use ast::Style;
 use codegen::field;
 use codegen::Field;
-use ast::Fields;
 
 pub struct FieldsGen<'a>(pub &'a Fields<Field<'a>>);
 
 impl<'a> FieldsGen<'a> {
     pub(in codegen) fn declarations(&self) -> Tokens {
         match *self.0 {
-            Fields { style: Style::Struct, ref fields } => {
+            Fields {
+                style: Style::Struct,
+                ref fields,
+            } => {
                 let vdr = fields.into_iter().map(Field::as_declaration);
                 quote!(#(#vdr)*)
             }
@@ -37,11 +40,14 @@ impl<'a> FieldsGen<'a> {
 
     pub fn require_fields(&self) -> Tokens {
         match *self.0 {
-            Fields { style: Style::Struct, ref fields } => {
+            Fields {
+                style: Style::Struct,
+                ref fields,
+            } => {
                 let checks = fields.into_iter().map(Field::as_presence_check);
                 quote!(#(#checks)*)
             }
-            _ => panic!("FieldsGen doesn't support tuples for requirement checks")
+            _ => panic!("FieldsGen doesn't support tuples for requirement checks"),
         }
     }
 

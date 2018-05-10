@@ -1,4 +1,4 @@
-use quote::{Tokens, ToTokens};
+use quote::{ToTokens, Tokens};
 use syn::{Ident, Path, Type};
 
 use codegen::DefaultExpression;

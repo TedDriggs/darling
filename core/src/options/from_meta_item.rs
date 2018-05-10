@@ -1,18 +1,19 @@
 use syn;
 
-use Result;
 use codegen;
 use options::{Core, ParseAttribute, ParseData};
+use Result;
 
 pub struct FmiOptions {
-    base: Core
+    base: Core,
 }
 
 impl FmiOptions {
     pub fn new(di: &syn::DeriveInput) -> Result<Self> {
         (FmiOptions {
             base: Core::start(di),
-        }).parse_attributes(&di.attrs)?.parse_body(&di.data)
+        }).parse_attributes(&di.attrs)?
+            .parse_body(&di.data)
     }
 }
 

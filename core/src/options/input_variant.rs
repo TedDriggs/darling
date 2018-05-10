@@ -1,9 +1,9 @@
 use syn;
 
-use {FromMetaItem, Error, Result};
-use ast::{Style, Fields};
+use ast::{Fields, Style};
 use codegen;
 use options::{Core, InputField, ParseAttribute};
+use {Error, FromMetaItem, Result};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InputVariant {
@@ -18,7 +18,10 @@ impl InputVariant {
         codegen::Variant {
             ty_ident,
             variant_ident: &self.ident,
-            name_in_attr: self.attr_name.as_ref().map(|s| s.as_str()).unwrap_or(self.ident.as_ref()),
+            name_in_attr: self.attr_name
+                .as_ref()
+                .map(|s| s.as_str())
+                .unwrap_or(self.ident.as_ref()),
             data: self.data.as_ref().map(InputField::as_codegen_field),
             skip: self.skip,
         }
@@ -44,7 +47,7 @@ impl InputVariant {
                     style: v.fields.clone().into(),
                     fields: items,
                 }
-            },
+            }
             syn::Fields::Named(ref fields) => {
                 let mut items = Vec::with_capacity(fields.named.len());
                 for item in &fields.named {
@@ -73,7 +76,6 @@ impl InputVariant {
         self
     }
 }
-
 
 impl ParseAttribute for InputVariant {
     fn parse_nested(&mut self, mi: &syn::Meta) -> Result<()> {

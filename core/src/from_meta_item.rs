@@ -1,8 +1,8 @@
 use std::cell::RefCell;
 use std::collections::hash_map::{Entry, HashMap};
 use std::rc::Rc;
-use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
+use std::sync::Arc;
 
 use ident_case;
 use syn::{self, Lit, Meta, NestedMeta};
@@ -49,7 +49,13 @@ pub trait FromMetaItem: Sized {
     fn from_meta_item(item: &Meta) -> Result<Self> {
         match *item {
             Meta::Word(_) => Self::from_word(),
-            Meta::List(ref value) => Self::from_list(&value.nested.clone().into_iter().collect::<Vec<syn::NestedMeta>>()[..]),
+            Meta::List(ref value) => Self::from_list(
+                &value
+                    .nested
+                    .clone()
+                    .into_iter()
+                    .collect::<Vec<syn::NestedMeta>>()[..],
+            ),
             Meta::NameValue(ref value) => Self::from_value(&value.lit),
         }
     }
@@ -73,7 +79,7 @@ pub trait FromMetaItem: Sized {
         match *value {
             Lit::Bool(ref b) => Self::from_bool(b.value),
             Lit::Str(ref s) => Self::from_string(&s.value()),
-            ref _other => Err(Error::unexpected_type("other"))
+            ref _other => Err(Error::unexpected_type("other")),
         }
     }
 
@@ -224,7 +230,8 @@ impl FromMetaItem for syn::WhereClause {
 
 impl FromMetaItem for Vec<syn::WherePredicate> {
     fn from_string(value: &str) -> Result<Self> {
-        syn::WhereClause::from_string(&format!("where {}", value)).map(|c| c.predicates.into_iter().collect())
+        syn::WhereClause::from_string(&format!("where {}", value))
+            .map(|c| c.predicates.into_iter().collect())
     }
 }
 
@@ -256,7 +263,9 @@ impl<T: FromMetaItem> FromMetaItem for Result<T> {
 /// later analysis.
 impl<T: FromMetaItem> FromMetaItem for ::std::result::Result<T, Meta> {
     fn from_meta_item(item: &Meta) -> Result<Self> {
-        T::from_meta_item(item).map(Ok).or_else(|_| Ok(Err(item.clone())))
+        T::from_meta_item(item)
+            .map(Ok)
+            .or_else(|_| Ok(Err(item.clone())))
     }
 }
 
@@ -286,9 +295,9 @@ impl<V: FromMetaItem> FromMetaItem for HashMap<String, V> {
                 match map.entry(inner.name().to_string()) {
                     Entry::Occupied(_) => return Err(Error::duplicate_field(inner.name().as_ref())),
                     Entry::Vacant(entry) => {
-                        entry.insert(
-                            FromMetaItem::from_meta_item(inner).map_err(|e| e.at(inner.name()))?
-                        );
+                        entry
+                            .insert(FromMetaItem::from_meta_item(inner)
+                                .map_err(|e| e.at(inner.name()))?);
                     }
                 }
             }
@@ -302,8 +311,8 @@ impl<V: FromMetaItem> FromMetaItem for HashMap<String, V> {
 /// it should not be considered by the parsing.
 #[cfg(test)]
 mod tests {
-    use syn;
     use quote::Tokens;
+    use syn;
 
     use {FromMetaItem, Result};
 
@@ -349,14 +358,17 @@ mod tests {
     #[test]
     fn number_succeeds() {
         assert_eq!(fmi::<u8>(quote!(ignore = "2")), 2u8);
-        assert_eq!(fmi::<i16>(quote!(ignore="-25")), -25i16);
+        assert_eq!(fmi::<i16>(quote!(ignore = "-25")), -25i16);
     }
 
     #[test]
     fn meta_item_succeeds() {
         use syn::Meta;
 
-        assert_eq!(fmi::<Meta>(quote!(hello(world,today))), pmi(quote!(hello(world,today))).unwrap());
+        assert_eq!(
+            fmi::<Meta>(quote!(hello(world, today))),
+            pmi(quote!(hello(world, today))).unwrap()
+        );
     }
 
     #[test]
@@ -371,7 +383,10 @@ mod tests {
             c
         };
 
-        assert_eq!(fmi::<HashMap<String, bool>>(quote!(ignore(hello, world = false, there = "true"))), comparison);
+        assert_eq!(
+            fmi::<HashMap<String, bool>>(quote!(ignore(hello, world = false, there = "true"))),
+            comparison
+        );
     }
 
     /// Tests that fallible parsing will always produce an outer `Ok` (from `fmi`),

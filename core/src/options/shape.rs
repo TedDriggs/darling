@@ -1,4 +1,4 @@
-use quote::{Tokens, ToTokens};
+use quote::{ToTokens, Tokens};
 use syn::{Meta, NestedMeta};
 
 use {Error, FromMetaItem, Result};
@@ -37,8 +37,7 @@ impl FromMetaItem for Shape {
                 let word = ident.as_ref();
                 if word == "any" {
                     new.any = true;
-                }
-                else if word.starts_with("enum_") {
+                } else if word.starts_with("enum_") {
                     new.enum_values.set_word(word)?;
                 } else if word.starts_with("struct_") {
                     new.struct_values.set_word(word)?;
@@ -58,8 +57,7 @@ impl ToTokens for Shape {
     fn to_tokens(&self, tokens: &mut Tokens) {
         let fn_body = if self.any == true {
             quote!(::darling::export::Ok(()))
-        }
-        else {
+        } else {
             let en = &self.enum_values;
             let st = &self.struct_values;
             quote! {
@@ -205,11 +203,11 @@ fn match_arm(name: &'static str, is_supported: bool) -> Tokens {
 
 #[cfg(test)]
 mod tests {
-    use syn;
     use quote::Tokens;
+    use syn;
 
     use super::Shape;
-    use {FromMetaItem};
+    use FromMetaItem;
 
     /// parse a string as a syn::Meta instance.
     fn pmi(tokens: Tokens) -> ::std::result::Result<syn::Meta, String> {

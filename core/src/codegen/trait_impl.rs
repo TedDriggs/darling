@@ -1,10 +1,10 @@
 use quote::Tokens;
 use syn::{Generics, Ident, Path, WherePredicate};
 
-use codegen::{DefaultExpression, Field, Variant, FieldsGen};
-use codegen::field;
-use codegen::error::{ErrorCheck, ErrorDeclaration};
 use ast::Data;
+use codegen::error::{ErrorCheck, ErrorDeclaration};
+use codegen::field;
+use codegen::{DefaultExpression, Field, FieldsGen, Variant};
 
 #[derive(Debug)]
 pub struct TraitImpl<'a> {
@@ -72,9 +72,7 @@ impl<'a> TraitImpl<'a> {
     pub(in codegen) fn initializers(&self) -> Tokens {
         let foo = match self.data {
             Data::Enum(_) => panic!("Core loop on enums isn't supported"),
-            Data::Struct(ref data) => {
-                FieldsGen(data)
-            }
+            Data::Struct(ref data) => FieldsGen(data),
         };
 
         foo.initializers()
@@ -84,9 +82,7 @@ impl<'a> TraitImpl<'a> {
     pub(in codegen) fn core_loop(&self) -> Tokens {
         let foo = match self.data {
             Data::Enum(_) => panic!("Core loop on enums isn't supported"),
-            Data::Struct(ref data) => {
-                FieldsGen(data)
-            }
+            Data::Struct(ref data) => FieldsGen(data),
         };
 
         foo.core_loop()

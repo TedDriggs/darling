@@ -84,7 +84,9 @@ impl Error {
         if errors.len() > 1 {
             Error::new(ErrorKind::Multiple(errors))
         } else if errors.len() == 1 {
-            errors.pop().expect("Error array of length 1 has a first item")
+            errors
+                .pop()
+                .expect("Error array of length 1 has a first item")
         } else {
             panic!("Can't deal with 0 errors")
         }
@@ -168,11 +170,11 @@ impl IntoIterator for Error {
     fn into_iter(self) -> IntoIter {
         if let ErrorKind::Multiple(errors) = self.kind {
             IntoIter {
-                inner: IntoIterEnum::Multiple(errors.into_iter())
+                inner: IntoIterEnum::Multiple(errors.into_iter()),
             }
         } else {
             IntoIter {
-                inner: IntoIterEnum::Single(iter::once(self))
+                inner: IntoIterEnum::Single(iter::once(self)),
             }
         }
     }
@@ -196,7 +198,7 @@ impl Iterator for IntoIterEnum {
 
 /// An iterator that moves out of an `Error`.
 pub struct IntoIter {
-    inner: IntoIterEnum
+    inner: IntoIterEnum,
 }
 
 impl Iterator for IntoIter {
@@ -230,7 +232,7 @@ enum ErrorKind {
 
     // TODO make this variant take `!` so it can't exist
     #[doc(hidden)]
-    __NonExhaustive
+    __NonExhaustive,
 }
 
 impl ErrorKind {
@@ -291,7 +293,7 @@ impl fmt::Display for ErrorKind {
                 }
 
                 write!(f, ")")
-            },
+            }
             __NonExhaustive => unreachable!(),
         }
     }
@@ -311,8 +313,9 @@ mod tests {
     fn flatten_simple() {
         let err = Error::multiple(vec![
             Error::unknown_field("hello").at("world"),
-            Error::missing_field("hell_no").at("world")
-        ]).at("foo").flatten();
+            Error::missing_field("hell_no").at("world"),
+        ]).at("foo")
+            .flatten();
 
         assert!(err.location().is_empty());
 
@@ -340,7 +343,7 @@ mod tests {
     fn len_multiple() {
         let err = Error::multiple(vec![
             Error::duplicate_field("hello"),
-            Error::missing_field("hell_no")
+            Error::missing_field("hell_no"),
         ]);
         assert_eq!(2, err.len());
     }
@@ -352,10 +355,8 @@ mod tests {
             Error::multiple(vec![
                 Error::duplicate_field("hi"),
                 Error::missing_field("bye"),
-                Error::multiple(vec![
-                    Error::duplicate_field("whatsup")
-                ])
-            ])
+                Error::multiple(vec![Error::duplicate_field("whatsup")]),
+            ]),
         ]);
 
         assert_eq!(4, err.len());
