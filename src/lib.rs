@@ -47,6 +47,14 @@
 //! |`vis`|`syn::Visibility`|The visibility of the passed-in field|
 //! |`ty`|`syn::Type`|The type of the passed-in field|
 //! |`attrs`|`Vec<syn::Attribute>`|The forwarded attributes from the passed in field. These are controlled using the `forward_attrs` attribute.|
+//!
+//! ### `FromTypeParam`
+//! |Field name|Type|Meaning|
+//! |---|---|---|
+//! |`ident`|`syn::Ident`|The identifier of the passed-in type param|
+//! |`bounds`|`Vec<syn::TypeParamBound>`|The bounds applied to the type param|
+//! |`default`|`Option<syn::Type>`|The default type of the parameter, if one exists|
+//! |`attrs`|`Vec<syn::Attribute>`|The forwarded attributes from the passed in type param. These are controlled using the `forward_attrs` attribute.|
 
 extern crate core;
 extern crate darling_core;
@@ -59,7 +67,7 @@ extern crate darling_macro;
 pub use darling_macro::*;
 
 #[doc(inline)]
-pub use darling_core::{FromMetaItem, FromDeriveInput, FromGenerics, FromField, FromTypeParam, FromVariant};
+pub use darling_core::{FromMetaItem, FromDeriveInput,  FromGenericParam, FromGenerics, FromField, FromTypeParam, FromVariant};
 
 #[doc(inline)]
 pub use darling_core::{Result, Error};
