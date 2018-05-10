@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased Features
+
+## v0.5.0 (May 10, 2018)
 - Add `ast::Generics` and `ast::GenericParam` to work with generics in a manner similar to `ast::Data`
 - Add `ast::GenericParamExt` to support alternate representations of generic parameters
 - Add `util::WithOriginal` to get a parsed representation and syn's own struct for a syntax block
