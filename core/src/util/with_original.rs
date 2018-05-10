@@ -4,7 +4,7 @@ use {FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMetaItem, F
      FromVariant, Result};
 
 /// A container to parse some syntax and retain access to the original.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WithOriginal<T, O> {
     pub parsed: T,
     pub original: O,

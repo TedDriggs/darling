@@ -59,7 +59,7 @@ impl GenericParamExt for syn::TypeParam {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum GenericParam<T = syn::TypeParam, L = syn::LifetimeDef, C = syn::ConstParam> {
     Type(T),
     Lifetime(L),
@@ -118,7 +118,7 @@ impl<T, L, C> GenericParamExt for GenericParam<T, L, C> {
 
 /// A mirror of the `syn::Generics` type which can contain arbitrary representations
 /// of params and where clauses.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Generics<P = syn::GenericParam, W = syn::WhereClause> {
     pub params: Vec<P>,
     pub where_clause: Option<W>,
