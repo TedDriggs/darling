@@ -47,6 +47,22 @@ impl GenericParamExt for syn::GenericParam {
             None
         }
     }
+
+    fn as_lifetime_def(&self) -> Option<&Self::LifetimeDef> {
+        if let syn::GenericParam::Lifetime(ref val) = *self {
+            Some(val)
+        } else {
+            None
+        }
+    }
+
+    fn as_const_param(&self) -> Option<&Self::ConstParam> {
+        if let syn::GenericParam::Const(ref val) = *self {
+            Some(val)
+        } else {
+            None
+        }
+    }
 }
 
 impl GenericParamExt for syn::TypeParam {
@@ -59,6 +75,7 @@ impl GenericParamExt for syn::TypeParam {
     }
 }
 
+/// A mirror of `syn::GenericParam` which is generic over all its contents.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum GenericParam<T = syn::TypeParam, L = syn::LifetimeDef, C = syn::ConstParam> {
     Type(T),
@@ -119,7 +136,7 @@ impl<T, L, C> GenericParamExt for GenericParam<T, L, C> {
 /// A mirror of the `syn::Generics` type which can contain arbitrary representations
 /// of params and where clauses.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Generics<P = syn::GenericParam, W = syn::WhereClause> {
+pub struct Generics<P, W = syn::WhereClause> {
     pub params: Vec<P>,
     pub where_clause: Option<W>,
 }
