@@ -104,7 +104,7 @@ impl<'a> OuterFromImpl<'a> for FromFieldImpl<'a> {
     }
 
     fn trait_bound(&self) -> syn::Path {
-        path!(::darling::FromMetaItem)
+        path!(::darling::FromMeta)
     }
 
     fn base(&'a self) -> &'a TraitImpl<'a> {

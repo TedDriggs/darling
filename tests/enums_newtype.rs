@@ -5,14 +5,14 @@ use darling::FromDeriveInput;
 
 extern crate syn;
 
-#[derive(Debug, Default, PartialEq, Eq, FromMetaItem)]
+#[derive(Debug, Default, PartialEq, Eq, FromMeta)]
 #[darling(default)]
 pub struct Amet {
     hello: bool,
     world: String,
 }
 
-#[derive(Debug, PartialEq, Eq, FromMetaItem)]
+#[derive(Debug, PartialEq, Eq, FromMeta)]
 #[darling(rename_all = "snake_case")]
 pub enum Lorem {
     Ipsum(bool),

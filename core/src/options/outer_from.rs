@@ -2,7 +2,7 @@ use syn::{self, Field, Ident, Meta};
 
 use options::{Core, DefaultExpression, ForwardAttrs, ParseAttribute, ParseData};
 use util::IdentList;
-use {FromMetaItem, Result};
+use {FromMeta, Result};
 
 /// Reusable base for `FromDeriveInput`, `FromVariant`, `FromField`, and other top-level
 /// `From*` traits.
@@ -44,11 +44,11 @@ impl ParseAttribute for OuterFrom {
     fn parse_nested(&mut self, mi: &Meta) -> Result<()> {
         match mi.name().as_ref() {
             "attributes" => {
-                self.attr_names = FromMetaItem::from_meta_item(mi)?;
+                self.attr_names = FromMeta::from_meta(mi)?;
                 Ok(())
             }
             "forward_attrs" => {
-                self.forward_attrs = FromMetaItem::from_meta_item(mi)?;
+                self.forward_attrs = FromMeta::from_meta(mi)?;
                 Ok(())
             }
             "from_ident" => {

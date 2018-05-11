@@ -16,7 +16,7 @@ pub struct Lorem {
 }
 
 /// Verify variant-level and field-level skip work correctly for enums.
-#[derive(Debug, FromMetaItem)]
+#[derive(Debug, FromMeta)]
 pub enum Sit {
     Amet(bool),
 

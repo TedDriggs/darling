@@ -1,7 +1,7 @@
 use syn::NestedMeta;
 
 use util::IdentList;
-use {FromMetaItem, Result};
+use {FromMeta, Result};
 
 /// A rule about which attributes to forward to the generated struct.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -20,7 +20,7 @@ impl ForwardAttrs {
     }
 }
 
-impl FromMetaItem for ForwardAttrs {
+impl FromMeta for ForwardAttrs {
     fn from_word() -> Result<Self> {
         Ok(ForwardAttrs::All)
     }

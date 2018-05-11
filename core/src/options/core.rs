@@ -4,9 +4,9 @@ use syn;
 use ast::{Data, Fields, Style};
 use codegen;
 use options::{DefaultExpression, InputField, InputVariant, ParseAttribute, ParseData};
-use {Error, FromMetaItem, Result};
+use {Error, FromMeta, Result};
 
-/// A struct or enum which should have `FromMetaItem` or `FromDeriveInput` implementations
+/// A struct or enum which should have `FromMeta` or `FromDeriveInput` implementations
 /// generated.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Core {
@@ -72,26 +72,26 @@ impl ParseAttribute for Core {
                 if self.default.is_some() {
                     Err(Error::duplicate_field("default"))
                 } else {
-                    self.default = FromMetaItem::from_meta_item(mi)?;
+                    self.default = FromMeta::from_meta(mi)?;
                     Ok(())
                 }
             }
             "rename_all" => {
                 // WARNING: This may have been set based on body shape previously,
                 // so an overwrite may be permissible.
-                self.rename_rule = FromMetaItem::from_meta_item(mi)?;
+                self.rename_rule = FromMeta::from_meta(mi)?;
                 Ok(())
             }
             "map" => {
                 if self.map.is_some() {
                     Err(Error::duplicate_field("map"))
                 } else {
-                    self.map = FromMetaItem::from_meta_item(mi)?;
+                    self.map = FromMeta::from_meta(mi)?;
                     Ok(())
                 }
             }
             "bound" => {
-                self.bound = FromMetaItem::from_meta_item(mi)?;
+                self.bound = FromMeta::from_meta(mi)?;
                 Ok(())
             }
             n => Err(Error::unknown_field(n.as_ref())),

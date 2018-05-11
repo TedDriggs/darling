@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased Features
+## v0.6.0
+
+### Breaking Changes
+- Renamed `FromMetaItem` to `FromMeta`, and renamed `from_meta_item` method to `from_meta`
+- Added dedicated `derive(FromMetaItem)` which panics and redirects users to `FromMeta`
 
 ## v0.5.0 (May 10, 2018)
 - Add `ast::Generics` and `ast::GenericParam` to work with generics in a manner similar to `ast::Data`

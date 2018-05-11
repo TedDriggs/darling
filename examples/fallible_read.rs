@@ -10,7 +10,7 @@ extern crate darling;
 
 extern crate syn;
 
-use darling::{FromDeriveInput, FromMetaItem};
+use darling::{FromDeriveInput, FromMeta};
 use syn::parse_str;
 
 #[derive(Debug, FromDeriveInput)]
@@ -47,7 +47,7 @@ impl MyInputReceiver {
         let amplitude = match amplitude {
             Ok(amp) => amp,
             Err(mi) => {
-                let val: i64 = if let Ok(v) = FromMetaItem::from_meta_item(&mi) {
+                let val: i64 = if let Ok(v) = FromMeta::from_meta(&mi) {
                     v
                 } else {
                     panic!(format!("amplitude should have been an integer"))

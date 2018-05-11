@@ -2,7 +2,7 @@ use std::fmt;
 
 use syn::{Lit, NestedMeta};
 
-use {FromMetaItem, Result};
+use {FromMeta, Result};
 
 use self::Override::*;
 
@@ -134,17 +134,17 @@ impl<T: fmt::Display> fmt::Display for Override<T> {
 }
 
 /// Parses a `Meta`. A bare word will produce `Override::Inherit`, while
-/// any value will be forwarded to `T::from_meta_item`.
-impl<T: FromMetaItem> FromMetaItem for Override<T> {
+/// any value will be forwarded to `T::from_meta`.
+impl<T: FromMeta> FromMeta for Override<T> {
     fn from_word() -> Result<Self> {
         Ok(Inherit)
     }
 
     fn from_list(items: &[NestedMeta]) -> Result<Self> {
-        Ok(Explicit(FromMetaItem::from_list(items)?))
+        Ok(Explicit(FromMeta::from_list(items)?))
     }
 
     fn from_value(lit: &Lit) -> Result<Self> {
-        Ok(Explicit(FromMetaItem::from_value(lit)?))
+        Ok(Explicit(FromMeta::from_value(lit)?))
     }
 }

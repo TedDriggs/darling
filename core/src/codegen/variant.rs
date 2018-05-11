@@ -8,7 +8,7 @@ use codegen::{Field, FieldsGen};
 /// An enum variant.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Variant<'a> {
-    /// The name which will appear in code passed to the `FromMetaItem` input.
+    /// The name which will appear in code passed to the `FromMeta` input.
     pub name_in_attr: &'a str,
 
     /// The name of the variant which will be returned for a given `name_in_attr`.
@@ -120,7 +120,7 @@ impl<'a> ToTokens for DataMatchArm<'a> {
                 #name_in_attr => {
                     ::darling::export::Ok(
                         #ty_ident::#variant_ident(
-                            ::darling::FromMetaItem::from_meta_item(__nested)
+                            ::darling::FromMeta::from_meta(__nested)
                                 .map_err(|e| e.at(#name_in_attr))?)
                     )
                 }

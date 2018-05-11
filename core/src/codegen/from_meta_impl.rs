@@ -4,11 +4,11 @@ use syn;
 use ast::{Data, Fields, Style};
 use codegen::{Field, OuterFromImpl, TraitImpl, Variant};
 
-pub struct FmiImpl<'a> {
+pub struct FromMetaImpl<'a> {
     pub base: TraitImpl<'a>,
 }
 
-impl<'a> ToTokens for FmiImpl<'a> {
+impl<'a> ToTokens for FromMetaImpl<'a> {
     fn to_tokens(&self, tokens: &mut Tokens) {
         let base = &self.base;
 
@@ -32,8 +32,8 @@ impl<'a> ToTokens for FmiImpl<'a> {
             {
                 let ty_ident = base.ident;
                 quote!(
-                    fn from_meta_item(__item: &::syn::Meta) -> ::darling::Result<Self> {
-                        Ok(#ty_ident(::darling::FromMetaItem::from_meta_item(__item)?))
+                    fn from_meta(__item: &::syn::Meta) -> ::darling::Result<Self> {
+                        Ok(#ty_ident(::darling::FromMeta::from_meta(__item)?))
                     }
                 )
             }
@@ -112,9 +112,9 @@ impl<'a> ToTokens for FmiImpl<'a> {
     }
 }
 
-impl<'a> OuterFromImpl<'a> for FmiImpl<'a> {
+impl<'a> OuterFromImpl<'a> for FromMetaImpl<'a> {
     fn trait_path(&self) -> syn::Path {
-        path!(::darling::FromMetaItem)
+        path!(::darling::FromMeta)
     }
 
     fn base(&'a self) -> &'a TraitImpl<'a> {

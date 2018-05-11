@@ -4,7 +4,7 @@ extern crate syn;
 
 use darling::FromDeriveInput;
 
-#[derive(Debug, Clone, FromMetaItem)]
+#[derive(Debug, Clone, FromMeta)]
 struct Wrapper<T>(pub T);
 
 #[derive(Debug, FromDeriveInput)]

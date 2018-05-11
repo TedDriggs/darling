@@ -1,6 +1,6 @@
 use syn;
 
-use {FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMetaItem, FromTypeParam,
+use {FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta, FromTypeParam,
      FromVariant, Result};
 
 /// A container to parse some syntax and retain access to the original.
@@ -30,6 +30,6 @@ with_original!(FromDeriveInput, from_derive_input, syn::DeriveInput);
 with_original!(FromField, from_field, syn::Field);
 with_original!(FromGenerics, from_generics, syn::Generics);
 with_original!(FromGenericParam, from_generic_param, syn::GenericParam);
-with_original!(FromMetaItem, from_meta_item, syn::Meta);
+with_original!(FromMeta, from_meta, syn::Meta);
 with_original!(FromTypeParam, from_type_param, syn::TypeParam);
 with_original!(FromVariant, from_variant, syn::Variant);

@@ -3,7 +3,7 @@ use quote::Tokens;
 mod default_expr;
 mod error;
 mod field;
-mod fmi_impl;
+mod from_meta_impl;
 mod from_derive_impl;
 mod from_field;
 mod from_type_param;
@@ -15,7 +15,7 @@ mod variant_data;
 
 pub use self::default_expr::DefaultExpression;
 pub use self::field::Field;
-pub use self::fmi_impl::FmiImpl;
+pub use self::from_meta_impl::FromMetaImpl;
 pub use self::from_derive_impl::FromDeriveInputImpl;
 pub use self::from_field::FromFieldImpl;
 pub use self::from_type_param::FromTypeParamImpl;

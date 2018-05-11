@@ -14,7 +14,7 @@ use syn::parse_str;
 
 /// A speaking volume. Deriving `FromMeta` will cause this to be usable
 /// as a string value for a meta-item key.
-#[derive(Debug, Clone, Copy, FromMetaItem)]
+#[derive(Debug, Clone, Copy, FromMeta)]
 #[darling(default)]
 enum Volume {
     Normal,
@@ -28,7 +28,7 @@ impl Default for Volume {
     }
 }
 
-/// Support parsing from a full derive input. Unlike FromMetaItem, this isn't
+/// Support parsing from a full derive input. Unlike FromMeta, this isn't
 /// composable; each darling-dependent crate should have its own struct to handle
 /// when its trait is derived.
 #[derive(Debug, FromDeriveInput)]

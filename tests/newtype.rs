@@ -1,4 +1,4 @@
-//! A newtype struct should be able to derive `FromMetaItem` if its member implements it.
+//! A newtype struct should be able to derive `FromMeta` if its member implements it.
 
 #[macro_use]
 extern crate darling;
@@ -7,7 +7,7 @@ extern crate syn;
 
 use darling::FromDeriveInput;
 
-#[derive(Debug, FromMetaItem, PartialEq, Eq)]
+#[derive(Debug, FromMeta, PartialEq, Eq)]
 struct Lorem(bool);
 
 #[derive(Debug, FromDeriveInput)]
