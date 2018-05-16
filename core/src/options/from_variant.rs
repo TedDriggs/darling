@@ -31,7 +31,7 @@ impl<'a> From<&'a FromVariantOptions> for FromVariantImpl<'a> {
             attrs: v.base.attrs.as_ref(),
             attr_names: v.base.attr_names.as_strs(),
             forward_attrs: v.base.forward_attrs.as_ref(),
-            from_ident: Some(v.base.from_ident),
+            from_ident: v.base.from_ident,
             supports: v.supports.as_ref(),
         }
     }

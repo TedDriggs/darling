@@ -11,7 +11,7 @@ pub struct FromVariantImpl<'a> {
     pub attrs: Option<&'a Ident>,
     pub attr_names: Vec<&'a str>,
     pub forward_attrs: Option<&'a ForwardAttrs>,
-    pub from_ident: Option<bool>,
+    pub from_ident: bool,
     pub supports: Option<&'a DataShape>,
 }
 
@@ -30,7 +30,7 @@ impl<'a> ToTokens for FromVariantImpl<'a> {
         let inits = self.base.initializers();
         let map = self.base.map_fn();
 
-        let default = if let Some(true) = self.from_ident {
+        let default = if self.from_ident {
             quote!(let __default: Self = ::darling::export::From::from(#input.ident.clone());)
         } else {
             self.base.fallback_decl()
