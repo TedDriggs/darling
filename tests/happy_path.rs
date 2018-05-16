@@ -8,7 +8,7 @@ extern crate quote;
 
 use darling::FromDeriveInput;
 
-#[derive(Default, FromMetaItem, PartialEq, Debug)]
+#[derive(Default, FromMeta, PartialEq, Debug)]
 #[darling(default)]
 struct Lorem {
     ipsum: bool,

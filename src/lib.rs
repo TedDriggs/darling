@@ -4,8 +4,8 @@
 //!
 //! ## Design
 //! Darling takes considerable design inspiration from [`serde`]. A data structure that can be
-//! read from any attribute implements `FromMetaItem` (or has an implementation automatically
-//! generated using `derive`). Any crate can provide `FromMetaItem` implementations, even one not
+//! read from any attribute implements `FromMeta` (or has an implementation automatically
+//! generated using `derive`). Any crate can provide `FromMeta` implementations, even one not
 //! specifically geared towards proc-macro authors.
 //!
 //! Proc-macro crates should provide their own structs which implement or derive `FromDeriveInput`,
@@ -24,7 +24,7 @@
 //!   `Default::default()` for their value, but you can override that with an explicit default or a value from the type-level default.
 //!
 //! ## Forwarded Fields
-//! All derivable traits except `FromMetaItem` support forwarding some fields from the input AST to the derived struct.
+//! All derivable traits except `FromMeta` support forwarding some fields from the input AST to the derived struct.
 //! These fields are matched up by identifier **before** `rename` attribute values are considered,
 //! allowing you to use their names for your own properties.
 //! The deriving struct is responsible for making sure the types of fields it chooses to declare are compatible with this table.
@@ -67,7 +67,7 @@ extern crate darling_macro;
 pub use darling_macro::*;
 
 #[doc(inline)]
-pub use darling_core::{FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMetaItem,
+pub use darling_core::{FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta,
                        FromTypeParam, FromVariant};
 
 #[doc(inline)]

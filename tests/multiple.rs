@@ -12,7 +12,7 @@ struct Lorem {
     ipsum: Ipsum,
 }
 
-#[derive(FromMetaItem)]
+#[derive(FromMeta)]
 struct Ipsum {
     #[darling(multiple)]
     dolor: Vec<String>,

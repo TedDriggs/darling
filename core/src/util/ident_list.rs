@@ -2,13 +2,13 @@ use std::ops::Deref;
 
 use syn::{Ident, Meta, NestedMeta};
 
-use {Error, FromMetaItem, Result};
+use {Error, FromMeta, Result};
 
 /// A list of `syn::Ident` instances. This type is used to extract a list of words from an
 /// attribute.
 ///
 /// # Usage
-/// An `IdentList` field on a struct implementing `FromMetaItem` will turn `#[builder(derive(Debug, Clone))]` into:
+/// An `IdentList` field on a struct implementing `FromMeta` will turn `#[builder(derive(Debug, Clone))]` into:
 ///
 /// ```rust,ignore
 /// StructOptions {
@@ -44,7 +44,7 @@ impl From<Vec<Ident>> for IdentList {
     }
 }
 
-impl FromMetaItem for IdentList {
+impl FromMeta for IdentList {
     fn from_list(v: &[NestedMeta]) -> Result<Self> {
         let mut idents = Vec::with_capacity(v.len());
         for nmi in v {

@@ -16,7 +16,7 @@ struct Lorem {
     data: ast::Data<(), LoremField>,
 }
 
-#[derive(Debug, FromMetaItem)]
+#[derive(Debug, FromMeta)]
 struct Dolor {
     sit: bool,
 }
@@ -63,7 +63,7 @@ fn body_only_issues() {
     assert_eq!(2, s_err.len());
 }
 
-#[derive(Debug, FromMetaItem)]
+#[derive(Debug, FromMeta)]
 enum Week {
     Monday,
     Tuesday { morning: bool, afternoon: String },

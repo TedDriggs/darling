@@ -4,7 +4,7 @@
 extern crate darling;
 extern crate syn;
 
-#[derive(Debug, FromMetaItem)]
+#[derive(Debug, FromMeta)]
 #[darling(rename_all = "snake_case")]
 enum Message {
     Hello { user: String, silent: bool },

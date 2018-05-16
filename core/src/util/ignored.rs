@@ -1,6 +1,6 @@
 use syn;
 
-use {FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMetaItem, FromTypeParam,
+use {FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta, FromTypeParam,
      FromVariant, Result};
 
 /// An efficient way of discarding data from a syntax element.
@@ -23,7 +23,7 @@ macro_rules! ignored {
 ignored!(FromGenericParam, from_generic_param, syn::GenericParam);
 ignored!(FromGenerics, from_generics, syn::Generics);
 ignored!(FromTypeParam, from_type_param, syn::TypeParam);
-ignored!(FromMetaItem, from_meta_item, syn::Meta);
+ignored!(FromMeta, from_meta, syn::Meta);
 ignored!(FromDeriveInput, from_derive_input, syn::DeriveInput);
 ignored!(FromField, from_field, syn::Field);
 ignored!(FromVariant, from_variant, syn::Variant);

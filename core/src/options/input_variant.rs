@@ -3,7 +3,7 @@ use syn;
 use ast::{Fields, Style};
 use codegen;
 use options::{Core, InputField, ParseAttribute};
-use {Error, FromMetaItem, Result};
+use {Error, FromMeta, Result};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InputVariant {
@@ -82,11 +82,11 @@ impl ParseAttribute for InputVariant {
         let name = mi.name().to_string();
         match name.as_str() {
             "rename" => {
-                self.attr_name = FromMetaItem::from_meta_item(mi)?;
+                self.attr_name = FromMeta::from_meta(mi)?;
                 Ok(())
             }
             "skip" => {
-                self.skip = FromMetaItem::from_meta_item(mi)?;
+                self.skip = FromMeta::from_meta(mi)?;
                 Ok(())
             }
             n => Err(Error::unknown_field(n)),

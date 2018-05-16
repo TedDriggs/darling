@@ -2,7 +2,7 @@ use syn::{DeriveInput, Field, Ident, Meta};
 
 use codegen::FromVariantImpl;
 use options::{DataShape, OuterFrom, ParseAttribute, ParseData};
-use {FromMetaItem, Result};
+use {FromMeta, Result};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FromVariantOptions {
@@ -41,7 +41,7 @@ impl ParseAttribute for FromVariantOptions {
     fn parse_nested(&mut self, mi: &Meta) -> Result<()> {
         match mi.name().as_ref() {
             "supports" => {
-                self.supports = FromMetaItem::from_meta_item(mi)?;
+                self.supports = FromMeta::from_meta(mi)?;
                 Ok(())
             }
             _ => self.base.parse_nested(mi),

@@ -3,7 +3,7 @@
 use std::ops::{BitAnd, BitOr, Deref, Not};
 
 use syn;
-use {FromMetaItem, Result};
+use {FromMeta, Result};
 
 mod ident_list;
 mod ignored;
@@ -33,9 +33,9 @@ impl Deref for Flag {
     }
 }
 
-impl FromMetaItem for Flag {
-    fn from_meta_item(mi: &syn::Meta) -> Result<Self> {
-        FromMetaItem::from_meta_item(mi).map(Flag)
+impl FromMeta for Flag {
+    fn from_meta(mi: &syn::Meta) -> Result<Self> {
+        FromMeta::from_meta(mi).map(Flag)
     }
 }
 

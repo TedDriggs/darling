@@ -9,15 +9,21 @@ use proc_macro::TokenStream;
 
 use darling_core::{codegen, options};
 
-#[proc_macro_derive(FromMetaItem, attributes(darling))]
-pub fn derive_from_meta_item(input: TokenStream) -> TokenStream {
+#[proc_macro_derive(FromMeta, attributes(darling))]
+pub fn derive_from_meta(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
-    let container = options::FmiOptions::new(&ast).unwrap();
-    let trait_impl = codegen::FmiImpl::from(&container);
+    let container = options::FromMetaOptions::new(&ast).unwrap();
+    let trait_impl = codegen::FromMetaImpl::from(&container);
     let result = quote!(#trait_impl);
 
     result.into()
 }
+
+#[proc_macro_derive(FromMetaItem, attributes(darling))]
+pub fn derive_from_meta_item(_input: TokenStream) -> TokenStream {
+    panic!("darling::FromMetaItem has been replaced by darling::FromMeta");
+}
+
 
 #[proc_macro_derive(FromDeriveInput, attributes(darling))]
 pub fn derive_from_input(input: TokenStream) -> TokenStream {

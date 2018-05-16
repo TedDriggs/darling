@@ -2,7 +2,7 @@ use syn;
 
 use codegen;
 use options::{Core, DefaultExpression, ParseAttribute};
-use {Error, FromMetaItem, Result};
+use {Error, FromMeta, Result};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InputField {
@@ -32,7 +32,7 @@ impl InputField {
             default_expression: self.as_codegen_default(),
             with_path: self.with
                 .clone()
-                .unwrap_or(parse_quote!(::darling::FromMetaItem::from_meta_item)),
+                .unwrap_or(parse_quote!(::darling::FromMeta::from_meta)),
             skip: self.skip,
             map: self.map.as_ref(),
             multiple: self.multiple,
@@ -115,27 +115,27 @@ impl ParseAttribute for InputField {
         let name = mi.name().to_string();
         match name.as_str() {
             "rename" => {
-                self.attr_name = FromMetaItem::from_meta_item(mi)?;
+                self.attr_name = FromMeta::from_meta(mi)?;
                 Ok(())
             }
             "default" => {
-                self.default = FromMetaItem::from_meta_item(mi)?;
+                self.default = FromMeta::from_meta(mi)?;
                 Ok(())
             }
             "with" => {
-                self.with = Some(FromMetaItem::from_meta_item(mi)?);
+                self.with = Some(FromMeta::from_meta(mi)?);
                 Ok(())
             }
             "skip" => {
-                self.skip = FromMetaItem::from_meta_item(mi)?;
+                self.skip = FromMeta::from_meta(mi)?;
                 Ok(())
             }
             "map" => {
-                self.map = Some(FromMetaItem::from_meta_item(mi)?);
+                self.map = Some(FromMeta::from_meta(mi)?);
                 Ok(())
             }
             "multiple" => {
-                self.multiple = FromMetaItem::from_meta_item(mi)?;
+                self.multiple = FromMeta::from_meta(mi)?;
                 Ok(())
             }
             n => Err(Error::unknown_field(n)),

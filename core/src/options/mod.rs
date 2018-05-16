@@ -1,12 +1,12 @@
 use syn;
 
-use {Error, FromMetaItem, Result};
+use {Error, FromMeta, Result};
 
 mod core;
 mod forward_attrs;
 mod from_derive;
 mod from_field;
-mod from_meta_item;
+mod from_meta;
 mod from_type_param;
 mod from_variant;
 mod input_field;
@@ -18,7 +18,7 @@ pub use self::core::Core;
 pub use self::forward_attrs::ForwardAttrs;
 pub use self::from_derive::FdiOptions;
 pub use self::from_field::FromFieldOptions;
-pub use self::from_meta_item::FmiOptions;
+pub use self::from_meta::FromMetaOptions;
 pub use self::from_type_param::FromTypeParamOptions;
 pub use self::from_variant::FromVariantOptions;
 pub use self::input_field::InputField;
@@ -37,7 +37,7 @@ pub enum DefaultExpression {
 }
 
 #[doc(hidden)]
-impl FromMetaItem for DefaultExpression {
+impl FromMeta for DefaultExpression {
     fn from_word() -> Result<Self> {
         Ok(DefaultExpression::Trait)
     }

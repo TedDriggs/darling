@@ -5,7 +5,7 @@ extern crate syn;
 
 use darling::FromDeriveInput;
 
-#[derive(Debug, FromMetaItem)]
+#[derive(Debug, FromMeta)]
 struct Dolor {
     #[darling(rename = "amet")]
     sit: bool,
