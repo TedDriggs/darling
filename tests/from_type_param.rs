@@ -2,14 +2,14 @@
 extern crate darling;
 extern crate syn;
 
-use darling::FromTypeParam;
+use darling::{ast, FromTypeParam};
 use syn::{DeriveInput, GenericParam, Ident, TypeParam};
 
 #[darling(attributes(lorem), from_ident)]
 #[derive(FromTypeParam)]
 struct Lorem {
     ident: Ident,
-    bounds: Vec<syn::TypeParamBound>,
+    bounds: ast::TypeParamBounds,
     foo: bool,
     bar: Option<String>,
 }

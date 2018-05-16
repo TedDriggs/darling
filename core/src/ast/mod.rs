@@ -5,8 +5,10 @@ use syn;
 use {Error, FromField, FromVariant, Result};
 
 mod generics;
+mod type_param_bounds;
 
 pub use self::generics::{GenericParam, GenericParamExt, Generics};
+pub use self::type_param_bounds::TypeParamBounds;
 
 /// A struct or enum body.
 ///

@@ -36,7 +36,7 @@ impl<'a> ToTokens for FromTypeParamImpl<'a> {
         let passed_attrs = self.attrs.as_ref().map(|i| quote!(#i: __fwd_attrs,));
         let passed_bounds = self.bounds
             .as_ref()
-            .map(|i| quote!(#i: #input.bounds.clone().into_iter().collect::<Vec<_>>(),));
+            .map(|i| quote!(#i: ::darling::ast::TypeParamBounds::new(#input.bounds.clone()),));
         let passed_default = self.default
             .as_ref()
             .map(|i| quote!(#i: #input.default.clone(),));

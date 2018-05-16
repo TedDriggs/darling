@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased Features
+- Accept `darling(bound = "")` on type parameters to override the auto-generated bounds on type parameter generics [#33](https://github.com/TedDriggs/darling/pull/33)
+
 ## v0.6.0 (May 15, 2018)
 
 ### Breaking Changes

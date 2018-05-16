@@ -3,7 +3,7 @@ use syn;
 
 use ast::{Data, Fields, Style};
 use codegen;
-use options::{DefaultExpression, InputField, InputVariant, ParseAttribute, ParseData};
+use options::{DefaultExpression, Generics, InputField, InputVariant, ParseAttribute, ParseData};
 use {Error, FromMeta, Result};
 
 /// A struct or enum which should have `FromMeta` or `FromDeriveInput` implementations
@@ -15,7 +15,7 @@ pub struct Core {
 
     /// The type's generics. If the type does not use any generics, this will
     /// be an empty instance.
-    pub generics: syn::Generics,
+    pub generics: Generics,
 
     /// Controls whether missing properties should cause errors or should be filled by
     /// the result of a function call. This can be overridden at the field level.
@@ -37,10 +37,10 @@ pub struct Core {
 
 impl Core {
     /// Partially initializes `Core` by reading the identity, generics, and body shape.
-    pub fn start(di: &syn::DeriveInput) -> Self {
-        Core {
+    pub fn start(di: &syn::DeriveInput) -> Result<Self> {
+        Ok(Core {
             ident: di.ident.clone(),
-            generics: di.generics.clone(),
+            generics: Generics::from_generics(&di.generics)?,
             data: Data::empty_from(&di.data),
             default: Default::default(),
             // See https://github.com/TedDriggs/darling/issues/10: We default to snake_case
@@ -52,7 +52,7 @@ impl Core {
             },
             map: Default::default(),
             bound: Default::default(),
-        }
+        })
     }
 
     fn as_codegen_default<'a>(&'a self) -> Option<codegen::DefaultExpression<'a>> {
@@ -132,7 +132,7 @@ impl<'a> From<&'a Core> for codegen::TraitImpl<'a> {
     fn from(v: &'a Core) -> Self {
         codegen::TraitImpl {
             ident: &v.ident,
-            generics: &v.generics,
+            generics: v.generics.as_codegen_generics(),
             data: v.data
                 .as_ref()
                 .map_struct_fields(InputField::as_codegen_field)

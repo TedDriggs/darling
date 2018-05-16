@@ -1,15 +1,15 @@
 use quote::Tokens;
-use syn::{Generics, Ident, Path, WherePredicate};
+use syn::{Ident, Path, WherePredicate};
 
 use ast::Data;
 use codegen::error::{ErrorCheck, ErrorDeclaration};
 use codegen::field;
-use codegen::{DefaultExpression, Field, FieldsGen, Variant};
+use codegen::{DefaultExpression, Field, FieldsGen, Generics, Variant};
 
 #[derive(Debug)]
 pub struct TraitImpl<'a> {
     pub ident: &'a Ident,
-    pub generics: &'a Generics,
+    pub generics: Generics<'a>,
     pub data: Data<Variant<'a>, Field<'a>>,
     pub default: Option<DefaultExpression<'a>>,
     pub map: Option<&'a Path>,
