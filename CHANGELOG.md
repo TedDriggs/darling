@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.6.0
+## v0.6.0 (May 15, 2018)
 
 ### Breaking Changes
 - Renamed `FromMetaItem` to `FromMeta`, and renamed `from_meta_item` method to `from_meta`
