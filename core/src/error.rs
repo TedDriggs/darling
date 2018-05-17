@@ -51,6 +51,11 @@ impl Error {
         Error::new(ErrorKind::UnknownField(name.into()))
     }
 
+    /// Creates a new error for a struct or variant that does not adhere to the supported shape.
+    pub fn unsupported_shape(shape: &str) -> Self {
+        Error::new(ErrorKind::UnsupportedShape(shape.into()))
+    }
+
     pub fn unsupported_format(format: &str) -> Self {
         Error::new(ErrorKind::UnexpectedFormat(format.into()))
     }
@@ -209,6 +214,7 @@ impl Iterator for IntoIter {
     }
 }
 
+type DeriveInputShape = String;
 type FieldName = String;
 type MetaFormat = String;
 
@@ -221,6 +227,7 @@ enum ErrorKind {
     Custom(String),
     DuplicateField(FieldName),
     MissingField(FieldName),
+    UnsupportedShape(DeriveInputShape),
     UnknownField(FieldName),
     UnexpectedFormat(MetaFormat),
     UnexpectedType(String),
@@ -244,6 +251,7 @@ impl ErrorKind {
             DuplicateField(_) => "Duplicate field",
             MissingField(_) => "Missing field",
             UnknownField(_) => "Unexpected field",
+            UnsupportedShape(_) => "Unsupported shape",
             UnexpectedFormat(_) => "Unexpected meta-item format",
             UnexpectedType(_) => "Unexpected literal type",
             UnknownValue(_) => "Unknown literal value",
@@ -273,6 +281,7 @@ impl fmt::Display for ErrorKind {
             DuplicateField(ref field) => write!(f, "Duplicate field `{}`", field),
             MissingField(ref field) => write!(f, "Missing field `{}`", field),
             UnknownField(ref field) => write!(f, "Unexpected field `{}`", field),
+            UnsupportedShape(ref shape) => write!(f, "Unsupported shape `{}`", shape),
             UnexpectedFormat(ref format) => write!(f, "Unexpected meta-item format `{}`", format),
             UnexpectedType(ref ty) => write!(f, "Unexpected literal type `{}`", ty),
             UnknownValue(ref val) => write!(f, "Unknown literal value `{}`", val),

@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.6.1 (May 17, 2018)
+- Fix an issue where the `syn` update broke shape validation [#36](https://github.com/TedDriggs/darling/issues/36)
+
 ## v0.6.0 (May 15, 2018)
 
 ### Breaking Changes

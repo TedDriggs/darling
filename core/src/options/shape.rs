@@ -73,7 +73,8 @@ impl ToTokens for Shape {
 
                         Ok(())
                     }
-                    ::syn::Data::Struct(ref data) => {
+                    ::syn::Data::Struct(ref struct_data) => {
+                        let data = &struct_data.fields;
                         #st
                     }
                     ::syn::Data::Union(_) => unreachable!(),
@@ -163,7 +164,7 @@ impl ToTokens for DataShape {
             quote!(::darling::export::Ok(()))
         } else if self.supports_none() {
             let ty = self.prefix.trim_right_matches("_");
-            quote!(::darling::export::Err(::darling::Error::unsupported_format(#ty)))
+            quote!(::darling::export::Err(::darling::Error::unsupported_shape(#ty)))
         } else {
             let unit = match_arm("unit", self.unit);
             let newtype = match_arm("newtype", self.newtype);
@@ -197,7 +198,7 @@ fn match_arm(name: &'static str, is_supported: bool) -> Tokens {
     if is_supported {
         quote!(::darling::export::Ok(()))
     } else {
-        quote!(::darling::export::Err(::darling::Error::unsupported_format(#name)))
+        quote!(::darling::export::Err(::darling::Error::unsupported_shape(#name)))
     }
 }
 
