@@ -68,6 +68,21 @@ impl<T: UsesTypeParams, U> UsesTypeParams for Punctuated<T, U> {
     }
 }
 
+uses_type_params!(syn::AngleBracketedGenericArguments, args);
+uses_type_params!(syn::BareFnArg, ty);
+uses_type_params!(syn::Binding, ty);
+uses_type_params!(syn::DataStruct, fields);
+uses_type_params!(syn::Field, ty);
+uses_type_params!(syn::ParenthesizedGenericArguments, inputs, output);
+uses_type_params!(syn::QSelf, ty);
+uses_type_params!(syn::TraitBound, path);
+uses_type_params!(syn::TypeBareFn, inputs, output);
+uses_type_params!(syn::TypeImplTrait, bounds);
+uses_type_params!(syn::TypePath, qself, path);
+uses_type_params!(syn::TypeTuple, elems);
+uses_type_params!(syn::TypeTraitObject, bounds);
+uses_type_params!(syn::Variant, fields);
+
 impl UsesTypeParams for syn::Data {
     fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
         match *self {
@@ -78,20 +93,6 @@ impl UsesTypeParams for syn::Data {
         }
     }
 }
-
-uses_type_params!(syn::Variant, fields);
-uses_type_params!(syn::Field, ty);
-uses_type_params!(syn::DataStruct, fields);
-uses_type_params!(syn::AngleBracketedGenericArguments, args);
-uses_type_params!(syn::BareFnArg, ty);
-uses_type_params!(syn::QSelf, ty);
-uses_type_params!(syn::TypePath, qself, path);
-uses_type_params!(syn::TypeBareFn, inputs, output);
-uses_type_params!(syn::ParenthesizedGenericArguments, inputs, output);
-uses_type_params!(syn::TraitBound, path);
-uses_type_params!(syn::TypeTraitObject, bounds);
-uses_type_params!(syn::TypeImplTrait, bounds);
-uses_type_params!(syn::Binding, ty);
 
 impl UsesTypeParams for syn::DataEnum {
     fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
@@ -143,14 +144,11 @@ impl UsesTypeParams for Type {
     }
 }
 
-uses_type_params!(syn::TypeTuple, elems);
-
 impl UsesTypeParams for syn::Path {
     fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
         // Not sure if this is even possible, but a path with no segments definitely
         // can't use type parameters.
-        // We don't use `is_empty` here because that also considers punctuation.
-        if self.segments.len() == 0 {
+        if self.segments.is_empty() {
             return Default::default();
         }
 
