@@ -14,11 +14,19 @@ pub trait UsesTypeParams {
 }
 
 /// Searcher for finding type params in an iterator.
+///
+/// This trait extends iterators, providing a way to turn a filtered list of fields or variants into a set
+/// of type parameter idents.
 pub trait CollectTypeParams {
+    /// Consume an iterator, accumulating all type parameters in the elements which occur in `type_set`.
     fn collect_type_params<'a>(self, type_set: &'a IdentSet) -> IdentRefSet<'a>;
 }
 
-impl<'i, T, I> CollectTypeParams for T where T: IntoIterator<Item = &'i I>, I: 'i + UsesTypeParams {
+impl<'i, T, I> CollectTypeParams for T
+where
+    T: IntoIterator<Item = &'i I>,
+    I: 'i + UsesTypeParams,
+{
     fn collect_type_params<'a>(self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
         self.into_iter().fold(
             IdentRefSet::with_capacity_and_hasher(type_set.len(), Default::default()),
@@ -28,7 +36,7 @@ impl<'i, T, I> CollectTypeParams for T where T: IntoIterator<Item = &'i I>, I: '
 }
 
 /// Collect all type parameters from all items in the provided collection.
-pub(crate) fn collect_type_params<'a, 'r, I, T>(iterator: T, type_set: &'a IdentSet) -> IdentRefSet<'a>
+fn collect_type_params<'a, 'r, I, T>(iterator: T, type_set: &'a IdentSet) -> IdentRefSet<'a>
 where
     T: IntoIterator<Item = &'r I>,
     I: UsesTypeParams + 'r,
@@ -92,16 +100,20 @@ uses_type_params!(syn::QSelf, ty);
 uses_type_params!(syn::TypePath, qself, path);
 uses_type_params!(syn::TypeBareFn, inputs, output);
 uses_type_params!(syn::ParenthesizedGenericArguments, inputs, output);
+uses_type_params!(syn::TraitBound, path);
+uses_type_params!(syn::TypeTraitObject, bounds);
+uses_type_params!(syn::TypeImplTrait, bounds);
+uses_type_params!(syn::Binding, ty);
 
 impl UsesTypeParams for syn::DataEnum {
     fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
-        collect_type_params(&self.variants, type_set)
+        self.variants.collect_type_params(type_set)
     }
 }
 
 impl UsesTypeParams for syn::Fields {
     fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
-        collect_type_params(self.iter(), type_set)
+        self.collect_type_params(type_set)
     }
 }
 
@@ -134,10 +146,11 @@ impl UsesTypeParams for Type {
             Type::Path(ref v) => v.uses_type_params(type_set),
             Type::Paren(ref v) => v.elem.uses_type_params(type_set),
             Type::Group(ref v) => v.elem.uses_type_params(type_set),
-            Type::Macro(ref v) => panic!("Unknown macro type {:?}", v),
-            Type::Verbatim(ref v) => panic!("Unknown verbatim type {:?}", v),
-            Type::Infer(_) | Type::Never(_) => Default::default(),
-            _ => unimplemented!(),
+            Type::TraitObject(ref v) => v.uses_type_params(type_set),
+            Type::ImplTrait(ref v) => v.uses_type_params(type_set),
+            Type::Macro(_) | Type::Verbatim(_) | Type::Infer(_) | Type::Never(_) => {
+                Default::default()
+            }
         }
     }
 }
@@ -182,7 +195,19 @@ impl UsesTypeParams for syn::GenericArgument {
     fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
         match *self {
             syn::GenericArgument::Type(ref v) => v.uses_type_params(type_set),
-            _ => unimplemented!(),
+            syn::GenericArgument::Binding(ref v) => v.uses_type_params(type_set),
+            syn::GenericArgument::Const(_) | syn::GenericArgument::Lifetime(_) => {
+                Default::default()
+            }
+        }
+    }
+}
+
+impl UsesTypeParams for syn::TypeParamBound {
+    fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+        match *self {
+            syn::TypeParamBound::Trait(ref v) => v.uses_type_params(type_set),
+            syn::TypeParamBound::Lifetime(_) => Default::default(),
         }
     }
 }

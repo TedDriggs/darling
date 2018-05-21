@@ -19,7 +19,7 @@ enum Volume {
 #[allow(dead_code)]
 enum Emphasis<T> {
     Constant(Volume),
-    Variable(Vec<Volume>),
+    Variable(darling::util::IdentList),
     #[darling(skip)]
     PerPhoneme(Option<T>),
     Strided {
@@ -27,7 +27,7 @@ enum Emphasis<T> {
         step: Vec<T>,
         #[darling(multiple)]
         volume: Vec<Volume>,
-    }
+    },
 }
 
 #[derive(FromDeriveInput)]
