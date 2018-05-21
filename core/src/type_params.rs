@@ -35,18 +35,6 @@ where
     }
 }
 
-/// Collect all type parameters from all items in the provided collection.
-fn collect_type_params<'a, 'r, I, T>(iterator: T, type_set: &'a IdentSet) -> IdentRefSet<'a>
-where
-    T: IntoIterator<Item = &'r I>,
-    I: UsesTypeParams + 'r,
-{
-    iterator.into_iter().fold(
-        IdentRefSet::with_capacity_and_hasher(type_set.len(), Default::default()),
-        |state, value| union_in_place(state, value.uses_type_params(type_set)),
-    )
-}
-
 /// Insert the contents of `right` into `left`.
 fn union_in_place<'a>(mut left: IdentRefSet<'a>, right: IdentRefSet<'a>) -> IdentRefSet<'a> {
     left.extend(right);
@@ -70,13 +58,13 @@ impl<T: UsesTypeParams> UsesTypeParams for Option<T> {
 
 impl<T: UsesTypeParams> UsesTypeParams for Vec<T> {
     fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
-        collect_type_params(self.into_iter(), type_set)
+        self.collect_type_params(type_set)
     }
 }
 
 impl<T: UsesTypeParams, U> UsesTypeParams for Punctuated<T, U> {
     fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
-        collect_type_params(self.into_iter(), type_set)
+        self.collect_type_params(type_set)
     }
 }
 
