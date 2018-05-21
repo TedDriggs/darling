@@ -7,10 +7,13 @@ extern crate quote;
 extern crate syn;
 extern crate proc_macro2;
 
+extern crate fnv;
 extern crate ident_case;
 
 #[macro_use]
-mod macros;
+mod macros_private;
+#[macro_use]
+mod macros_public;
 
 pub mod ast;
 pub mod codegen;
@@ -23,6 +26,7 @@ mod from_meta;
 mod from_type_param;
 mod from_variant;
 pub mod options;
+mod type_params;
 pub mod util;
 
 pub use error::{Error, Result};
@@ -33,3 +37,4 @@ pub use from_generics::FromGenerics;
 pub use from_meta::FromMeta;
 pub use from_type_param::FromTypeParam;
 pub use from_variant::FromVariant;
+pub use type_params::{CollectTypeParams, UsesTypeParams};

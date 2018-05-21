@@ -2,6 +2,7 @@ use quote::{ToTokens, Tokens};
 use syn::{GenericParam, Generics, Path, TraitBound, TraitBoundModifier, TypeParamBound};
 
 use codegen::TraitImpl;
+use util::IdentSet;
 
 /// Wrapper for "outer From" traits, such as `FromDeriveInput`, `FromVariant`, and `FromField`.
 pub trait OuterFromImpl<'a> {
@@ -18,7 +19,10 @@ pub trait OuterFromImpl<'a> {
         let base = self.base();
         let trayt = self.trait_path();
         let ty_ident = base.ident;
-        let generics = compute_impl_bounds(self.trait_bound(), base.generics.clone());
+        // The type parameters used in non-skipped, non-magic fields.
+        // These must impl `FromMeta` unless they have custom bounds.
+        let used = base.used_type_params();
+        let generics = compute_impl_bounds(self.trait_bound(), base.generics.clone(), &used);
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
         tokens.append_all(quote!(
@@ -31,7 +35,7 @@ pub trait OuterFromImpl<'a> {
     }
 }
 
-fn compute_impl_bounds(bound: Path, mut generics: Generics) -> Generics {
+fn compute_impl_bounds(bound: Path, mut generics: Generics, applies_to: &IdentSet) -> Generics {
     if generics.params.is_empty() {
         return generics;
     }
@@ -45,7 +49,9 @@ fn compute_impl_bounds(bound: Path, mut generics: Generics) -> Generics {
 
     for mut param in generics.params.iter_mut() {
         if let &mut GenericParam::Type(ref mut typ) = param {
-            typ.bounds.push(added_bound.clone());
+            if applies_to.contains(&typ.ident) {
+                typ.bounds.push(added_bound.clone());
+            }
         }
     }
 
