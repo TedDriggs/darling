@@ -1,7 +1,10 @@
 use syn;
 
-use {FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta, FromTypeParam,
-     FromVariant, Result};
+use util;
+use {
+    FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta, FromTypeParam,
+    FromVariant, Result, UsesTypeParams,
+};
 
 /// An efficient way of discarding data from a syntax element.
 ///
@@ -27,3 +30,9 @@ ignored!(FromMeta, from_meta, syn::Meta);
 ignored!(FromDeriveInput, from_derive_input, syn::DeriveInput);
 ignored!(FromField, from_field, syn::Field);
 ignored!(FromVariant, from_variant, syn::Variant);
+
+impl UsesTypeParams for Ignored {
+    fn uses_type_params<'a>(&self, _: &'a util::IdentSet) -> util::IdentRefSet<'a> {
+        Default::default()
+    }
+}
