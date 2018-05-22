@@ -71,6 +71,7 @@ impl<T: UsesTypeParams, U> UsesTypeParams for Punctuated<T, U> {
 uses_type_params!(syn::AngleBracketedGenericArguments, args);
 uses_type_params!(syn::BareFnArg, ty);
 uses_type_params!(syn::Binding, ty);
+uses_type_params!(syn::DataEnum, variants);
 uses_type_params!(syn::DataStruct, fields);
 uses_type_params!(syn::DataUnion, fields);
 uses_type_params!(syn::Field, ty);
@@ -97,12 +98,6 @@ impl UsesTypeParams for syn::Data {
             syn::Data::Enum(ref v) => v.uses_type_params(options, type_set),
             syn::Data::Union(ref v) => v.uses_type_params(options, type_set),
         }
-    }
-}
-
-impl UsesTypeParams for syn::DataEnum {
-    fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
-        self.variants.collect_type_params(options, type_set)
     }
 }
 
