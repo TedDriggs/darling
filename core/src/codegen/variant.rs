@@ -4,7 +4,7 @@ use syn::Ident;
 use ast::Fields;
 use codegen::error::{ErrorCheck, ErrorDeclaration};
 use codegen::{Field, FieldsGen};
-use usage::{IdentRefSet, IdentSet, UsesTypeParams};
+use usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
 
 /// An enum variant.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -35,8 +35,12 @@ impl<'a> Variant<'a> {
 }
 
 impl<'a> UsesTypeParams for Variant<'a> {
-    fn uses_type_params<'b>(&self, type_set: &'b IdentSet) -> IdentRefSet<'b> {
-        self.data.uses_type_params(type_set)
+    fn uses_type_params<'b>(
+        &self,
+        options: &usage::Options,
+        type_set: &'b IdentSet,
+    ) -> IdentRefSet<'b> {
+        self.data.uses_type_params(options, type_set)
     }
 }
 

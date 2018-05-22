@@ -1,7 +1,7 @@
 use syn::punctuated::Punctuated;
 use syn::{self, Ident, Type};
 
-use usage::{IdentRefSet, IdentSet};
+use usage::{IdentRefSet, IdentSet, Options};
 
 /// Searcher for finding type params in a syntax tree.
 /// This can be used to determine if a given type parameter needs to be bounded in a generated impl.
@@ -10,7 +10,7 @@ pub trait UsesTypeParams {
     ///
     /// This method only accounts for direct usage by the element; indirect usage via bounds or `where`
     /// predicates are not detected.
-    fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a>;
+    fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a>;
 }
 
 /// Searcher for finding type params in an iterator.
@@ -19,7 +19,7 @@ pub trait UsesTypeParams {
 /// of type parameter idents.
 pub trait CollectTypeParams {
     /// Consume an iterator, accumulating all type parameters in the elements which occur in `type_set`.
-    fn collect_type_params<'a>(self, type_set: &'a IdentSet) -> IdentRefSet<'a>;
+    fn collect_type_params<'a>(self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a>;
 }
 
 impl<'i, T, I> CollectTypeParams for T
@@ -27,10 +27,10 @@ where
     T: IntoIterator<Item = &'i I>,
     I: 'i + UsesTypeParams,
 {
-    fn collect_type_params<'a>(self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+    fn collect_type_params<'a>(self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
         self.into_iter().fold(
             IdentRefSet::with_capacity_and_hasher(type_set.len(), Default::default()),
-            |state, value| union_in_place(state, value.uses_type_params(type_set)),
+            |state, value| union_in_place(state, value.uses_type_params(options, type_set)),
         )
     }
 }
@@ -43,28 +43,28 @@ fn union_in_place<'a>(mut left: IdentRefSet<'a>, right: IdentRefSet<'a>) -> Iden
 }
 
 impl UsesTypeParams for () {
-    fn uses_type_params<'a>(&self, _type_set: &'a IdentSet) -> IdentRefSet<'a> {
+    fn uses_type_params<'a>(&self, _options: &Options, _type_set: &'a IdentSet) -> IdentRefSet<'a> {
         Default::default()
     }
 }
 
 impl<T: UsesTypeParams> UsesTypeParams for Option<T> {
-    fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+    fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
         self.as_ref()
-            .map(|v| v.uses_type_params(type_set))
+            .map(|v| v.uses_type_params(options, type_set))
             .unwrap_or_default()
     }
 }
 
 impl<T: UsesTypeParams> UsesTypeParams for Vec<T> {
-    fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
-        self.collect_type_params(type_set)
+    fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+        self.collect_type_params(options, type_set)
     }
 }
 
 impl<T: UsesTypeParams, U> UsesTypeParams for Punctuated<T, U> {
-    fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
-        self.collect_type_params(type_set)
+    fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+        self.collect_type_params(options, type_set)
     }
 }
 
@@ -81,7 +81,6 @@ uses_type_params!(syn::TypeBareFn, inputs, output);
 uses_type_params!(syn::TypeGroup, elem);
 uses_type_params!(syn::TypeImplTrait, bounds);
 uses_type_params!(syn::TypeParen, elem);
-uses_type_params!(syn::TypePath, qself, path);
 uses_type_params!(syn::TypePtr, elem);
 uses_type_params!(syn::TypeReference, elem);
 uses_type_params!(syn::TypeSlice, elem);
@@ -90,10 +89,10 @@ uses_type_params!(syn::TypeTraitObject, bounds);
 uses_type_params!(syn::Variant, fields);
 
 impl UsesTypeParams for syn::Data {
-    fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+    fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
         match *self {
-            syn::Data::Struct(ref v) => v.uses_type_params(type_set),
-            syn::Data::Enum(ref v) => v.uses_type_params(type_set),
+            syn::Data::Struct(ref v) => v.uses_type_params(options, type_set),
+            syn::Data::Enum(ref v) => v.uses_type_params(options, type_set),
             // Do unions support generics?
             syn::Data::Union(_) => unimplemented!(),
         }
@@ -101,28 +100,28 @@ impl UsesTypeParams for syn::Data {
 }
 
 impl UsesTypeParams for syn::DataEnum {
-    fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
-        self.variants.collect_type_params(type_set)
+    fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+        self.variants.collect_type_params(options, type_set)
     }
 }
 
 impl UsesTypeParams for syn::Fields {
-    fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
-        self.collect_type_params(type_set)
+    fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+        self.collect_type_params(options, type_set)
     }
 }
 
 /// Check if an Ident exactly matches one of the sought-after type parameters.
 impl UsesTypeParams for Ident {
-    fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+    fn uses_type_params<'a>(&self, _options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
         type_set.iter().filter(|v| *v == self).collect()
     }
 }
 
 impl UsesTypeParams for syn::ReturnType {
-    fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+    fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
         if let syn::ReturnType::Type(_, ref ty) = *self {
-            ty.uses_type_params(type_set)
+            ty.uses_type_params(options, type_set)
         } else {
             Default::default()
         }
@@ -130,19 +129,19 @@ impl UsesTypeParams for syn::ReturnType {
 }
 
 impl UsesTypeParams for Type {
-    fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+    fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
         match *self {
-            Type::Slice(ref v) => v.uses_type_params(type_set),
-            Type::Array(ref v) => v.uses_type_params(type_set),
-            Type::Ptr(ref v) => v.uses_type_params(type_set),
-            Type::Reference(ref v) => v.uses_type_params(type_set),
-            Type::BareFn(ref v) => v.uses_type_params(type_set),
-            Type::Tuple(ref v) => v.uses_type_params(type_set),
-            Type::Path(ref v) => v.uses_type_params(type_set),
-            Type::Paren(ref v) => v.uses_type_params(type_set),
-            Type::Group(ref v) => v.uses_type_params(type_set),
-            Type::TraitObject(ref v) => v.uses_type_params(type_set),
-            Type::ImplTrait(ref v) => v.uses_type_params(type_set),
+            Type::Slice(ref v) => v.uses_type_params(options, type_set),
+            Type::Array(ref v) => v.uses_type_params(options, type_set),
+            Type::Ptr(ref v) => v.uses_type_params(options, type_set),
+            Type::Reference(ref v) => v.uses_type_params(options, type_set),
+            Type::BareFn(ref v) => v.uses_type_params(options, type_set),
+            Type::Tuple(ref v) => v.uses_type_params(options, type_set),
+            Type::Path(ref v) => v.uses_type_params(options, type_set),
+            Type::Paren(ref v) => v.uses_type_params(options, type_set),
+            Type::Group(ref v) => v.uses_type_params(options, type_set),
+            Type::TraitObject(ref v) => v.uses_type_params(options, type_set),
+            Type::ImplTrait(ref v) => v.uses_type_params(options, type_set),
             Type::Macro(_) | Type::Verbatim(_) | Type::Infer(_) | Type::Never(_) => {
                 Default::default()
             }
@@ -150,8 +149,20 @@ impl UsesTypeParams for Type {
     }
 }
 
+impl UsesTypeParams for syn::TypePath {
+    fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+        let hits = self.path.uses_type_params(options, type_set);
+
+        if options.include_type_path_qself() {
+            union_in_place(hits, self.qself.uses_type_params(options, type_set))
+        } else {
+            hits
+        }
+    }
+}
+
 impl UsesTypeParams for syn::Path {
-    fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+    fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
         // Not sure if this is even possible, but a path with no segments definitely
         // can't use type parameters.
         if self.segments.is_empty() {
@@ -161,33 +172,33 @@ impl UsesTypeParams for syn::Path {
         // A path segment ident can only match if it is not global and it is the first segment
         // in the path.
         let ident_hits = if !self.global() {
-            self.segments[0].ident.uses_type_params(type_set)
+            self.segments[0].ident.uses_type_params(options, type_set)
         } else {
             Default::default()
         };
 
         // Merge ident hit, if any, with all hits from path arguments
         self.segments.iter().fold(ident_hits, |state, segment| {
-            union_in_place(state, segment.arguments.uses_type_params(type_set))
+            union_in_place(state, segment.arguments.uses_type_params(options, type_set))
         })
     }
 }
 
 impl UsesTypeParams for syn::PathArguments {
-    fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+    fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
         match *self {
             syn::PathArguments::None => Default::default(),
-            syn::PathArguments::AngleBracketed(ref v) => v.uses_type_params(type_set),
-            syn::PathArguments::Parenthesized(ref v) => v.uses_type_params(type_set),
+            syn::PathArguments::AngleBracketed(ref v) => v.uses_type_params(options, type_set),
+            syn::PathArguments::Parenthesized(ref v) => v.uses_type_params(options, type_set),
         }
     }
 }
 
 impl UsesTypeParams for syn::GenericArgument {
-    fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+    fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
         match *self {
-            syn::GenericArgument::Type(ref v) => v.uses_type_params(type_set),
-            syn::GenericArgument::Binding(ref v) => v.uses_type_params(type_set),
+            syn::GenericArgument::Type(ref v) => v.uses_type_params(options, type_set),
+            syn::GenericArgument::Binding(ref v) => v.uses_type_params(options, type_set),
             syn::GenericArgument::Const(_) | syn::GenericArgument::Lifetime(_) => {
                 Default::default()
             }
@@ -196,9 +207,9 @@ impl UsesTypeParams for syn::GenericArgument {
 }
 
 impl UsesTypeParams for syn::TypeParamBound {
-    fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+    fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
         match *self {
-            syn::TypeParamBound::Trait(ref v) => v.uses_type_params(type_set),
+            syn::TypeParamBound::Trait(ref v) => v.uses_type_params(options, type_set),
             syn::TypeParamBound::Lifetime(_) => Default::default(),
         }
     }
@@ -208,7 +219,9 @@ impl UsesTypeParams for syn::TypeParamBound {
 mod tests {
     use syn::{self, Ident};
 
-    use super::{IdentSet, UsesTypeParams};
+    use super::UsesTypeParams;
+    use usage::IdentSet;
+    use usage::Purpose::*;
 
     fn given_src(src: &str) -> syn::DeriveInput {
         syn::parse_str(src).unwrap()
@@ -222,7 +235,7 @@ mod tests {
     fn finds_simple() {
         let input = given_src("struct Foo<T, U>(T, i32, A, U);");
         let generics = ident_set(vec!["T", "U", "X"]);
-        let matches = input.data.uses_type_params(&generics);
+        let matches = input.data.uses_type_params(&BoundImpl.into(), &generics);
         assert_eq!(matches.len(), 2);
         assert!(matches.contains(&Ident::from("T")));
         assert!(matches.contains(&Ident::from("U")));
@@ -243,7 +256,7 @@ mod tests {
 
         let generics = ident_set(vec!["T", "U", "X"]);
 
-        let matches = input.data.uses_type_params(&generics);
+        let matches = input.data.uses_type_params(&BoundImpl.into(), &generics);
 
         assert_eq!(matches.len(), 2);
         assert!(matches.contains(&Ident::from("T")));
@@ -265,7 +278,7 @@ mod tests {
 
         let generics = ident_set(vec!["T", "U", "X"]);
 
-        let matches = input.data.uses_type_params(&generics);
+        let matches = input.data.uses_type_params(&BoundImpl.into(), &generics);
 
         assert_eq!(matches.len(), 2);
         assert!(matches.contains(&Ident::from("T")));
@@ -278,7 +291,7 @@ mod tests {
     fn associated_type() {
         let input = given_src("struct Foo<'a, T> where T: Iterator { peek: T::Item }");
         let generics = ident_set(vec!["T", "INTO"]);
-        let matches = input.data.uses_type_params(&generics);
+        let matches = input.data.uses_type_params(&BoundImpl.into(), &generics);
         assert_eq!(matches.len(), 1);
     }
 
@@ -286,7 +299,7 @@ mod tests {
     fn box_fn_output() {
         let input = given_src("struct Foo<T>(Box<Fn() -> T>);");
         let generics = ident_set(vec!["T"]);
-        let matches = input.data.uses_type_params(&generics);
+        let matches = input.data.uses_type_params(&BoundImpl.into(), &generics);
         assert_eq!(matches.len(), 1);
         assert!(matches.contains(&Ident::from("T")));
     }
@@ -295,17 +308,23 @@ mod tests {
     fn box_fn_input() {
         let input = given_src("struct Foo<T>(Box<Fn(&T) -> ()>);");
         let generics = ident_set(vec!["T"]);
-        let matches = input.data.uses_type_params(&generics);
+        let matches = input.data.uses_type_params(&BoundImpl.into(), &generics);
         assert_eq!(matches.len(), 1);
         assert!(matches.contains(&Ident::from("T")));
     }
 
+    /// Test that `syn::TypePath` is correctly honoring the different modes a
+    /// search can execute in.
     #[test]
     fn qself_vec() {
         let input = given_src("struct Foo<T>(<Vec<T> as a::b::Trait>::AssociatedItem);");
         let generics = ident_set(vec!["T", "U"]);
-        let matches = input.data.uses_type_params(&generics);
-        assert_eq!(matches.len(), 1);
-        assert!(matches.contains(&Ident::from("T")));
+
+        let bound_matches = input.data.uses_type_params(&BoundImpl.into(), &generics);
+        assert_eq!(bound_matches.len(), 0);
+
+        let declare_matches = input.data.uses_type_params(&Declare.into(), &generics);
+        assert_eq!(declare_matches.len(), 1);
+        assert!(declare_matches.contains(&Ident::from("T")));
     }
 }

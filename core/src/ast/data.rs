@@ -2,7 +2,7 @@ use std::slice;
 
 use syn;
 
-use usage::{IdentRefSet, IdentSet, UsesTypeParams};
+use usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
 use {Error, FromField, FromVariant, Result};
 
 /// A struct or enum body.
@@ -129,10 +129,14 @@ impl<V: FromVariant, F: FromField> Data<V, F> {
 }
 
 impl<V: UsesTypeParams, F: UsesTypeParams> UsesTypeParams for Data<V, F> {
-    fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+    fn uses_type_params<'a>(
+        &self,
+        options: &usage::Options,
+        type_set: &'a IdentSet,
+    ) -> IdentRefSet<'a> {
         match *self {
-            Data::Struct(ref v) => v.uses_type_params(type_set),
-            Data::Enum(ref v) => v.uses_type_params(type_set),
+            Data::Struct(ref v) => v.uses_type_params(options, type_set),
+            Data::Enum(ref v) => v.uses_type_params(options, type_set),
         }
     }
 }
@@ -268,8 +272,12 @@ impl<T, U: Into<Vec<T>>> From<(Style, U)> for Fields<T> {
 }
 
 impl<T: UsesTypeParams> UsesTypeParams for Fields<T> {
-    fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
-        self.fields.uses_type_params(type_set)
+    fn uses_type_params<'a>(
+        &self,
+        options: &usage::Options,
+        type_set: &'a IdentSet,
+    ) -> IdentRefSet<'a> {
+        self.fields.uses_type_params(options, type_set)
     }
 }
 

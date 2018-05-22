@@ -5,7 +5,7 @@ use ast::{Data, Fields};
 use codegen::error::{ErrorCheck, ErrorDeclaration};
 use codegen::field;
 use codegen::{DefaultExpression, Field, FieldsGen, Variant};
-use usage::{CollectTypeParams, IdentSet};
+use usage::{CollectTypeParams, IdentSet, Purpose};
 
 #[derive(Debug)]
 pub struct TraitImpl<'a> {
@@ -73,7 +73,7 @@ impl<'a> TraitImpl<'a> {
             fields
                 .iter()
                 .filter(field_filter)
-                .collect_type_params(declared),
+                .collect_type_params(&Purpose::BoundImpl.into(), declared),
         );
 
         hits

@@ -32,7 +32,11 @@ ignored!(FromField, from_field, syn::Field);
 ignored!(FromVariant, from_variant, syn::Variant);
 
 impl UsesTypeParams for Ignored {
-    fn uses_type_params<'a>(&self, _: &'a usage::IdentSet) -> usage::IdentRefSet<'a> {
+    fn uses_type_params<'a>(
+        &self,
+        _opts: &usage::Options,
+        _: &'a usage::IdentSet,
+    ) -> usage::IdentRefSet<'a> {
         Default::default()
     }
 }

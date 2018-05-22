@@ -5,7 +5,9 @@
 //! code.
 
 mod ident_set;
+mod options;
 mod type_params;
 
 pub use self::ident_set::{IdentRefSet, IdentSet};
+pub use self::options::{Options, Purpose};
 pub use self::type_params::{CollectTypeParams, UsesTypeParams};
