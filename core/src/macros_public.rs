@@ -33,15 +33,15 @@
 #[macro_export]
 macro_rules! uses_type_params {
     ($impl_type:ty, $accessor:ident) => {
-        impl $crate::UsesTypeParams for $impl_type {
-            fn uses_type_params<'utp>(&self, type_set: &'utp $crate::util::IdentSet) -> $crate::util::IdentRefSet<'utp> {
+        impl $crate::usage::UsesTypeParams for $impl_type {
+            fn uses_type_params<'gen>(&self, type_set: &'gen $crate::usage::IdentSet) -> $crate::usage::IdentRefSet<'gen> {
                 self.$accessor.uses_type_params(type_set)
             }
         }
     };
     ($impl_type:ty, $first:ident, $($field:ident),+) => {
-        impl $crate::UsesTypeParams for $impl_type {
-            fn uses_type_params<'utp>(&self, type_set: &'utp $crate::util::IdentSet) -> $crate::util::IdentRefSet<'utp> {
+        impl $crate::usage::UsesTypeParams for $impl_type {
+            fn uses_type_params<'gen>(&self, type_set: &'gen $crate::usage::IdentSet) -> $crate::usage::IdentRefSet<'gen> {
                 let mut hits = self.$first.uses_type_params(type_set);
                 $(
                     hits.extend(self.$field.uses_type_params(type_set));

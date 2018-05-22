@@ -5,8 +5,7 @@ use ast::{Data, Fields};
 use codegen::error::{ErrorCheck, ErrorDeclaration};
 use codegen::field;
 use codegen::{DefaultExpression, Field, FieldsGen, Variant};
-use CollectTypeParams;
-use util::IdentSet;
+use usage::{CollectTypeParams, IdentSet};
 
 #[derive(Debug)]
 pub struct TraitImpl<'a> {

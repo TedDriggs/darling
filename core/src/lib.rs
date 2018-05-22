@@ -26,7 +26,7 @@ mod from_meta;
 mod from_type_param;
 mod from_variant;
 pub mod options;
-mod type_params;
+pub mod usage;
 pub mod util;
 
 pub use error::{Error, Result};
@@ -37,4 +37,3 @@ pub use from_generics::FromGenerics;
 pub use from_meta::FromMeta;
 pub use from_type_param::FromTypeParam;
 pub use from_variant::FromVariant;
-pub use type_params::{CollectTypeParams, UsesTypeParams};

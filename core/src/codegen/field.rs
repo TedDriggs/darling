@@ -2,8 +2,7 @@ use quote::{ToTokens, Tokens};
 use syn::{Ident, Path, Type};
 
 use codegen::DefaultExpression;
-use util;
-use UsesTypeParams;
+use usage::{IdentRefSet, IdentSet, UsesTypeParams};
 
 /// Properties needed to generate code for a field in all the contexts
 /// where one may appear.
@@ -45,7 +44,7 @@ impl<'a> Field<'a> {
 }
 
 impl<'a> UsesTypeParams for Field<'a> {
-    fn uses_type_params<'b>(&self, type_set: &'b util::IdentSet) -> util::IdentRefSet<'b> {
+    fn uses_type_params<'b>(&self, type_set: &'b IdentSet) -> IdentRefSet<'b> {
         self.ty.uses_type_params(type_set)
     }
 }

@@ -1,9 +1,9 @@
 use syn;
 
-use util;
+use usage::{self, UsesTypeParams};
 use {
     FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta, FromTypeParam,
-    FromVariant, Result, UsesTypeParams,
+    FromVariant, Result,
 };
 
 /// An efficient way of discarding data from a syntax element.
@@ -32,7 +32,7 @@ ignored!(FromField, from_field, syn::Field);
 ignored!(FromVariant, from_variant, syn::Variant);
 
 impl UsesTypeParams for Ignored {
-    fn uses_type_params<'a>(&self, _: &'a util::IdentSet) -> util::IdentRefSet<'a> {
+    fn uses_type_params<'a>(&self, _: &'a usage::IdentSet) -> usage::IdentRefSet<'a> {
         Default::default()
     }
 }

@@ -4,8 +4,7 @@ use syn::Ident;
 use ast::Fields;
 use codegen::error::{ErrorCheck, ErrorDeclaration};
 use codegen::{Field, FieldsGen};
-use util::{IdentRefSet, IdentSet};
-use UsesTypeParams;
+use usage::{IdentRefSet, IdentSet, UsesTypeParams};
 
 /// An enum variant.
 #[derive(Debug, Clone, PartialEq, Eq)]

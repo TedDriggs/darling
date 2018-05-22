@@ -2,8 +2,8 @@ use std::slice;
 
 use syn;
 
-use util::{IdentRefSet, IdentSet};
-use {Error, FromField, FromVariant, Result, UsesTypeParams};
+use usage::{IdentRefSet, IdentSet, UsesTypeParams};
+use {Error, FromField, FromVariant, Result};
 
 /// A struct or enum body.
 ///

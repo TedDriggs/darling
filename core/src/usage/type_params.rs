@@ -76,9 +76,15 @@ uses_type_params!(syn::Field, ty);
 uses_type_params!(syn::ParenthesizedGenericArguments, inputs, output);
 uses_type_params!(syn::QSelf, ty);
 uses_type_params!(syn::TraitBound, path);
+uses_type_params!(syn::TypeArray, elem);
 uses_type_params!(syn::TypeBareFn, inputs, output);
+uses_type_params!(syn::TypeGroup, elem);
 uses_type_params!(syn::TypeImplTrait, bounds);
+uses_type_params!(syn::TypeParen, elem);
 uses_type_params!(syn::TypePath, qself, path);
+uses_type_params!(syn::TypePtr, elem);
+uses_type_params!(syn::TypeReference, elem);
+uses_type_params!(syn::TypeSlice, elem);
 uses_type_params!(syn::TypeTuple, elems);
 uses_type_params!(syn::TypeTraitObject, bounds);
 uses_type_params!(syn::Variant, fields);
@@ -126,15 +132,15 @@ impl UsesTypeParams for syn::ReturnType {
 impl UsesTypeParams for Type {
     fn uses_type_params<'a>(&self, type_set: &'a IdentSet) -> IdentRefSet<'a> {
         match *self {
-            Type::Slice(ref v) => v.elem.uses_type_params(type_set),
-            Type::Array(ref v) => v.elem.uses_type_params(type_set),
-            Type::Ptr(ref v) => v.elem.uses_type_params(type_set),
-            Type::Reference(ref v) => v.elem.uses_type_params(type_set),
+            Type::Slice(ref v) => v.uses_type_params(type_set),
+            Type::Array(ref v) => v.uses_type_params(type_set),
+            Type::Ptr(ref v) => v.uses_type_params(type_set),
+            Type::Reference(ref v) => v.uses_type_params(type_set),
             Type::BareFn(ref v) => v.uses_type_params(type_set),
             Type::Tuple(ref v) => v.uses_type_params(type_set),
             Type::Path(ref v) => v.uses_type_params(type_set),
-            Type::Paren(ref v) => v.elem.uses_type_params(type_set),
-            Type::Group(ref v) => v.elem.uses_type_params(type_set),
+            Type::Paren(ref v) => v.uses_type_params(type_set),
+            Type::Group(ref v) => v.uses_type_params(type_set),
             Type::TraitObject(ref v) => v.uses_type_params(type_set),
             Type::ImplTrait(ref v) => v.uses_type_params(type_set),
             Type::Macro(_) | Type::Verbatim(_) | Type::Infer(_) | Type::Never(_) => {

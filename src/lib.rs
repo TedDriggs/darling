@@ -74,7 +74,7 @@ pub use darling_core::{FromDeriveInput, FromField, FromGenericParam, FromGeneric
 pub use darling_core::{Error, Result};
 
 #[doc(inline)]
-pub use darling_core::{ast, error, util};
+pub use darling_core::{ast, error, usage, util};
 
 /// Core/std trait re-exports. This should help produce generated code which doesn't
 /// depend on `std` unnecessarily, and avoids problems caused by aliasing `std` or any
