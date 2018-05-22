@@ -107,6 +107,9 @@ uses_lifetimes!(syn::LifetimeDef, lifetime, bounds);
 uses_lifetimes!(syn::ParenthesizedGenericArguments, inputs, output);
 uses_lifetimes!(syn::Path, segments);
 uses_lifetimes!(syn::PathSegment, arguments);
+uses_lifetimes!(syn::PredicateEq, lhs_ty, rhs_ty);
+uses_lifetimes!(syn::PredicateLifetime, lifetime, bounds);
+uses_lifetimes!(syn::PredicateType, lifetimes, bounded_ty, bounds);
 uses_lifetimes!(syn::QSelf, ty);
 uses_lifetimes!(syn::TraitBound, path, lifetimes);
 uses_lifetimes!(syn::TypeArray, elem);
@@ -210,6 +213,20 @@ impl UsesLifetimes for syn::PathArguments {
             syn::PathArguments::None => Default::default(),
             syn::PathArguments::AngleBracketed(ref v) => v.uses_lifetimes(options, lifetimes),
             syn::PathArguments::Parenthesized(ref v) => v.uses_lifetimes(options, lifetimes),
+        }
+    }
+}
+
+impl UsesLifetimes for syn::WherePredicate {
+    fn uses_lifetimes<'a>(
+        &self,
+        options: &Options,
+        lifetimes: &'a LifetimeSet,
+    ) -> LifetimeRefSet<'a> {
+        match *self {
+            syn::WherePredicate::Type(ref v) => v.uses_lifetimes(options, lifetimes),
+            syn::WherePredicate::Lifetime(ref v) => v.uses_lifetimes(options, lifetimes),
+            syn::WherePredicate::Eq(ref v) => v.uses_lifetimes(options, lifetimes),
         }
     }
 }

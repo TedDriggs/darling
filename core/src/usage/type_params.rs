@@ -77,6 +77,8 @@ uses_type_params!(syn::DataUnion, fields);
 uses_type_params!(syn::Field, ty);
 uses_type_params!(syn::FieldsNamed, named);
 uses_type_params!(syn::ParenthesizedGenericArguments, inputs, output);
+uses_type_params!(syn::PredicateEq, lhs_ty, rhs_ty);
+uses_type_params!(syn::PredicateType, bounded_ty, bounds);
 uses_type_params!(syn::QSelf, ty);
 uses_type_params!(syn::TraitBound, path);
 uses_type_params!(syn::TypeArray, elem);
@@ -186,6 +188,16 @@ impl UsesTypeParams for syn::PathArguments {
             syn::PathArguments::None => Default::default(),
             syn::PathArguments::AngleBracketed(ref v) => v.uses_type_params(options, type_set),
             syn::PathArguments::Parenthesized(ref v) => v.uses_type_params(options, type_set),
+        }
+    }
+}
+
+impl UsesTypeParams for syn::WherePredicate {
+    fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+        match *self {
+            syn::WherePredicate::Lifetime(_) => Default::default(),
+            syn::WherePredicate::Type(ref v) => v.uses_type_params(options, type_set),
+            syn::WherePredicate::Eq(ref v) => v.uses_type_params(options, type_set),
         }
     }
 }
