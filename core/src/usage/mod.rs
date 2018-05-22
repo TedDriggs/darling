@@ -4,7 +4,8 @@
 //! are used in which fields, and then emit bounds that will produce the most permissive compilable
 //! code.
 
+mod ident_set;
 mod type_params;
 
+pub use self::ident_set::{IdentRefSet, IdentSet};
 pub use self::type_params::{CollectTypeParams, UsesTypeParams};
-pub use util::{IdentRefSet, IdentSet};

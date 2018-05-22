@@ -1,7 +1,7 @@
 use syn::punctuated::Punctuated;
 use syn::{self, Ident, Type};
 
-use util::{IdentRefSet, IdentSet};
+use usage::{IdentRefSet, IdentSet};
 
 /// Searcher for finding type params in a syntax tree.
 /// This can be used to determine if a given type parameter needs to be bounded in a generated impl.

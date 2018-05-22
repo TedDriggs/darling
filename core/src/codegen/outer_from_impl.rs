@@ -2,7 +2,7 @@ use quote::{ToTokens, Tokens};
 use syn::{GenericParam, Generics, Path, TraitBound, TraitBoundModifier, TypeParamBound};
 
 use codegen::TraitImpl;
-use util::IdentSet;
+use usage::IdentSet;
 
 /// Wrapper for "outer From" traits, such as `FromDeriveInput`, `FromVariant`, and `FromField`.
 pub trait OuterFromImpl<'a> {
