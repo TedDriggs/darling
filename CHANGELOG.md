@@ -1,7 +1,9 @@
 # Changelog
 
-## Unreleased Changes
-- Add `UsesTypeParams` and `CollectsTypeParams` traits [#37](https://github.com/darling/issues/37)
+## v0.6.2 (May 22, 2018)
+- Add `usage` module for tracking type param and lifetime usage in generic declarations
+  - Add `UsesTypeParams` and `CollectsTypeParams` traits [#37](https://github.com/darling/issues/37)
+  - Add `UsesLifetimes` and `CollectLifetimes` traits [#41](https://github.com/darling/pull/41)
 - Don't add `FromMeta` bounds to type parameters only used by skipped fields [#40](https://github.com/darling/pull/40)
 
 ## v0.6.1 (May 17, 2018)

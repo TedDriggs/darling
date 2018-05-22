@@ -1,6 +1,6 @@
 use syn;
 
-use usage::{self, UsesTypeParams};
+use usage::{self, UsesLifetimes, UsesTypeParams};
 use {
     FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta, FromTypeParam,
     FromVariant, Result,
@@ -37,6 +37,16 @@ impl UsesTypeParams for Ignored {
         _opts: &usage::Options,
         _: &'a usage::IdentSet,
     ) -> usage::IdentRefSet<'a> {
+        Default::default()
+    }
+}
+
+impl UsesLifetimes for Ignored {
+    fn uses_lifetimes<'a>(
+        &self,
+        _opts: &usage::Options,
+        _: &'a usage::LifetimeSet,
+    ) -> usage::LifetimeRefSet<'a> {
         Default::default()
     }
 }
