@@ -4,6 +4,7 @@ use syn::Ident;
 use ast::Fields;
 use codegen::error::{ErrorCheck, ErrorDeclaration};
 use codegen::{Field, FieldsGen};
+use usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
 
 /// An enum variant.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -30,6 +31,16 @@ impl<'a> Variant<'a> {
 
     pub fn as_data_match_arm(&'a self) -> DataMatchArm<'a> {
         DataMatchArm(self)
+    }
+}
+
+impl<'a> UsesTypeParams for Variant<'a> {
+    fn uses_type_params<'b>(
+        &self,
+        options: &usage::Options,
+        type_set: &'b IdentSet,
+    ) -> IdentRefSet<'b> {
+        self.data.uses_type_params(options, type_set)
     }
 }
 

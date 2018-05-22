@@ -1,7 +1,8 @@
 # Changelog
 
 ## Unreleased Changes
-_None_
+- Add `UsesTypeParams` and `CollectsTypeParams` traits [#37](https://github.com/darling/issues/37)
+- Don't add `FromMeta` bounds to type parameters only used by skipped fields [#40](https://github.com/darling/pull/40)
 
 ## v0.6.1 (May 17, 2018)
 - Fix an issue where the `syn` update broke shape validation [#36](https://github.com/TedDriggs/darling/issues/36)

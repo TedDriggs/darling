@@ -2,6 +2,7 @@ use quote::{ToTokens, Tokens};
 use syn::{Ident, Path, Type};
 
 use codegen::DefaultExpression;
+use usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
 
 /// Properties needed to generate code for a field in all the contexts
 /// where one may appear.
@@ -39,6 +40,16 @@ impl<'a> Field<'a> {
 
     pub fn as_presence_check(&'a self) -> CheckMissing<'a> {
         CheckMissing(self)
+    }
+}
+
+impl<'a> UsesTypeParams for Field<'a> {
+    fn uses_type_params<'b>(
+        &self,
+        options: &usage::Options,
+        type_set: &'b IdentSet,
+    ) -> IdentRefSet<'b> {
+        self.ty.uses_type_params(options, type_set)
     }
 }
 
