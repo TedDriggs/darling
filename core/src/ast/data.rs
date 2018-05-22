@@ -2,7 +2,9 @@ use std::slice;
 
 use syn;
 
-use usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
+use usage::{
+    self, IdentRefSet, IdentSet, LifetimeRefSet, LifetimeSet, UsesLifetimes, UsesTypeParams,
+};
 use {Error, FromField, FromVariant, Result};
 
 /// A struct or enum body.
@@ -137,6 +139,19 @@ impl<V: UsesTypeParams, F: UsesTypeParams> UsesTypeParams for Data<V, F> {
         match *self {
             Data::Struct(ref v) => v.uses_type_params(options, type_set),
             Data::Enum(ref v) => v.uses_type_params(options, type_set),
+        }
+    }
+}
+
+impl<V: UsesLifetimes, F: UsesLifetimes> UsesLifetimes for Data<V, F> {
+    fn uses_lifetimes<'a>(
+        &self,
+        options: &usage::Options,
+        lifetimes: &'a LifetimeSet,
+    ) -> LifetimeRefSet<'a> {
+        match *self {
+            Data::Struct(ref v) => v.uses_lifetimes(options, lifetimes),
+            Data::Enum(ref v) => v.uses_lifetimes(options, lifetimes),
         }
     }
 }
@@ -278,6 +293,16 @@ impl<T: UsesTypeParams> UsesTypeParams for Fields<T> {
         type_set: &'a IdentSet,
     ) -> IdentRefSet<'a> {
         self.fields.uses_type_params(options, type_set)
+    }
+}
+
+impl<T: UsesLifetimes> UsesLifetimes for Fields<T> {
+    fn uses_lifetimes<'a>(
+        &self,
+        options: &usage::Options,
+        lifetimes: &'a LifetimeSet,
+    ) -> LifetimeRefSet<'a> {
+        self.fields.uses_lifetimes(options, lifetimes)
     }
 }
 
