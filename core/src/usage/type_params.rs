@@ -72,7 +72,9 @@ uses_type_params!(syn::AngleBracketedGenericArguments, args);
 uses_type_params!(syn::BareFnArg, ty);
 uses_type_params!(syn::Binding, ty);
 uses_type_params!(syn::DataStruct, fields);
+uses_type_params!(syn::DataUnion, fields);
 uses_type_params!(syn::Field, ty);
+uses_type_params!(syn::FieldsNamed, named);
 uses_type_params!(syn::ParenthesizedGenericArguments, inputs, output);
 uses_type_params!(syn::QSelf, ty);
 uses_type_params!(syn::TraitBound, path);
@@ -93,8 +95,7 @@ impl UsesTypeParams for syn::Data {
         match *self {
             syn::Data::Struct(ref v) => v.uses_type_params(options, type_set),
             syn::Data::Enum(ref v) => v.uses_type_params(options, type_set),
-            // Do unions support generics?
-            syn::Data::Union(_) => unimplemented!(),
+            syn::Data::Union(ref v) => v.uses_type_params(options, type_set),
         }
     }
 }
