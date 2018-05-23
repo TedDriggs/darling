@@ -120,13 +120,13 @@ impl FromMeta for bool {
     }
 
     fn from_string(value: &str) -> Result<Self> {
-        value.parse().or_else(|_| Err(Error::unknown_value(value)))
+        value.parse().map_err(|_| Error::unknown_value(value))
     }
 }
 
 impl FromMeta for AtomicBool {
     fn from_meta(mi: &Meta) -> Result<Self> {
-        Ok(AtomicBool::new(FromMeta::from_meta(mi)?))
+        FromMeta::from_meta(mi).map(AtomicBool::new)
     }
 }
 
@@ -138,61 +138,61 @@ impl FromMeta for String {
 
 impl FromMeta for u8 {
     fn from_string(s: &str) -> Result<Self> {
-        s.parse().or_else(|_| Err(Error::unknown_value(s)))
+        s.parse().map_err(|_| Error::unknown_value(s))
     }
 }
 
 impl FromMeta for u16 {
     fn from_string(s: &str) -> Result<Self> {
-        s.parse().or_else(|_| Err(Error::unknown_value(s)))
+        s.parse().map_err(|_| Error::unknown_value(s))
     }
 }
 
 impl FromMeta for u32 {
     fn from_string(s: &str) -> Result<Self> {
-        s.parse().or_else(|_| Err(Error::unknown_value(s)))
+        s.parse().map_err(|_| Error::unknown_value(s))
     }
 }
 
 impl FromMeta for u64 {
     fn from_string(s: &str) -> Result<Self> {
-        s.parse().or_else(|_| Err(Error::unknown_value(s)))
+        s.parse().map_err(|_| Error::unknown_value(s))
     }
 }
 
 impl FromMeta for usize {
     fn from_string(s: &str) -> Result<Self> {
-        s.parse().or_else(|_| Err(Error::unknown_value(s)))
+        s.parse().map_err(|_| Error::unknown_value(s))
     }
 }
 
 impl FromMeta for i8 {
     fn from_string(s: &str) -> Result<Self> {
-        s.parse().or_else(|_| Err(Error::unknown_value(s)))
+        s.parse().map_err(|_| Error::unknown_value(s))
     }
 }
 
 impl FromMeta for i16 {
     fn from_string(s: &str) -> Result<Self> {
-        s.parse().or_else(|_| Err(Error::unknown_value(s)))
+        s.parse().map_err(|_| Error::unknown_value(s))
     }
 }
 
 impl FromMeta for i32 {
     fn from_string(s: &str) -> Result<Self> {
-        s.parse().or_else(|_| Err(Error::unknown_value(s)))
+        s.parse().map_err(|_| Error::unknown_value(s))
     }
 }
 
 impl FromMeta for i64 {
     fn from_string(s: &str) -> Result<Self> {
-        s.parse().or_else(|_| Err(Error::unknown_value(s)))
+        s.parse().map_err(|_| Error::unknown_value(s))
     }
 }
 
 impl FromMeta for isize {
     fn from_string(s: &str) -> Result<Self> {
-        s.parse().or_else(|_| Err(Error::unknown_value(s)))
+        s.parse().map_err(|_| Error::unknown_value(s))
     }
 }
 
@@ -204,7 +204,7 @@ impl FromMeta for syn::Ident {
 
 impl FromMeta for syn::Path {
     fn from_string(value: &str) -> Result<Self> {
-        Ok(syn::parse_str::<syn::Path>(value).unwrap())
+        syn::parse_str(value).map_err(|_| Error::unknown_value(value))
     }
 }
 /*
@@ -223,8 +223,7 @@ impl FromMeta for syn::Meta {
 
 impl FromMeta for syn::WhereClause {
     fn from_string(value: &str) -> Result<Self> {
-        let ret: syn::WhereClause = syn::parse_str(value).unwrap();
-        Ok(ret)
+        syn::parse_str(value).map_err(|_| Error::unknown_value(value))
     }
 }
 
@@ -237,19 +236,19 @@ impl FromMeta for Vec<syn::WherePredicate> {
 
 impl FromMeta for ident_case::RenameRule {
     fn from_string(value: &str) -> Result<Self> {
-        value.parse().or_else(|_| Err(Error::unknown_value(value)))
+        value.parse().map_err(|_| Error::unknown_value(value))
     }
 }
 
 impl<T: FromMeta> FromMeta for Option<T> {
     fn from_meta(item: &Meta) -> Result<Self> {
-        Ok(Some(FromMeta::from_meta(item)?))
+        FromMeta::from_meta(item).map(Some)
     }
 }
 
 impl<T: FromMeta> FromMeta for Box<T> {
     fn from_meta(item: &Meta) -> Result<Self> {
-        Ok(Box::new(FromMeta::from_meta(item)?))
+        FromMeta::from_meta(item).map(Box::new)
     }
 }
 
@@ -271,19 +270,19 @@ impl<T: FromMeta> FromMeta for ::std::result::Result<T, Meta> {
 
 impl<T: FromMeta> FromMeta for Rc<T> {
     fn from_meta(item: &Meta) -> Result<Self> {
-        Ok(Rc::new(FromMeta::from_meta(item)?))
+        FromMeta::from_meta(item).map(Rc::new)
     }
 }
 
 impl<T: FromMeta> FromMeta for Arc<T> {
     fn from_meta(item: &Meta) -> Result<Self> {
-        Ok(Arc::new(FromMeta::from_meta(item)?))
+        FromMeta::from_meta(item).map(Arc::new)
     }
 }
 
 impl<T: FromMeta> FromMeta for RefCell<T> {
     fn from_meta(item: &Meta) -> Result<Self> {
-        Ok(RefCell::new(FromMeta::from_meta(item)?))
+        FromMeta::from_meta(item).map(RefCell::new)
     }
 }
 
@@ -295,9 +294,7 @@ impl<V: FromMeta> FromMeta for HashMap<String, V> {
                 match map.entry(inner.name().to_string()) {
                     Entry::Occupied(_) => return Err(Error::duplicate_field(inner.name().as_ref())),
                     Entry::Vacant(entry) => {
-                        entry
-                            .insert(FromMeta::from_meta(inner)
-                                .map_err(|e| e.at(inner.name()))?);
+                        entry.insert(FromMeta::from_meta(inner).map_err(|e| e.at(inner.name()))?);
                     }
                 }
             }
