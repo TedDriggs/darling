@@ -26,6 +26,7 @@ pub use self::variant::Variant;
 pub use self::variant_data::FieldsGen;
 
 use options::ForwardAttrs;
+use util::IdentList;
 
 /// Infrastructure for generating an attribute extractor.
 pub trait ExtractAttribute {
@@ -34,7 +35,7 @@ pub trait ExtractAttribute {
     fn immutable_declarations(&self) -> TokenStream;
 
     /// Gets the list of attribute names that should be parsed by the extractor.
-    fn attr_names(&self) -> &[&str];
+    fn attr_names(&self) -> &IdentList;
 
     fn forwarded_attrs(&self) -> Option<&ForwardAttrs>;
 
@@ -72,7 +73,7 @@ pub trait ExtractAttribute {
         // The block for parsing attributes whose names have been claimed by the target
         // struct. If no attributes were claimed, this is a pass-through.
         let parse_handled = if will_parse_any {
-            let attr_names = self.attr_names();
+            let attr_names = self.attr_names().to_strings();
             let core_loop = self.core_loop();
             quote!(
                 #(#attr_names)|* => {
@@ -100,11 +101,12 @@ pub trait ExtractAttribute {
 
         quote!(
             #declarations
+            use ::darling::ToTokens;
             let mut __fwd_attrs: ::darling::export::Vec<::syn::Attribute> = vec![];
 
             for __attr in &#input.attrs {
                 // Filter attributes based on name
-                match __attr.path.segments.iter().map(|s| s.ident.as_ref()).collect::<Vec<&str>>().join("::").as_str() {
+                match  ::darling::export::ToString::to_string(&__attr.path.clone().into_token_stream()).as_str() {
                     #parse_handled
                     #forward_unhandled
                 }
@@ -118,7 +120,7 @@ fn forwards_to_local(behavior: &ForwardAttrs) -> TokenStream {
     match *behavior {
         ForwardAttrs::All => quote!(_ => #push_command),
         ForwardAttrs::Only(ref idents) => {
-            let names = idents.as_strs();
+            let names = idents.to_strings();
             quote!(
                 #(#names)|* => #push_command,
                 _ => continue,

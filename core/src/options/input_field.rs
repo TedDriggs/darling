@@ -25,9 +25,8 @@ impl InputField {
         codegen::Field {
             ident: &self.ident,
             name_in_attr: self.attr_name
-                .as_ref()
-                .map(|n| n.as_str())
-                .unwrap_or(self.ident.as_ref()),
+                .clone()
+                .unwrap_or(self.ident.to_string()),
             ty: &self.ty,
             default_expression: self.as_codegen_default(),
             with_path: self.with

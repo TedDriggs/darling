@@ -47,7 +47,7 @@ fn expand_many() {
     {
         let ty = extract_type(&params[0]);
         let lorem = Lorem::from_type_param(ty).unwrap();
-        assert_eq!(lorem.ident.as_ref(), "T");
+        assert_eq!(lorem.ident, "T");
         assert_eq!(lorem.foo, true);
         assert_eq!(lorem.bar, None);
     }
@@ -55,7 +55,7 @@ fn expand_many() {
     {
         let ty = extract_type(&params[1]);
         let lorem = Lorem::from_type_param(ty).unwrap();
-        assert_eq!(lorem.ident.as_ref(), "U");
+        assert_eq!(lorem.ident, "U");
         assert_eq!(lorem.foo, false);
         assert_eq!(lorem.bar, Some("x".to_string()));
         assert_eq!(lorem.bounds.len(), 2);

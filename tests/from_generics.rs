@@ -61,7 +61,7 @@ fn expand_some() {
         .expect("type_params should not be empty");
     assert!(first.bar.is_none());
     assert!(first.foo);
-    assert_eq!(first.ident.as_ref(), "T");
+    assert_eq!(first.ident, "T");
 
     let second = ty_param_iter
         .next()
@@ -74,7 +74,7 @@ fn expand_some() {
         "x"
     );
     assert_eq!(second.foo, false);
-    assert_eq!(second.ident.as_ref(), "U");
+    assert_eq!(second.ident, "U");
 }
 
 /// Verify ≤0.4.1 behavior - where `generics` had to be `syn::Generics` - keeps working.
@@ -149,15 +149,14 @@ fn with_original() {
         .expect("Second argument should be type param");
 
     // Make sure the first type param in each case is T
-    assert_eq!(parsed_t.ident.as_ref(), "T");
+    assert_eq!(parsed_t.ident, "T");
     assert_eq!(
         rec.generics
             .original
             .type_params()
             .next()
             .expect("First type param should exist")
-            .ident
-            .as_ref(),
+            .ident,
         "T"
     );
 

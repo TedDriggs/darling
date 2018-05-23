@@ -29,7 +29,7 @@ impl<'a> From<&'a FromVariantOptions> for FromVariantImpl<'a> {
             ident: v.base.ident.as_ref(),
             fields: v.fields.as_ref(),
             attrs: v.base.attrs.as_ref(),
-            attr_names: v.base.attr_names.as_strs(),
+            attr_names: &v.base.attr_names,
             forward_attrs: v.base.forward_attrs.as_ref(),
             from_ident: v.base.from_ident,
             supports: v.supports.as_ref(),
@@ -51,7 +51,13 @@ impl ParseAttribute for FromVariantOptions {
 
 impl ParseData for FromVariantOptions {
     fn parse_field(&mut self, field: &Field) -> Result<()> {
-        match field.ident.as_ref().map(|i| i.to_string().as_ref()) {
+        match field
+            .ident
+            .as_ref()
+            .map(|v| v.to_string())
+            .as_ref()
+            .map(|v| v.as_str())
+        {
             Some("fields") => {
                 self.fields = field.ident.clone();
                 Ok(())

@@ -50,7 +50,13 @@ impl ParseData for FdiOptions {
     }
 
     fn parse_field(&mut self, field: &syn::Field) -> Result<()> {
-        match field.ident.as_ref().map(|v| v.to_string().as_str()) {
+        match field
+            .ident
+            .as_ref()
+            .map(|v| v.to_string())
+            .as_ref()
+            .map(|v| v.as_str())
+        {
             Some("vis") => {
                 self.vis = field.ident.clone();
                 Ok(())
@@ -72,7 +78,7 @@ impl<'a> From<&'a FdiOptions> for codegen::FromDeriveInputImpl<'a> {
     fn from(v: &'a FdiOptions) -> Self {
         codegen::FromDeriveInputImpl {
             base: (&v.base.container).into(),
-            attr_names: v.base.attr_names.as_strs(),
+            attr_names: &v.base.attr_names,
             from_ident: v.base.from_ident,
             ident: v.base.ident.as_ref(),
             vis: v.vis.as_ref(),

@@ -35,7 +35,8 @@ impl FromMeta for Shape {
         let mut new = Shape::default();
         for item in items {
             if let NestedMeta::Meta(Meta::Word(ref ident)) = *item {
-                let word = ident.to_string().as_str();
+                let word = ident.to_string();
+                let word = word.as_str();
                 if word == "any" {
                     new.any = true;
                 } else if word.starts_with("enum_") {

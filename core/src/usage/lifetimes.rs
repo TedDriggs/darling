@@ -29,7 +29,7 @@ pub trait UsesLifetimes {
             .into_iter()
             .cloned()
             .collect()
-}
+    }
 }
 
 /// Searcher for finding lifetimes in an iterator.

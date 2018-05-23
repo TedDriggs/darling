@@ -18,7 +18,7 @@ pub trait UsesTypeParams {
             .into_iter()
             .cloned()
             .collect()
-}
+    }
 }
 
 /// Searcher for finding type params in an iterator.
@@ -50,7 +50,7 @@ where
             .into_iter()
             .cloned()
             .collect()
-}
+    }
 }
 
 /// Insert the contents of `right` into `left`.
@@ -243,6 +243,7 @@ impl UsesTypeParams for syn::TypeParamBound {
 
 #[cfg(test)]
 mod tests {
+    use proc_macro2::Span;
     use syn::{self, Ident};
 
     use super::UsesTypeParams;
@@ -254,7 +255,10 @@ mod tests {
     }
 
     fn ident_set(idents: Vec<&str>) -> IdentSet {
-        idents.into_iter().map(Ident::from).collect()
+        idents
+            .into_iter()
+            .map(|s| Ident::new(s, Span::call_site()))
+            .collect()
     }
 
     #[test]
@@ -263,10 +267,10 @@ mod tests {
         let generics = ident_set(vec!["T", "U", "X"]);
         let matches = input.data.uses_type_params(&BoundImpl.into(), &generics);
         assert_eq!(matches.len(), 2);
-        assert!(matches.contains(&Ident::from("T")));
-        assert!(matches.contains(&Ident::from("U")));
-        assert!(!matches.contains(&Ident::from("X")));
-        assert!(!matches.contains(&Ident::from("A")));
+        assert!(matches.contains::<Ident>(&parse_quote!(T)));
+        assert!(matches.contains::<Ident>(&parse_quote!(U)));
+        assert!(!matches.contains::<Ident>(&parse_quote!(X)));
+        assert!(!matches.contains::<Ident>(&parse_quote!(A)));
     }
 
     #[test]
@@ -285,10 +289,10 @@ mod tests {
         let matches = input.data.uses_type_params(&BoundImpl.into(), &generics);
 
         assert_eq!(matches.len(), 2);
-        assert!(matches.contains(&Ident::from("T")));
-        assert!(matches.contains(&Ident::from("U")));
-        assert!(!matches.contains(&Ident::from("X")));
-        assert!(!matches.contains(&Ident::from("A")));
+        assert!(matches.contains::<Ident>(&parse_quote!(T)));
+        assert!(matches.contains::<Ident>(&parse_quote!(U)));
+        assert!(!matches.contains::<Ident>(&parse_quote!(X)));
+        assert!(!matches.contains::<Ident>(&parse_quote!(A)));
     }
 
     #[test]
@@ -307,10 +311,10 @@ mod tests {
         let matches = input.data.uses_type_params(&BoundImpl.into(), &generics);
 
         assert_eq!(matches.len(), 2);
-        assert!(matches.contains(&Ident::from("T")));
-        assert!(matches.contains(&Ident::from("U")));
-        assert!(!matches.contains(&Ident::from("X")));
-        assert!(!matches.contains(&Ident::from("A")));
+        assert!(matches.contains::<Ident>(&parse_quote!(T)));
+        assert!(matches.contains::<Ident>(&parse_quote!(U)));
+        assert!(!matches.contains::<Ident>(&parse_quote!(X)));
+        assert!(!matches.contains::<Ident>(&parse_quote!(A)));
     }
 
     #[test]
@@ -327,7 +331,7 @@ mod tests {
         let generics = ident_set(vec!["T"]);
         let matches = input.data.uses_type_params(&BoundImpl.into(), &generics);
         assert_eq!(matches.len(), 1);
-        assert!(matches.contains(&Ident::from("T")));
+        assert!(matches.contains::<Ident>(&parse_quote!(T)));
     }
 
     #[test]
@@ -336,7 +340,7 @@ mod tests {
         let generics = ident_set(vec!["T"]);
         let matches = input.data.uses_type_params(&BoundImpl.into(), &generics);
         assert_eq!(matches.len(), 1);
-        assert!(matches.contains(&Ident::from("T")));
+        assert!(matches.contains::<Ident>(&parse_quote!(T)));
     }
 
     /// Test that `syn::TypePath` is correctly honoring the different modes a
@@ -351,6 +355,6 @@ mod tests {
 
         let declare_matches = input.data.uses_type_params(&Declare.into(), &generics);
         assert_eq!(declare_matches.len(), 1);
-        assert!(declare_matches.contains(&Ident::from("T")));
+        assert!(declare_matches.contains::<Ident>(&parse_quote!(T)));
     }
 }

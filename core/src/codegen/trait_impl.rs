@@ -68,15 +68,10 @@ impl<'a> TraitImpl<'a> {
     where
         F: Fn(&&'b Field) -> bool,
     {
-        let mut hits = IdentSet::default();
-        hits.extend(
-            fields
-                .iter()
-                .filter(field_filter)
-                .collect_type_params(&Purpose::BoundImpl.into(), declared),
-        );
-
-        hits
+        fields
+            .iter()
+            .filter(field_filter)
+            .collect_type_params_cloned(&Purpose::BoundImpl.into(), declared)
     }
 }
 

@@ -1,4 +1,5 @@
 use std::ops::Deref;
+use std::string::ToString;
 
 use syn::{Ident, Meta, NestedMeta};
 
@@ -24,9 +25,9 @@ impl IdentList {
         IdentList(vals.into_iter().map(T::into).collect())
     }
 
-    /// Creates a view of the contained identifiers as `&str`s.
-    pub fn as_strs<'a>(&'a self) -> Vec<&'a str> {
-        self.iter().map(|i| i.as_ref()).collect()
+    /// Create a new `Vec` containing the string representation of each ident.
+    pub fn to_strings(&self) -> Vec<String> {
+        self.0.iter().map(ToString::to_string).collect()
     }
 }
 

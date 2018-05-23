@@ -76,6 +76,9 @@ pub use darling_core::{Error, Result};
 #[doc(inline)]
 pub use darling_core::{ast, error, usage, util};
 
+#[doc(hidden)]
+pub use darling_core::ToTokens;
+
 /// Core/std trait re-exports. This should help produce generated code which doesn't
 /// depend on `std` unnecessarily, and avoids problems caused by aliasing `std` or any
 /// of the referenced types.
@@ -86,6 +89,7 @@ pub mod export {
     pub use core::option::Option::{self, None, Some};
     pub use core::result::Result::{self, Err, Ok};
     pub use std::vec::Vec;
+    pub use std::string::ToString;
 }
 
 #[macro_use]

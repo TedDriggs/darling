@@ -4,6 +4,7 @@ use syn::{self, Ident};
 
 use codegen::{ExtractAttribute, OuterFromImpl, TraitImpl};
 use options::ForwardAttrs;
+use util::IdentList;
 
 /// `impl FromField` generator. This is used for parsing an individual
 /// field and its attributes.
@@ -13,7 +14,7 @@ pub struct FromFieldImpl<'a> {
     pub ty: Option<&'a Ident>,
     pub attrs: Option<&'a Ident>,
     pub base: TraitImpl<'a>,
-    pub attr_names: Vec<&'a str>,
+    pub attr_names: &'a IdentList,
     pub forward_attrs: Option<&'a ForwardAttrs>,
     pub from_ident: bool,
 }
@@ -74,8 +75,8 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
 }
 
 impl<'a> ExtractAttribute for FromFieldImpl<'a> {
-    fn attr_names(&self) -> &[&str] {
-        self.attr_names.as_slice()
+    fn attr_names(&self) -> &IdentList {
+        &self.attr_names
     }
 
     fn forwarded_attrs(&self) -> Option<&ForwardAttrs> {
