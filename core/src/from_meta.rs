@@ -311,18 +311,18 @@ impl<V: FromMeta> FromMeta for HashMap<String, V> {
 /// it should not be considered by the parsing.
 #[cfg(test)]
 mod tests {
-    use quote::Tokens;
+    use proc_macro2::TokenStream;
     use syn;
 
     use {FromMeta, Result};
 
     /// parse a string as a syn::Meta instance.
-    fn pm(tokens: Tokens) -> ::std::result::Result<syn::Meta, String> {
+    fn pm(tokens: TokenStream) -> ::std::result::Result<syn::Meta, String> {
         let attribute: syn::Attribute = parse_quote!(#[#tokens]);
         attribute.interpret_meta().ok_or("Unable to parse".into())
     }
 
-    fn fm<T: FromMeta>(tokens: Tokens) -> T {
+    fn fm<T: FromMeta>(tokens: TokenStream) -> T {
         FromMeta::from_meta(&pm(tokens).expect("Tests should pass well-formed input"))
             .expect("Tests should pass valid input")
     }
