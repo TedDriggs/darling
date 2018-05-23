@@ -1,4 +1,4 @@
-use quote::Tokens;
+use proc_macro2::TokenStream;
 
 mod default_expr;
 mod error;
@@ -29,9 +29,9 @@ use options::ForwardAttrs;
 
 /// Infrastructure for generating an attribute extractor.
 pub trait ExtractAttribute {
-    fn local_declarations(&self) -> Tokens;
+    fn local_declarations(&self) -> TokenStream;
 
-    fn immutable_declarations(&self) -> Tokens;
+    fn immutable_declarations(&self) -> TokenStream;
 
     /// Gets the list of attribute names that should be parsed by the extractor.
     fn attr_names(&self) -> &[&str];
@@ -39,12 +39,12 @@ pub trait ExtractAttribute {
     fn forwarded_attrs(&self) -> Option<&ForwardAttrs>;
 
     /// Gets the name used by the generated impl to return to the `syn` item passed as input.
-    fn param_name(&self) -> Tokens;
+    fn param_name(&self) -> TokenStream;
 
     /// Gets the core from-meta-item loop that should be used on matching attributes.
-    fn core_loop(&self) -> Tokens;
+    fn core_loop(&self) -> TokenStream;
 
-    fn declarations(&self) -> Tokens {
+    fn declarations(&self) -> TokenStream {
         if !self.attr_names().is_empty() {
             self.local_declarations()
         } else {
@@ -53,7 +53,7 @@ pub trait ExtractAttribute {
     }
 
     /// Generates the main extraction loop.
-    fn extractor(&self) -> Tokens {
+    fn extractor(&self) -> TokenStream {
         let declarations = self.declarations();
 
         let will_parse_any = !self.attr_names().is_empty();
@@ -113,7 +113,7 @@ pub trait ExtractAttribute {
     }
 }
 
-fn forwards_to_local(behavior: &ForwardAttrs) -> Tokens {
+fn forwards_to_local(behavior: &ForwardAttrs) -> TokenStream {
     let push_command = quote!(__fwd_attrs.push(__attr.clone()));
     match *behavior {
         ForwardAttrs::All => quote!(_ => #push_command),

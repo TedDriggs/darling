@@ -83,7 +83,7 @@ impl InputField {
         // explicit renamings take precedence over rename rules on the container,
         // but in the absence of an explicit name we apply the rule.
         if self.attr_name.is_none() {
-            self.attr_name = Some(parent.rename_rule.apply_to_field(&self.ident));
+            self.attr_name = Some(parent.rename_rule.apply_to_field(self.ident.to_string()));
         }
 
         // Determine the default expression for this field, based on three pieces of information:

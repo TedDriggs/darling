@@ -34,7 +34,7 @@ impl FdiOptions {
 
 impl ParseAttribute for FdiOptions {
     fn parse_nested(&mut self, mi: &syn::Meta) -> Result<()> {
-        match mi.name().as_ref() {
+        match mi.name().to_string().as_str() {
             "supports" => {
                 self.supports = FromMeta::from_meta(mi)?;
                 Ok(())
@@ -50,7 +50,7 @@ impl ParseData for FdiOptions {
     }
 
     fn parse_field(&mut self, field: &syn::Field) -> Result<()> {
-        match field.ident.as_ref().map(|v| v.as_ref()) {
+        match field.ident.as_ref().map(|v| v.to_string().as_str()) {
             Some("vis") => {
                 self.vis = field.ident.clone();
                 Ok(())

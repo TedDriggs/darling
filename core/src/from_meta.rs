@@ -293,7 +293,7 @@ impl<V: FromMeta> FromMeta for HashMap<String, V> {
         for item in nested {
             if let syn::NestedMeta::Meta(ref inner) = *item {
                 match map.entry(inner.name().to_string()) {
-                    Entry::Occupied(_) => return Err(Error::duplicate_field(inner.name().as_ref())),
+                    Entry::Occupied(_) => return Err(Error::duplicate_field(&inner.name().to_string())),
                     Entry::Vacant(entry) => {
                         entry
                             .insert(FromMeta::from_meta(inner)

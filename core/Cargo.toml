@@ -16,7 +16,7 @@ default = ["syn/full"]
 
 [dependencies]
 ident_case = "1.0.0"
-proc-macro2 = "0.3"
-quote = "0.5"
-syn = { version = "0.13", features = ["extra-traits"] }
+proc-macro2 = "0.4.2"
+quote = "0.6"
+syn = { version = "0.14", features = ["extra-traits"] }
 fnv = "1.0.6"

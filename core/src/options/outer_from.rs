@@ -42,7 +42,7 @@ impl OuterFrom {
 
 impl ParseAttribute for OuterFrom {
     fn parse_nested(&mut self, mi: &Meta) -> Result<()> {
-        match mi.name().as_ref() {
+        match mi.name().to_string().as_str() {
             "attributes" => {
                 self.attr_names = FromMeta::from_meta(mi)?;
                 Ok(())
@@ -65,7 +65,7 @@ impl ParseAttribute for OuterFrom {
 
 impl ParseData for OuterFrom {
     fn parse_field(&mut self, field: &Field) -> Result<()> {
-        match field.ident.as_ref().map(|v| v.as_ref()) {
+        match field.ident.as_ref().map(|v| v.to_string().as_ref()) {
             Some("ident") => {
                 self.ident = field.ident.clone();
                 Ok(())

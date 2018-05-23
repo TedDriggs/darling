@@ -1,4 +1,5 @@
-use quote::{ToTokens, Tokens};
+use proc_macro2::TokenStream;
+use quote::ToTokens;
 use syn;
 
 use ast::{Data, Fields, Style};
@@ -9,7 +10,7 @@ pub struct FromMetaImpl<'a> {
 }
 
 impl<'a> ToTokens for FromMetaImpl<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let base = &self.base;
 
         let impl_block = match base.data {

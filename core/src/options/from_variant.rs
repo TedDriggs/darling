@@ -39,7 +39,7 @@ impl<'a> From<&'a FromVariantOptions> for FromVariantImpl<'a> {
 
 impl ParseAttribute for FromVariantOptions {
     fn parse_nested(&mut self, mi: &Meta) -> Result<()> {
-        match mi.name().as_ref() {
+        match mi.name().to_string().as_str() {
             "supports" => {
                 self.supports = FromMeta::from_meta(mi)?;
                 Ok(())
@@ -51,7 +51,7 @@ impl ParseAttribute for FromVariantOptions {
 
 impl ParseData for FromVariantOptions {
     fn parse_field(&mut self, field: &Field) -> Result<()> {
-        match field.ident.as_ref().map(|i| i.as_ref()) {
+        match field.ident.as_ref().map(|i| i.to_string().as_ref()) {
             Some("fields") => {
                 self.fields = field.ident.clone();
                 Ok(())

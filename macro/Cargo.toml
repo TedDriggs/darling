@@ -10,8 +10,8 @@ implementing custom derives. Use https://crates.io/crates/darling in your code.
 license = "MIT"
 
 [dependencies]
-quote = "0.5"
-syn = "0.13"
+quote = "0.6"
+syn = "0.14"
 darling_core = { version = "=0.6.3", path = "../core" }
 
 [lib]

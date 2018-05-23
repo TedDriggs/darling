@@ -1,4 +1,5 @@
-use quote::{ToTokens, Tokens};
+use proc_macro2::TokenStream;
+use quote::{TokenStreamExt, ToTokens};
 use syn::Ident;
 
 use ast::Fields;
@@ -47,7 +48,7 @@ impl<'a> UsesTypeParams for Variant<'a> {
 pub struct UnitMatchArm<'a>(&'a Variant<'a>);
 
 impl<'a> ToTokens for UnitMatchArm<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let val: &Variant<'a> = self.0;
 
         if val.skip {
@@ -74,7 +75,7 @@ impl<'a> ToTokens for UnitMatchArm<'a> {
 pub struct DataMatchArm<'a>(&'a Variant<'a>);
 
 impl<'a> ToTokens for DataMatchArm<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let val: &Variant<'a> = self.0;
 
         if val.skip {

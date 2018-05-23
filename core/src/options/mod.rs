@@ -1,3 +1,4 @@
+use proc_macro2::Span;
 use syn;
 
 use {Error, FromMeta, Result};
@@ -43,7 +44,7 @@ impl FromMeta for DefaultExpression {
     }
 
     fn from_string(lit: &str) -> Result<Self> {
-        Ok(DefaultExpression::Explicit(syn::Path::from(lit)))
+        Ok(DefaultExpression::Explicit(syn::Path::from(syn::Ident::new(lit, Span::call_site()))))
     }
 }
 

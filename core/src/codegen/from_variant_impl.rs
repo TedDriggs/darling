@@ -1,4 +1,5 @@
-use quote::{ToTokens, Tokens};
+use proc_macro2::TokenStream;
+use quote::ToTokens;
 use syn::{self, Ident};
 
 use codegen::{ExtractAttribute, OuterFromImpl, TraitImpl};
@@ -16,7 +17,7 @@ pub struct FromVariantImpl<'a> {
 }
 
 impl<'a> ToTokens for FromVariantImpl<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let input = self.param_name();
         let extractor = self.extractor();
         let passed_ident = self.ident
@@ -76,11 +77,11 @@ impl<'a> ToTokens for FromVariantImpl<'a> {
 }
 
 impl<'a> ExtractAttribute for FromVariantImpl<'a> {
-    fn local_declarations(&self) -> Tokens {
+    fn local_declarations(&self) -> TokenStream {
         self.base.local_declarations()
     }
 
-    fn immutable_declarations(&self) -> Tokens {
+    fn immutable_declarations(&self) -> TokenStream {
         self.base.immutable_declarations()
     }
 
@@ -92,11 +93,11 @@ impl<'a> ExtractAttribute for FromVariantImpl<'a> {
         self.forward_attrs
     }
 
-    fn param_name(&self) -> Tokens {
+    fn param_name(&self) -> TokenStream {
         quote!(__variant)
     }
 
-    fn core_loop(&self) -> Tokens {
+    fn core_loop(&self) -> TokenStream {
         self.base.core_loop()
     }
 }

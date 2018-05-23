@@ -1,4 +1,4 @@
-use quote::Tokens;
+use proc_macro2::TokenStream;
 use syn::{Generics, Ident, Path, WherePredicate};
 
 use ast::{Data, Fields};
@@ -92,7 +92,7 @@ impl<'a> TraitImpl<'a> {
     }
 
     /// Generate local variable declarations for all fields.
-    pub(in codegen) fn local_declarations(&self) -> Tokens {
+    pub(in codegen) fn local_declarations(&self) -> TokenStream {
         if let Data::Struct(ref vd) = self.data {
             let vdr = vd.as_ref().map(Field::as_declaration);
             let decls = vdr.fields.as_slice();
@@ -103,7 +103,7 @@ impl<'a> TraitImpl<'a> {
     }
 
     /// Generate immutable variable declarations for all fields.
-    pub(in codegen) fn immutable_declarations(&self) -> Tokens {
+    pub(in codegen) fn immutable_declarations(&self) -> TokenStream {
         if let Data::Struct(ref vd) = self.data {
             let vdr = vd.as_ref().map(|f| field::Declaration::new(f, false));
             let decls = vdr.fields.as_slice();
@@ -113,17 +113,17 @@ impl<'a> TraitImpl<'a> {
         }
     }
 
-    pub(in codegen) fn map_fn(&self) -> Option<Tokens> {
+    pub(in codegen) fn map_fn(&self) -> Option<TokenStream> {
         self.map.as_ref().map(|path| quote!(.map(#path)))
     }
 
     /// Generate local variable declaration and initialization for instance from which missing fields will be taken.
-    pub(in codegen) fn fallback_decl(&self) -> Tokens {
+    pub(in codegen) fn fallback_decl(&self) -> TokenStream {
         let default = self.default.as_ref().map(DefaultExpression::as_declaration);
         quote!(#default)
     }
 
-    pub fn require_fields(&self) -> Tokens {
+    pub fn require_fields(&self) -> TokenStream {
         if let Data::Struct(ref vd) = self.data {
             let check_nones = vd.as_ref().map(Field::as_presence_check);
             let checks = check_nones.fields.as_slice();
@@ -133,7 +133,7 @@ impl<'a> TraitImpl<'a> {
         }
     }
 
-    pub(in codegen) fn initializers(&self) -> Tokens {
+    pub(in codegen) fn initializers(&self) -> TokenStream {
         let foo = match self.data {
             Data::Enum(_) => panic!("Core loop on enums isn't supported"),
             Data::Struct(ref data) => FieldsGen(data),
@@ -143,7 +143,7 @@ impl<'a> TraitImpl<'a> {
     }
 
     /// Generate the loop which walks meta items looking for property matches.
-    pub(in codegen) fn core_loop(&self) -> Tokens {
+    pub(in codegen) fn core_loop(&self) -> TokenStream {
         let foo = match self.data {
             Data::Enum(_) => panic!("Core loop on enums isn't supported"),
             Data::Struct(ref data) => FieldsGen(data),

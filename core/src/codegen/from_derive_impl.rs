@@ -1,4 +1,5 @@
-use quote::{ToTokens, Tokens};
+use proc_macro2::TokenStream;
+use quote::ToTokens;
 use syn::{self, Ident};
 
 use ast::Data;
@@ -19,7 +20,7 @@ pub struct FromDeriveInputImpl<'a> {
 }
 
 impl<'a> ToTokens for FromDeriveInputImpl<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let ty_ident = self.base.ident;
         let input = self.param_name();
         let map = self.base.map_fn();
@@ -112,19 +113,19 @@ impl<'a> ExtractAttribute for FromDeriveInputImpl<'a> {
         self.forward_attrs
     }
 
-    fn param_name(&self) -> Tokens {
+    fn param_name(&self) -> TokenStream {
         quote!(__di)
     }
 
-    fn core_loop(&self) -> Tokens {
+    fn core_loop(&self) -> TokenStream {
         self.base.core_loop()
     }
 
-    fn local_declarations(&self) -> Tokens {
+    fn local_declarations(&self) -> TokenStream {
         self.base.local_declarations()
     }
 
-    fn immutable_declarations(&self) -> Tokens {
+    fn immutable_declarations(&self) -> TokenStream {
         self.base.immutable_declarations()
     }
 }

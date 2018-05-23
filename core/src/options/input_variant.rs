@@ -70,7 +70,7 @@ impl InputVariant {
 
     fn with_inherited(mut self, parent: &Core) -> Self {
         if self.attr_name.is_none() {
-            self.attr_name = Some(parent.rename_rule.apply_to_variant(&self.ident));
+            self.attr_name = Some(parent.rename_rule.apply_to_variant(self.ident.to_string()));
         }
 
         self

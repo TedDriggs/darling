@@ -1,4 +1,5 @@
-use quote::{ToTokens, Tokens};
+use proc_macro2::TokenStream;
+use quote::ToTokens;
 use syn::{self, Ident};
 
 use codegen::{ExtractAttribute, OuterFromImpl, TraitImpl};
@@ -18,7 +19,7 @@ pub struct FromFieldImpl<'a> {
 }
 
 impl<'a> ToTokens for FromFieldImpl<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let input = self.param_name();
 
         let error_declaration = self.base.declare_errors();
@@ -81,19 +82,19 @@ impl<'a> ExtractAttribute for FromFieldImpl<'a> {
         self.forward_attrs
     }
 
-    fn param_name(&self) -> Tokens {
+    fn param_name(&self) -> TokenStream {
         quote!(__field)
     }
 
-    fn core_loop(&self) -> Tokens {
+    fn core_loop(&self) -> TokenStream {
         self.base.core_loop()
     }
 
-    fn local_declarations(&self) -> Tokens {
+    fn local_declarations(&self) -> TokenStream {
         self.base.local_declarations()
     }
 
-    fn immutable_declarations(&self) -> Tokens {
+    fn immutable_declarations(&self) -> TokenStream {
         self.base.immutable_declarations()
     }
 }
