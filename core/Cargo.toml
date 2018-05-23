@@ -10,13 +10,15 @@ implementing custom derives. Use https://crates.io/crates/darling in your code.
 license = "MIT"
 
 [features]
-# temporary hack to make Racer autocomplete work; it requires a 3-part version
-# number and doesn't allow for any feature declarations.
-default = ["syn/full"]
+# Note about "syn/full": this is a temporary hack to make Racer autocomplete
+# work; it requires a 3-part version number and doesn't allow for any feature
+# declarations.
+default = ["proc-macro", "syn/full"]
+proc-macro = ["proc-macro2/proc-macro", "quote/proc-macro", "syn/proc-macro"]
 
 [dependencies]
 ident_case = "1.0.0"
-proc-macro2 = "0.4.2"
-quote = "0.6"
-syn = { version = "0.14", features = ["extra-traits"] }
+proc-macro2 = { version = "0.4.2", default-features = false }
+quote = { version = "0.6", default-features = false }
+syn = { version = "0.14", default-features = false, features = ["derive", "parsing", "printing", "clone-impls", "extra-traits"] }
 fnv = "1.0.6"
