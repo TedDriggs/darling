@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.6.3 (May 22, 2018)
+- Add support for `Uses*` traits in where predicates
+
 ## v0.6.2 (May 22, 2018)
 - Add `usage` module for tracking type param and lifetime usage in generic declarations
   - Add `UsesTypeParams` and `CollectsTypeParams` traits [#37](https://github.com/darling/issues/37)
