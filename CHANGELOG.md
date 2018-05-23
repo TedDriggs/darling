@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Add `util::IdentString`, which acts as an Ident or its string equivalent
+
 ## v0.6.3 (May 22, 2018)
 - Add support for `Uses*` traits in where predicates
 
