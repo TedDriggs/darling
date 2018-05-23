@@ -22,6 +22,14 @@ pub trait UsesLifetimes {
         options: &Options,
         lifetimes: &'a LifetimeSet,
     ) -> LifetimeRefSet<'a>;
+
+    /// Find all used lifetimes, then clone them and return that set.
+    fn uses_lifetimes_cloned(&self, options: &Options, lifetimes: &LifetimeSet) -> LifetimeSet {
+        self.uses_lifetimes(options, lifetimes)
+            .into_iter()
+            .cloned()
+            .collect()
+}
 }
 
 /// Searcher for finding lifetimes in an iterator.
@@ -35,6 +43,9 @@ pub trait CollectLifetimes {
         options: &Options,
         lifetimes: &'a LifetimeSet,
     ) -> LifetimeRefSet<'a>;
+
+    /// Consume an iterator using `collect_lifetimes`, then clone all found lifetimes and return that set.
+    fn collect_lifetimes_cloned(self, options: &Options, lifetimes: &LifetimeSet) -> LifetimeSet;
 }
 
 impl<'i, I, T> CollectLifetimes for T
@@ -52,6 +63,13 @@ where
                 state.extend(value.uses_lifetimes(options, lifetimes));
                 state
             })
+    }
+
+    fn collect_lifetimes_cloned(self, options: &Options, lifetimes: &LifetimeSet) -> LifetimeSet {
+        self.collect_lifetimes(options, lifetimes)
+            .into_iter()
+            .cloned()
+            .collect()
     }
 }
 

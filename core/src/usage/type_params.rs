@@ -11,6 +11,14 @@ pub trait UsesTypeParams {
     /// This method only accounts for direct usage by the element; indirect usage via bounds or `where`
     /// predicates are not detected.
     fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a>;
+
+    /// Find all type params using `uses_type_params`, then clone the found values and return the set.
+    fn uses_type_params_cloned(&self, options: &Options, type_set: &IdentSet) -> IdentSet {
+        self.uses_type_params(options, type_set)
+            .into_iter()
+            .cloned()
+            .collect()
+}
 }
 
 /// Searcher for finding type params in an iterator.
@@ -20,6 +28,9 @@ pub trait UsesTypeParams {
 pub trait CollectTypeParams {
     /// Consume an iterator, accumulating all type parameters in the elements which occur in `type_set`.
     fn collect_type_params<'a>(self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a>;
+
+    /// Consume an iterator using `collect_type_params`, then clone all found type params and return that set.
+    fn collect_type_params_cloned(self, options: &Options, type_set: &IdentSet) -> IdentSet;
 }
 
 impl<'i, T, I> CollectTypeParams for T
@@ -33,6 +44,13 @@ where
             |state, value| union_in_place(state, value.uses_type_params(options, type_set)),
         )
     }
+
+    fn collect_type_params_cloned(self, options: &Options, type_set: &IdentSet) -> IdentSet {
+        self.collect_type_params(options, type_set)
+            .into_iter()
+            .cloned()
+            .collect()
+}
 }
 
 /// Insert the contents of `right` into `left`.
