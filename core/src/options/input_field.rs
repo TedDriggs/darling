@@ -25,9 +25,8 @@ impl InputField {
         codegen::Field {
             ident: &self.ident,
             name_in_attr: self.attr_name
-                .as_ref()
-                .map(|n| n.as_str())
-                .unwrap_or(self.ident.as_ref()),
+                .clone()
+                .unwrap_or(self.ident.to_string()),
             ty: &self.ty,
             default_expression: self.as_codegen_default(),
             with_path: self.with
@@ -83,7 +82,7 @@ impl InputField {
         // explicit renamings take precedence over rename rules on the container,
         // but in the absence of an explicit name we apply the rule.
         if self.attr_name.is_none() {
-            self.attr_name = Some(parent.rename_rule.apply_to_field(&self.ident));
+            self.attr_name = Some(parent.rename_rule.apply_to_field(self.ident.to_string()));
         }
 
         // Determine the default expression for this field, based on three pieces of information:

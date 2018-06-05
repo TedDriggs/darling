@@ -11,6 +11,14 @@ pub trait UsesTypeParams {
     /// This method only accounts for direct usage by the element; indirect usage via bounds or `where`
     /// predicates are not detected.
     fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a>;
+
+    /// Find all type params using `uses_type_params`, then clone the found values and return the set.
+    fn uses_type_params_cloned(&self, options: &Options, type_set: &IdentSet) -> IdentSet {
+        self.uses_type_params(options, type_set)
+            .into_iter()
+            .cloned()
+            .collect()
+    }
 }
 
 /// Searcher for finding type params in an iterator.
@@ -20,6 +28,9 @@ pub trait UsesTypeParams {
 pub trait CollectTypeParams {
     /// Consume an iterator, accumulating all type parameters in the elements which occur in `type_set`.
     fn collect_type_params<'a>(self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a>;
+
+    /// Consume an iterator using `collect_type_params`, then clone all found type params and return that set.
+    fn collect_type_params_cloned(self, options: &Options, type_set: &IdentSet) -> IdentSet;
 }
 
 impl<'i, T, I> CollectTypeParams for T
@@ -32,6 +43,13 @@ where
             IdentRefSet::with_capacity_and_hasher(type_set.len(), Default::default()),
             |state, value| union_in_place(state, value.uses_type_params(options, type_set)),
         )
+    }
+
+    fn collect_type_params_cloned(self, options: &Options, type_set: &IdentSet) -> IdentSet {
+        self.collect_type_params(options, type_set)
+            .into_iter()
+            .cloned()
+            .collect()
     }
 }
 
@@ -225,6 +243,7 @@ impl UsesTypeParams for syn::TypeParamBound {
 
 #[cfg(test)]
 mod tests {
+    use proc_macro2::Span;
     use syn::{self, Ident};
 
     use super::UsesTypeParams;
@@ -236,7 +255,10 @@ mod tests {
     }
 
     fn ident_set(idents: Vec<&str>) -> IdentSet {
-        idents.into_iter().map(Ident::from).collect()
+        idents
+            .into_iter()
+            .map(|s| Ident::new(s, Span::call_site()))
+            .collect()
     }
 
     #[test]
@@ -245,10 +267,10 @@ mod tests {
         let generics = ident_set(vec!["T", "U", "X"]);
         let matches = input.data.uses_type_params(&BoundImpl.into(), &generics);
         assert_eq!(matches.len(), 2);
-        assert!(matches.contains(&Ident::from("T")));
-        assert!(matches.contains(&Ident::from("U")));
-        assert!(!matches.contains(&Ident::from("X")));
-        assert!(!matches.contains(&Ident::from("A")));
+        assert!(matches.contains::<Ident>(&parse_quote!(T)));
+        assert!(matches.contains::<Ident>(&parse_quote!(U)));
+        assert!(!matches.contains::<Ident>(&parse_quote!(X)));
+        assert!(!matches.contains::<Ident>(&parse_quote!(A)));
     }
 
     #[test]
@@ -267,10 +289,10 @@ mod tests {
         let matches = input.data.uses_type_params(&BoundImpl.into(), &generics);
 
         assert_eq!(matches.len(), 2);
-        assert!(matches.contains(&Ident::from("T")));
-        assert!(matches.contains(&Ident::from("U")));
-        assert!(!matches.contains(&Ident::from("X")));
-        assert!(!matches.contains(&Ident::from("A")));
+        assert!(matches.contains::<Ident>(&parse_quote!(T)));
+        assert!(matches.contains::<Ident>(&parse_quote!(U)));
+        assert!(!matches.contains::<Ident>(&parse_quote!(X)));
+        assert!(!matches.contains::<Ident>(&parse_quote!(A)));
     }
 
     #[test]
@@ -289,10 +311,10 @@ mod tests {
         let matches = input.data.uses_type_params(&BoundImpl.into(), &generics);
 
         assert_eq!(matches.len(), 2);
-        assert!(matches.contains(&Ident::from("T")));
-        assert!(matches.contains(&Ident::from("U")));
-        assert!(!matches.contains(&Ident::from("X")));
-        assert!(!matches.contains(&Ident::from("A")));
+        assert!(matches.contains::<Ident>(&parse_quote!(T)));
+        assert!(matches.contains::<Ident>(&parse_quote!(U)));
+        assert!(!matches.contains::<Ident>(&parse_quote!(X)));
+        assert!(!matches.contains::<Ident>(&parse_quote!(A)));
     }
 
     #[test]
@@ -309,7 +331,7 @@ mod tests {
         let generics = ident_set(vec!["T"]);
         let matches = input.data.uses_type_params(&BoundImpl.into(), &generics);
         assert_eq!(matches.len(), 1);
-        assert!(matches.contains(&Ident::from("T")));
+        assert!(matches.contains::<Ident>(&parse_quote!(T)));
     }
 
     #[test]
@@ -318,7 +340,7 @@ mod tests {
         let generics = ident_set(vec!["T"]);
         let matches = input.data.uses_type_params(&BoundImpl.into(), &generics);
         assert_eq!(matches.len(), 1);
-        assert!(matches.contains(&Ident::from("T")));
+        assert!(matches.contains::<Ident>(&parse_quote!(T)));
     }
 
     /// Test that `syn::TypePath` is correctly honoring the different modes a
@@ -333,6 +355,6 @@ mod tests {
 
         let declare_matches = input.data.uses_type_params(&Declare.into(), &generics);
         assert_eq!(declare_matches.len(), 1);
-        assert!(declare_matches.contains(&Ident::from("T")));
+        assert!(declare_matches.contains::<Ident>(&parse_quote!(T)));
     }
 }

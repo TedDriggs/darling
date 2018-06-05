@@ -45,7 +45,7 @@ fn simple() {
     assert_eq!(
         Core::from_derive_input(&di).unwrap(),
         Core {
-            ident: syn::Ident::from("Bar"),
+            ident: parse_quote!(Bar),
             vis: parse_quote!(pub),
             generics: Default::default(),
             lorem: Lorem {
@@ -69,7 +69,7 @@ fn trait_type() {
     assert_eq!(
         TraitCore::from_derive_input(&di).unwrap(),
         TraitCore {
-            ident: syn::Ident::from("Bar"),
+            ident: parse_quote!(Bar),
             generics: Default::default(),
             lorem: Lorem {
                 ipsum: false,

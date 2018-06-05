@@ -19,9 +19,8 @@ impl InputVariant {
             ty_ident,
             variant_ident: &self.ident,
             name_in_attr: self.attr_name
-                .as_ref()
-                .map(|s| s.as_str())
-                .unwrap_or(self.ident.as_ref()),
+                .clone()
+                .unwrap_or(self.ident.to_string()),
             data: self.data.as_ref().map(InputField::as_codegen_field),
             skip: self.skip,
         }
@@ -70,7 +69,7 @@ impl InputVariant {
 
     fn with_inherited(mut self, parent: &Core) -> Self {
         if self.attr_name.is_none() {
-            self.attr_name = Some(parent.rename_rule.apply_to_variant(&self.ident));
+            self.attr_name = Some(parent.rename_rule.apply_to_variant(self.ident.to_string()));
         }
 
         self

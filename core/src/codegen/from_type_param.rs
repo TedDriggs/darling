@@ -1,8 +1,10 @@
-use quote::{ToTokens, Tokens};
+use proc_macro2::TokenStream;
+use quote::ToTokens;
 use syn::{self, Ident};
 
 use codegen::{ExtractAttribute, OuterFromImpl, TraitImpl};
 use options::ForwardAttrs;
+use util::IdentList;
 
 pub struct FromTypeParamImpl<'a> {
     pub base: TraitImpl<'a>,
@@ -10,13 +12,13 @@ pub struct FromTypeParamImpl<'a> {
     pub attrs: Option<&'a Ident>,
     pub bounds: Option<&'a Ident>,
     pub default: Option<&'a Ident>,
-    pub attr_names: Vec<&'a str>,
+    pub attr_names: &'a IdentList,
     pub forward_attrs: Option<&'a ForwardAttrs>,
     pub from_ident: bool,
 }
 
 impl<'a> ToTokens for FromTypeParamImpl<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let input = self.param_name();
 
         let error_declaration = self.base.declare_errors();
@@ -72,27 +74,27 @@ impl<'a> ToTokens for FromTypeParamImpl<'a> {
 }
 
 impl<'a> ExtractAttribute for FromTypeParamImpl<'a> {
-    fn attr_names(&self) -> &[&str] {
-        self.attr_names.as_slice()
+    fn attr_names(&self) -> &IdentList {
+        &self.attr_names
     }
 
     fn forwarded_attrs(&self) -> Option<&ForwardAttrs> {
         self.forward_attrs
     }
 
-    fn param_name(&self) -> Tokens {
+    fn param_name(&self) -> TokenStream {
         quote!(__type_param)
     }
 
-    fn core_loop(&self) -> Tokens {
+    fn core_loop(&self) -> TokenStream {
         self.base.core_loop()
     }
 
-    fn local_declarations(&self) -> Tokens {
+    fn local_declarations(&self) -> TokenStream {
         self.base.local_declarations()
     }
 
-    fn immutable_declarations(&self) -> Tokens {
+    fn immutable_declarations(&self) -> TokenStream {
         self.base.immutable_declarations()
     }
 }

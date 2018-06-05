@@ -1,4 +1,5 @@
-use quote::{ToTokens, Tokens};
+use proc_macro2::TokenStream;
+use quote::{TokenStreamExt, ToTokens};
 use syn::{GenericParam, Generics, Path, TraitBound, TraitBoundModifier, TypeParamBound};
 
 use codegen::TraitImpl;
@@ -15,7 +16,7 @@ pub trait OuterFromImpl<'a> {
         self.trait_path()
     }
 
-    fn wrap<T: ToTokens>(&'a self, body: T, tokens: &mut Tokens) {
+    fn wrap<T: ToTokens>(&'a self, body: T, tokens: &mut TokenStream) {
         let base = self.base();
         let trayt = self.trait_path();
         let ty_ident = base.ident;

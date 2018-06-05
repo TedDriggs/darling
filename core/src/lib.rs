@@ -37,3 +37,7 @@ pub use from_generics::FromGenerics;
 pub use from_meta::FromMeta;
 pub use from_type_param::FromTypeParam;
 pub use from_variant::FromVariant;
+
+// Re-export tokenizer
+#[doc(hidden)]
+pub use quote::ToTokens;

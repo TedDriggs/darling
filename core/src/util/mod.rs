@@ -6,11 +6,13 @@ use syn;
 use {FromMeta, Result};
 
 mod ident_list;
+mod ident_string;
 mod ignored;
 mod over_ride;
 mod with_original;
 
 pub use self::ident_list::IdentList;
+pub use self::ident_string::IdentString;
 pub use self::ignored::Ignored;
 pub use self::over_ride::Override;
 pub use self::with_original::WithOriginal;

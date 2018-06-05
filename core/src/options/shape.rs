@@ -1,4 +1,5 @@
-use quote::{ToTokens, Tokens};
+use proc_macro2::TokenStream;
+use quote::{TokenStreamExt, ToTokens};
 use syn::{Meta, NestedMeta};
 
 use {Error, FromMeta, Result};
@@ -34,7 +35,8 @@ impl FromMeta for Shape {
         let mut new = Shape::default();
         for item in items {
             if let NestedMeta::Meta(Meta::Word(ref ident)) = *item {
-                let word = ident.as_ref();
+                let word = ident.to_string();
+                let word = word.as_str();
                 if word == "any" {
                     new.any = true;
                 } else if word.starts_with("enum_") {
@@ -54,7 +56,7 @@ impl FromMeta for Shape {
 }
 
 impl ToTokens for Shape {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let fn_body = if self.any == true {
             quote!(::darling::export::Ok(()))
         } else {
@@ -148,7 +150,7 @@ impl FromMeta for DataShape {
         let mut new = DataShape::default();
         for item in items {
             if let NestedMeta::Meta(Meta::Word(ref ident)) = *item {
-                new.set_word(ident.as_ref())?;
+                new.set_word(ident.to_string().as_str())?;
             } else {
                 return Err(Error::unsupported_format("non-word"));
             }
@@ -159,7 +161,7 @@ impl FromMeta for DataShape {
 }
 
 impl ToTokens for DataShape {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let body = if self.any {
             quote!(::darling::export::Ok(()))
         } else if self.supports_none() {
@@ -194,7 +196,7 @@ impl ToTokens for DataShape {
     }
 }
 
-fn match_arm(name: &'static str, is_supported: bool) -> Tokens {
+fn match_arm(name: &'static str, is_supported: bool) -> TokenStream {
     if is_supported {
         quote!(::darling::export::Ok(()))
     } else {
@@ -204,19 +206,19 @@ fn match_arm(name: &'static str, is_supported: bool) -> Tokens {
 
 #[cfg(test)]
 mod tests {
-    use quote::Tokens;
+    use proc_macro2::TokenStream;
     use syn;
 
     use super::Shape;
     use FromMeta;
 
     /// parse a string as a syn::Meta instance.
-    fn pm(tokens: Tokens) -> ::std::result::Result<syn::Meta, String> {
+    fn pm(tokens: TokenStream) -> ::std::result::Result<syn::Meta, String> {
         let attribute: syn::Attribute = parse_quote!(#[#tokens]);
         attribute.interpret_meta().ok_or("Unable to parse".into())
     }
 
-    fn fm<T: FromMeta>(tokens: Tokens) -> T {
+    fn fm<T: FromMeta>(tokens: TokenStream) -> T {
         FromMeta::from_meta(&pm(tokens).expect("Tests should pass well-formed input"))
             .expect("Tests should pass valid input")
     }

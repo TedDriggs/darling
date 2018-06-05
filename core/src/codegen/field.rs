@@ -1,4 +1,5 @@
-use quote::{ToTokens, Tokens};
+use proc_macro2::TokenStream;
+use quote::{TokenStreamExt, ToTokens};
 use syn::{Ident, Path, Type};
 
 use codegen::DefaultExpression;
@@ -10,7 +11,7 @@ use usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
 pub struct Field<'a> {
     /// The name presented to the user of the library. This will appear
     /// in error messages and will be looked when parsing names.
-    pub name_in_attr: &'a str,
+    pub name_in_attr: String,
 
     /// The name presented to the author of the library. This will appear
     /// in the setters or temporary variables which contain the values.
@@ -64,7 +65,7 @@ impl<'a> Declaration<'a> {
 }
 
 impl<'a> ToTokens for Declaration<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let field: &Field = self.0;
         let ident = field.ident;
         let ty = field.ty;
@@ -84,10 +85,10 @@ impl<'a> ToTokens for Declaration<'a> {
 pub struct MatchArm<'a>(&'a Field<'a>);
 
 impl<'a> ToTokens for MatchArm<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let field: &Field = self.0;
         if !field.skip {
-            let name_str = field.name_in_attr;
+            let name_str = &field.name_in_attr;
             let ident = field.ident;
             let with_path = &field.with_path;
 
@@ -151,7 +152,7 @@ impl<'a> ToTokens for MatchArm<'a> {
 pub struct Initializer<'a>(&'a Field<'a>);
 
 impl<'a> ToTokens for Initializer<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let field: &Field = self.0;
         let ident = field.ident;
         tokens.append_all(if field.multiple {
@@ -181,10 +182,10 @@ impl<'a> ToTokens for Initializer<'a> {
 pub struct CheckMissing<'a>(&'a Field<'a>);
 
 impl<'a> ToTokens for CheckMissing<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         if !self.0.multiple && self.0.default_expression.is_none() {
             let ident = self.0.ident;
-            let name_in_attr = self.0.name_in_attr;
+            let name_in_attr = &self.0.name_in_attr;
 
             tokens.append_all(quote! {
                 if !#ident.0 {

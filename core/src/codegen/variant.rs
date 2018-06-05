@@ -1,4 +1,5 @@
-use quote::{ToTokens, Tokens};
+use proc_macro2::TokenStream;
+use quote::{TokenStreamExt, ToTokens};
 use syn::Ident;
 
 use ast::Fields;
@@ -10,7 +11,7 @@ use usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Variant<'a> {
     /// The name which will appear in code passed to the `FromMeta` input.
-    pub name_in_attr: &'a str,
+    pub name_in_attr: String,
 
     /// The name of the variant which will be returned for a given `name_in_attr`.
     pub variant_ident: &'a Ident,
@@ -47,14 +48,14 @@ impl<'a> UsesTypeParams for Variant<'a> {
 pub struct UnitMatchArm<'a>(&'a Variant<'a>);
 
 impl<'a> ToTokens for UnitMatchArm<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let val: &Variant<'a> = self.0;
 
         if val.skip {
             return;
         }
 
-        let name_in_attr = val.name_in_attr;
+        let name_in_attr = &val.name_in_attr;
 
         if val.data.is_unit() {
             let variant_ident = val.variant_ident;
@@ -74,14 +75,14 @@ impl<'a> ToTokens for UnitMatchArm<'a> {
 pub struct DataMatchArm<'a>(&'a Variant<'a>);
 
 impl<'a> ToTokens for DataMatchArm<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let val: &Variant<'a> = self.0;
 
         if val.skip {
             return;
         }
 
-        let name_in_attr = val.name_in_attr;
+        let name_in_attr = &val.name_in_attr;
         let variant_ident = val.variant_ident;
         let ty_ident = val.ty_ident;
 
@@ -97,7 +98,7 @@ impl<'a> ToTokens for DataMatchArm<'a> {
 
         if val.data.is_struct() {
             let declare_errors = ErrorDeclaration::new();
-            let check_errors = ErrorCheck::with_location(name_in_attr);
+            let check_errors = ErrorCheck::with_location(&name_in_attr);
             let require_fields = vdg.require_fields();
             let decls = vdg.declarations();
             let core_loop = vdg.core_loop();

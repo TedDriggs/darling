@@ -230,7 +230,7 @@ impl<F: FromField> Fields<F> {
                     match f_result {
                         Ok(val) => items.push(val),
                         Err(err) => errors.push(if let Some(ref ident) = field.ident {
-                            err.at(ident.as_ref())
+                            err.at(ident)
                         } else {
                             err
                         }),
@@ -248,7 +248,7 @@ impl<F: FromField> Fields<F> {
                     match f_result {
                         Ok(val) => items.push(val),
                         Err(err) => errors.push(if let Some(ref ident) = field.ident {
-                            err.at(ident.as_ref())
+                            err.at(ident)
                         } else {
                             err
                         }),

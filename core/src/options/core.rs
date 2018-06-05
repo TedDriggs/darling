@@ -67,7 +67,7 @@ impl Core {
 
 impl ParseAttribute for Core {
     fn parse_nested(&mut self, mi: &syn::Meta) -> Result<()> {
-        match mi.name().as_ref() {
+        match mi.name().to_string().as_str() {
             "default" => {
                 if self.default.is_some() {
                     Err(Error::duplicate_field("default"))

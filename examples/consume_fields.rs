@@ -2,14 +2,15 @@
 
 #[macro_use]
 extern crate darling;
-
+extern crate proc_macro2;
 #[macro_use]
 extern crate quote;
 extern crate syn;
 
 use darling::ast;
 use darling::FromDeriveInput;
-use quote::{ToTokens, Tokens};
+use proc_macro2::TokenStream;
+use quote::ToTokens;
 use syn::parse_str;
 
 /// A speaking volume. Deriving `FromMeta` will cause this to be usable
@@ -54,7 +55,7 @@ struct MyInputReceiver {
 }
 
 impl ToTokens for MyInputReceiver {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let MyInputReceiver {
             ref ident,
             ref generics,
@@ -80,7 +81,7 @@ impl ToTokens for MyInputReceiver {
                     "{} = {{}}",
                     f.ident
                         .as_ref()
-                        .map(|v| format!("{}", v),)
+                        .map(|v| format!("{}", v))
                         .unwrap_or_else(|| format!("{}", i))
                 )
             })
@@ -113,7 +114,7 @@ impl ToTokens for MyInputReceiver {
             })
             .collect::<Vec<_>>();
 
-        tokens.append_all(quote! {
+        tokens.extend(quote! {
             impl #imp Speak for #ident #ty #wher {
                 fn speak(&self, writer: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                     write!(#fmt_string, #(#field_list),*)

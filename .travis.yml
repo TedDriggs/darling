@@ -1,5 +1,12 @@
+sudo: false
 language: rust
-env:
+
+rust:
+  - 1.18.0
   - stable
   - beta
   - nightly
+
+env:
+  global:
+    - RUST_BACKTRACE=1

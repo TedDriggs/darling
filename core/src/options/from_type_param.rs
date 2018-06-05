@@ -34,7 +34,13 @@ impl ParseData for FromTypeParamOptions {
     }
 
     fn parse_field(&mut self, field: &syn::Field) -> Result<()> {
-        match field.ident.as_ref().map(|v| v.as_ref()) {
+        match field
+            .ident
+            .as_ref()
+            .map(|v| v.to_string())
+            .as_ref()
+            .map(|v| v.as_str())
+        {
             Some("bounds") => {
                 self.bounds = field.ident.clone();
                 Ok(())
@@ -56,7 +62,7 @@ impl<'a> From<&'a FromTypeParamOptions> for FromTypeParamImpl<'a> {
             attrs: v.base.attrs.as_ref(),
             bounds: v.bounds.as_ref(),
             default: v.default.as_ref(),
-            attr_names: v.base.attr_names.as_strs(),
+            attr_names: &v.base.attr_names,
             forward_attrs: v.base.forward_attrs.as_ref(),
             from_ident: v.base.from_ident,
         }

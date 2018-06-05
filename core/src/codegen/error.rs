@@ -1,4 +1,5 @@
-use quote::{ToTokens, Tokens};
+use proc_macro2::TokenStream;
+use quote::{TokenStreamExt, ToTokens};
 
 /// Declares the local variable into which errors will be accumulated.
 pub struct ErrorDeclaration {
@@ -12,7 +13,7 @@ impl ErrorDeclaration {
 }
 
 impl ToTokens for ErrorDeclaration {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         tokens.append_all(quote! {
             let mut __errors = Vec::new();
         })
@@ -42,7 +43,7 @@ impl<'a> ErrorCheck<'a> {
 }
 
 impl<'a> ToTokens for ErrorCheck<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let at_call = if let Some(ref s) = self.location {
             quote!(.at(#s))
         } else {

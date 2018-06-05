@@ -1,4 +1,5 @@
-use quote::{ToTokens, Tokens};
+use proc_macro2::TokenStream;
+use quote::ToTokens;
 use syn;
 
 use ast::{Data, Fields, Style};
@@ -9,7 +10,7 @@ pub struct FromMetaImpl<'a> {
 }
 
 impl<'a> ToTokens for FromMetaImpl<'a> {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let base = &self.base;
 
         let impl_block = match base.data {
@@ -86,7 +87,7 @@ impl<'a> ToTokens for FromMetaImpl<'a> {
                             0 => ::darling::export::Err(::darling::Error::too_few_items(1)),
                             1 => {
                                 if let ::syn::NestedMeta::Meta(ref __nested) = __outer[0] {
-                                    match __nested.name().as_ref() {
+                                    match __nested.name().to_string().as_ref() {
                                         #(#struct_arms)*
                                         __other => ::darling::export::Err(::darling::Error::unknown_value(__other))
                                     }
