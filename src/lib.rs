@@ -76,6 +76,8 @@ pub use darling_core::{Error, Result};
 #[doc(inline)]
 pub use darling_core::{ast, error, usage, util};
 
+// XXX exported so that `ExtractAttribute::extractor` can convert a path into tokens.
+// This is likely to change in the future, so only generated code should depend on this export.
 #[doc(hidden)]
 pub use darling_core::ToTokens;
 
