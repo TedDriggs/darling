@@ -1,6 +1,7 @@
 # Changelog
 
-## Unreleased
+## v0.7.0 (July 24, 2018)
+- Update dependencies on `syn` and `proc-macro2`
 - Add `util::IdentString`, which acts as an Ident or its string equivalent
 
 ## v0.6.3 (May 22, 2018)
