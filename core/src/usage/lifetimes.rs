@@ -116,6 +116,7 @@ uses_lifetimes!(syn::AngleBracketedGenericArguments, args);
 uses_lifetimes!(syn::BareFnArg, ty);
 uses_lifetimes!(syn::Binding, ty);
 uses_lifetimes!(syn::BoundLifetimes, lifetimes);
+uses_lifetimes!(syn::Constraint, bounds);
 uses_lifetimes!(syn::DataEnum, variants);
 uses_lifetimes!(syn::DataStruct, fields);
 uses_lifetimes!(syn::DataUnion, fields);
@@ -259,6 +260,7 @@ impl UsesLifetimes for syn::GenericArgument {
             syn::GenericArgument::Type(ref v) => v.uses_lifetimes(options, lifetimes),
             syn::GenericArgument::Binding(ref v) => v.uses_lifetimes(options, lifetimes),
             syn::GenericArgument::Lifetime(ref v) => v.uses_lifetimes(options, lifetimes),
+            syn::GenericArgument::Constraint(ref v) => v.uses_lifetimes(options, lifetimes),
             syn::GenericArgument::Const(_) => Default::default(),
         }
     }

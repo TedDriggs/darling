@@ -66,10 +66,6 @@ pub trait ParseAttribute: Sized {
 }
 
 fn parse_attr<T: ParseAttribute>(attr: &syn::Attribute, target: &mut T) -> Result<()> {
-    if attr.is_sugared_doc {
-        return Ok(());
-    }
-
     match attr.interpret_meta() {
         Some(syn::Meta::List(data)) => {
             for item in data.nested {

@@ -89,6 +89,7 @@ impl<T: UsesTypeParams, U> UsesTypeParams for Punctuated<T, U> {
 uses_type_params!(syn::AngleBracketedGenericArguments, args);
 uses_type_params!(syn::BareFnArg, ty);
 uses_type_params!(syn::Binding, ty);
+uses_type_params!(syn::Constraint, bounds);
 uses_type_params!(syn::DataEnum, variants);
 uses_type_params!(syn::DataStruct, fields);
 uses_type_params!(syn::DataUnion, fields);
@@ -187,7 +188,7 @@ impl UsesTypeParams for syn::Path {
 
         // A path segment ident can only match if it is not global and it is the first segment
         // in the path.
-        let ident_hits = if !self.global() {
+        let ident_hits = if self.leading_colon.is_none() {
             self.segments[0].ident.uses_type_params(options, type_set)
         } else {
             Default::default()
@@ -225,6 +226,7 @@ impl UsesTypeParams for syn::GenericArgument {
         match *self {
             syn::GenericArgument::Type(ref v) => v.uses_type_params(options, type_set),
             syn::GenericArgument::Binding(ref v) => v.uses_type_params(options, type_set),
+            syn::GenericArgument::Constraint(ref v) => v.uses_type_params(options, type_set),
             syn::GenericArgument::Const(_) | syn::GenericArgument::Lifetime(_) => {
                 Default::default()
             }
