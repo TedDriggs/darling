@@ -21,7 +21,7 @@ darling_macro = { version = "=0.7.0", path = "macro" }
 [dev-dependencies]
 proc-macro2 = "0.4"
 quote = "0.6"
-syn = "0.14"
+syn = "0.15"
 
 [workspace]
 members = ["macro", "core"]
