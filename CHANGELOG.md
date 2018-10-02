@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.8.0
+- Update dependency on `syn` to 0.15 [#44](https://github.com/darling/pull/44). Thanks to @hcpl
+
 ## v0.7.0 (July 24, 2018)
 - Update dependencies on `syn` and `proc-macro2`
 - Add `util::IdentString`, which acts as an Ident or its string equivalent
