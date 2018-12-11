@@ -1,6 +1,6 @@
 [package]
 name = "darling"
-version = "0.8.0"
+version = "0.8.1"
 authors = ["Ted Driggs <ted.driggs@outlook.com>"]
 repository = "https://github.com/TedDriggs/darling"
 documentation = "https://docs.rs/darling/0.8.0"
