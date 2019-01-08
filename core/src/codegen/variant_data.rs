@@ -2,7 +2,6 @@ use proc_macro2::TokenStream;
 
 use ast::Fields;
 use ast::Style;
-use codegen::field;
 use codegen::Field;
 
 pub struct FieldsGen<'a>(pub &'a Fields<Field<'a>>);
@@ -23,7 +22,7 @@ impl<'a> FieldsGen<'a> {
 
     /// Generate the loop which walks meta items looking for property matches.
     pub(in codegen) fn core_loop(&self) -> TokenStream {
-        let arms: Vec<field::MatchArm> = self.0.as_ref().map(Field::as_match).fields;
+        let arms = self.0.as_ref().map(Field::as_match);
 
         quote!(
             for __item in __items {
@@ -52,7 +51,7 @@ impl<'a> FieldsGen<'a> {
     }
 
     pub(in codegen) fn initializers(&self) -> TokenStream {
-        let inits: Vec<_> = self.0.as_ref().map(Field::as_initializer).fields;
+        let inits = self.0.as_ref().map(Field::as_initializer);
 
         quote!(#(#inits),*)
     }

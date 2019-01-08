@@ -1,4 +1,4 @@
-use std::slice;
+use std::{slice, vec};
 
 use syn;
 
@@ -156,6 +156,7 @@ impl<V: UsesLifetimes, F: UsesLifetimes> UsesLifetimes for Data<V, F> {
     }
 }
 
+/// Equivalent to `syn::Fields`, but replaces the AST element with a generic.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Fields<T> {
     pub style: Style,
@@ -268,6 +269,15 @@ impl<F: FromField> Fields<F> {
                 fields: items,
             })
         }
+    }
+}
+
+impl<T> IntoIterator for Fields<T> {
+    type Item = T;
+    type IntoIter = vec::IntoIter<T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.fields.into_iter()
     }
 }
 
