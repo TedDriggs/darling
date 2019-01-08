@@ -5,7 +5,6 @@
 //! 1. Using `Result<T, syn::Meta>` to attempt a recovery in imperative code
 //! 1. Using the `map` darling meta-item to post-process the receiver before returning.
 
-#[macro_use]
 extern crate darling;
 
 extern crate syn;
@@ -58,8 +57,8 @@ impl MyInputReceiver {
         };
 
         Self {
-            name: name,
-            frequency: frequency,
+            name,
+            frequency,
             amplitude: Ok(amplitude),
         }
     }
