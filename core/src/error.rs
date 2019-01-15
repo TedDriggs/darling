@@ -1,5 +1,7 @@
 //! Types for working with darling errors and results.
 
+use proc_macro2::Span;
+use syn::spanned::Spanned;
 use std::error::Error as StdError;
 use std::fmt;
 use std::iter::{self, Iterator};
@@ -16,17 +18,21 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 #[derive(Debug)]
 // Don't want to publicly commit to Error supporting equality yet, but
 // not having it makes testing very difficult.
-#[cfg_attr(test, derive(Clone, PartialEq, Eq))]
+#[cfg_attr(test, derive(Clone))]
 pub struct Error {
     kind: ErrorKind,
     locations: Vec<String>,
+    /// The span to highlight in the emitted diagnostic.
+    span: Option<Span>,
 }
 
+/// Error-creation functions
 impl Error {
     fn new(kind: ErrorKind) -> Self {
         Error {
-            kind: kind,
+            kind,
             locations: Vec::new(),
+            span: None,
         }
     }
 
@@ -96,6 +102,28 @@ impl Error {
             panic!("Can't deal with 0 errors")
         }
     }
+}
+
+impl Error {
+    /// Check if this error is associated with a span in the token stream.
+    pub fn has_span(&self) -> bool {
+        self.span.is_some()
+    }
+
+    pub fn set_span(&mut self, span: Span) {
+        self.span = Some(span)
+    }
+
+    /// Tie a span to the error if none is already present. This is
+    /// used in `darling::FromMeta` to attach errors to the most specific
+    /// possible location in the input source code.
+    pub fn with_span<T: Spanned>(mut self, node: &T) -> Self {
+        if !self.has_span() {
+            self.set_span(node.span());
+        }
+
+        self
+    }
 
     /// Recursively converts a tree of errors to a flattened list.
     pub fn flatten(self) -> Self {
@@ -164,9 +192,23 @@ impl fmt::Display for Error {
             write!(f, " at {}", self.locations.join("/"))?;
         }
 
+        if self.span.is_some() {
+            write!(f, " (has span)")?;
+        }
+
         Ok(())
     }
 }
+
+#[cfg(test)]
+impl PartialEq for Error {
+    fn eq(&self, other: &Self) -> bool {
+        self.kind == other.kind && self.locations == other.locations
+    }
+}
+
+#[cfg(test)]
+impl Eq for Error {}
 
 impl IntoIterator for Error {
     type Item = Error;
@@ -323,8 +365,9 @@ mod tests {
         let err = Error::multiple(vec![
             Error::unknown_field("hello").at("world"),
             Error::missing_field("hell_no").at("world"),
-        ]).at("foo")
-            .flatten();
+        ])
+        .at("foo")
+        .flatten();
 
         assert!(err.location().is_empty());
 

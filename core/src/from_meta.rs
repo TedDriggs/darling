@@ -38,16 +38,17 @@ use {Error, Result};
 ///   parse attempt.
 pub trait FromMeta: Sized {
     fn from_nested_meta(item: &NestedMeta) -> Result<Self> {
-        match *item {
+        (match *item {
             NestedMeta::Literal(ref lit) => Self::from_value(lit),
             NestedMeta::Meta(ref mi) => Self::from_meta(mi),
-        }
+        })
+        .map_err(|e| e.with_span(item))
     }
 
     /// Create an instance from a `syn::Meta` by dispatching to the format-appropriate
     /// trait function. This generally should not be overridden by implementers.
     fn from_meta(item: &Meta) -> Result<Self> {
-        match *item {
+        (match *item {
             Meta::Word(_) => Self::from_word(),
             Meta::List(ref value) => Self::from_list(
                 &value
@@ -57,7 +58,8 @@ pub trait FromMeta: Sized {
                     .collect::<Vec<syn::NestedMeta>>()[..],
             ),
             Meta::NameValue(ref value) => Self::from_value(&value.lit),
-        }
+        })
+        .map_err(|e| e.with_span(item))
     }
 
     /// Create an instance from the presence of the word in the attribute with no
@@ -76,11 +78,12 @@ pub trait FromMeta: Sized {
     /// This dispatches to the appropriate method based on the type of literal encountered,
     /// and generally should not be overridden by implementers.
     fn from_value(value: &Lit) -> Result<Self> {
-        match *value {
+        (match *value {
             Lit::Bool(ref b) => Self::from_bool(b.value),
             Lit::Str(ref s) => Self::from_string(&s.value()),
             ref _other => Err(Error::unexpected_type("other")),
-        }
+        })
+        .map_err(|e| e.with_span(value))
     }
 
     /// Create an instance from a char literal in a value position.
@@ -126,7 +129,7 @@ impl FromMeta for bool {
 
 impl FromMeta for AtomicBool {
     fn from_meta(mi: &Meta) -> Result<Self> {
-        FromMeta::from_meta(mi).map(AtomicBool::new)
+        FromMeta::from_meta(mi).map(AtomicBool::new).map_err(|e| e.with_span(mi))
     }
 }
 
@@ -292,7 +295,9 @@ impl<V: FromMeta> FromMeta for HashMap<String, V> {
         for item in nested {
             if let syn::NestedMeta::Meta(ref inner) = *item {
                 match map.entry(inner.name().to_string()) {
-                    Entry::Occupied(_) => return Err(Error::duplicate_field(&inner.name().to_string())),
+                    Entry::Occupied(_) => {
+                        return Err(Error::duplicate_field(&inner.name().to_string()))
+                    }
                     Entry::Vacant(entry) => {
                         entry.insert(FromMeta::from_meta(inner).map_err(|e| e.at(inner.name()))?);
                     }
