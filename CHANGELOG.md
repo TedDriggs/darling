@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.2 (January 17, 2019)
+- Add spans to errors to make quality warnings and errors easy in darling. This is blocked on diagnostics stabilizing.
+- Add `darling::util::SpannedValue` so proc-macro authors can remember position information alongside parsed values.
+
 ## v0.8.0
 - Update dependency on `syn` to 0.15 [#44](https://github.com/darling/pull/44). Thanks to @hcpl
 
