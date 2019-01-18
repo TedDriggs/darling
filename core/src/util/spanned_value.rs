@@ -61,7 +61,6 @@ impl<T> AsRef<T> for SpannedValue<T> {
 
 impl<T: FromMeta> FromMeta for SpannedValue<T> {
     fn from_meta(item: &Meta) -> Result<Self> {
-        eprintln!("{:?}", item);
         Ok(SpannedValue::new(
             FromMeta::from_meta(item).map_err(|e| e.with_span(item))?,
             item.span(),
