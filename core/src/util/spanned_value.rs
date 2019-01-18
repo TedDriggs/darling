@@ -1,4 +1,4 @@
-use crate::{FromMeta, Result};
+use ::{FromMeta, Result};
 use proc_macro2::Span;
 use std::ops::{Deref, DerefMut};
 use syn::spanned::Spanned;
