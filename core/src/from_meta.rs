@@ -47,6 +47,12 @@ pub trait FromMeta: Sized {
 
     /// Create an instance from a `syn::Meta` by dispatching to the format-appropriate
     /// trait function. This generally should not be overridden by implementers.
+    ///
+    /// # Error Spans
+    /// If this method is overridden and can introduce errors that weren't passed up from
+    /// other `from_meta` calls, the override must call `with_span` on the error using the
+    /// `item` to make sure that the emitted diagnostic points to the correct location in
+    /// source code.
     fn from_meta(item: &Meta) -> Result<Self> {
         (match *item {
             Meta::Word(_) => Self::from_word(),
@@ -77,6 +83,10 @@ pub trait FromMeta: Sized {
     /// Create an instance from a literal value of either `foo = "bar"` or `foo("bar")`.
     /// This dispatches to the appropriate method based on the type of literal encountered,
     /// and generally should not be overridden by implementers.
+    ///
+    /// # Error Spans
+    /// If this method is overridden, the override must make sure to add `value`'s span
+    /// information to the returned error by calling `with_span(value)` on the `Error` instance.
     fn from_value(value: &Lit) -> Result<Self> {
         (match *value {
             Lit::Bool(ref b) => Self::from_bool(b.value),
@@ -129,7 +139,9 @@ impl FromMeta for bool {
 
 impl FromMeta for AtomicBool {
     fn from_meta(mi: &Meta) -> Result<Self> {
-        FromMeta::from_meta(mi).map(AtomicBool::new).map_err(|e| e.with_span(mi))
+        FromMeta::from_meta(mi)
+            .map(AtomicBool::new)
+            .map_err(|e| e.with_span(mi))
     }
 }
 
@@ -296,9 +308,13 @@ impl<V: FromMeta> FromMeta for HashMap<String, V> {
             if let syn::NestedMeta::Meta(ref inner) = *item {
                 match map.entry(inner.name().to_string()) {
                     Entry::Occupied(_) => {
-                        return Err(Error::duplicate_field(&inner.name().to_string()))
+                        return Err(
+                            Error::duplicate_field(&inner.name().to_string()).with_span(inner)
+                        );
                     }
                     Entry::Vacant(entry) => {
+                        // In the error case, extend the error's path, but assume the inner `from_meta`
+                        // set the span, and that subsequently we don't have to.
                         entry.insert(FromMeta::from_meta(inner).map_err(|e| e.at(inner.name()))?);
                     }
                 }
@@ -316,7 +332,7 @@ mod tests {
     use proc_macro2::TokenStream;
     use syn;
 
-    use {FromMeta, Result};
+    use {Error, FromMeta, Result};
 
     /// parse a string as a syn::Meta instance.
     fn pm(tokens: TokenStream) -> ::std::result::Result<syn::Meta, String> {
@@ -389,6 +405,21 @@ mod tests {
             fm::<HashMap<String, bool>>(quote!(ignore(hello, world = false, there = "true"))),
             comparison
         );
+    }
+
+    /// Check that a `HashMap` cannot have duplicate keys, and that the generated error
+    /// is assigned a span to correctly target the diagnostic message.
+    #[test]
+    fn hash_map_duplicate() {
+        use std::collections::HashMap;
+
+        let err: Result<HashMap<String, bool>> =
+            FromMeta::from_meta(&pm(quote!(ignore(hello, hello = false))).unwrap());
+
+        let err = err.expect_err("Duplicate keys in HashMap should error");
+
+        assert!(err.has_span());
+        assert_eq!(err.to_string(), Error::duplicate_field("hello").to_string());
     }
 
     /// Tests that fallible parsing will always produce an outer `Ok` (from `fm`),
