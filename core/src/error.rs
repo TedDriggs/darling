@@ -1,12 +1,12 @@
 //! Types for working with darling errors and results.
 
 use proc_macro2::Span;
-use syn::spanned::Spanned;
 use std::error::Error as StdError;
 use std::fmt;
 use std::iter::{self, Iterator};
 use std::string::ToString;
 use std::vec;
+use syn::spanned::Spanned;
 
 /// An alias of `Result` specific to attribute parsing.
 pub type Result<T> = ::std::result::Result<T, Error>;
@@ -16,8 +16,6 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 /// Given that most errors darling encounters represent code bugs in dependent crates,
 /// the internal structure of the error is deliberately opaque.
 #[derive(Debug)]
-// Don't want to publicly commit to Error supporting equality yet, but
-// not having it makes testing very difficult.
 #[cfg_attr(test, derive(Clone))]
 pub struct Error {
     kind: ErrorKind,
@@ -26,7 +24,7 @@ pub struct Error {
     span: Option<Span>,
 }
 
-/// Error-creation functions
+/// Error creation functions
 impl Error {
     fn new(kind: ErrorKind) -> Self {
         Error {
@@ -104,22 +102,36 @@ impl Error {
     }
 }
 
+/// Error instance methods
 impl Error {
     /// Check if this error is associated with a span in the token stream.
     pub fn has_span(&self) -> bool {
         self.span.is_some()
     }
 
+    /// Override the source code location of this error with a new one.
+    #[deprecated(
+        since = "0.8.3",
+        note = "Callers should not broaden error spans. Use with_span instead."
+    )]
     pub fn set_span(&mut self, span: Span) {
         self.span = Some(span)
     }
 
-    /// Tie a span to the error if none is already present. This is
-    /// used in `darling::FromMeta` to attach errors to the most specific
-    /// possible location in the input source code.
+    /// Tie a span to the error if none is already present. This is used in `darling::FromMeta`
+    /// and other traits to attach errors to the most specific possible location in the input
+    /// source code.
+    ///
+    /// All `darling`-built impls, either from the crate or from the proc macro, will call this
+    /// when appropriate during parsing, so it should not be necessary to call this unless you have
+    /// overridden:
+    ///
+    /// * `FromMeta::from_meta`
+    /// * `FromMeta::from_nested_meta`
+    /// * `FromMeta::from_value`
     pub fn with_span<T: Spanned>(mut self, node: &T) -> Self {
         if !self.has_span() {
-            self.set_span(node.span());
+            self.span = Some(node.span());
         }
 
         self
@@ -152,7 +164,7 @@ impl Error {
 
     /// Gets the number of individual errors in this error.
     ///
-    /// This function should never return `0`, as it shouldn't be possible to construct
+    /// This function never returns `0`, as it's impossible to construct
     /// a multi-error from an empty `Vec`.
     pub fn len(&self) -> usize {
         self.kind.len()
@@ -196,6 +208,9 @@ impl fmt::Display for Error {
     }
 }
 
+// Don't want to publicly commit to Error supporting equality yet, but
+// not having it makes testing very difficult. Note that spans are not
+// considered for equality since that would break testing in most cases.
 #[cfg(test)]
 impl PartialEq for Error {
     fn eq(&self, other: &Self) -> bool {
