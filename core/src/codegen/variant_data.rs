@@ -30,7 +30,9 @@ impl<'a> FieldsGen<'a> {
                     let __name = __inner.name().to_string();
                     match __name.as_str() {
                         #(#arms)*
-                        __other => { __errors.push(::darling::Error::unknown_field(__other)); }
+                        __other => {
+                            __errors.push(::darling::Error::unknown_field(__other).with_span(__inner));
+                        }
                     }
                 }
             }

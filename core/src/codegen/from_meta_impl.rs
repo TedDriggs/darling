@@ -19,7 +19,7 @@ impl<'a> ToTokens for FromMetaImpl<'a> {
                 let ty_ident = base.ident;
                 quote!(
                     fn from_word() -> ::darling::Result<Self> {
-                        Ok(#ty_ident)
+                        ::darling::export::Ok(#ty_ident)
                     }
                 )
             }
@@ -29,12 +29,13 @@ impl<'a> ToTokens for FromMetaImpl<'a> {
                 ref fields,
                 style: Style::Tuple,
                 ..
-            }) if fields.len() == 1 =>
-            {
+            }) if fields.len() == 1 => {
                 let ty_ident = base.ident;
                 quote!(
                     fn from_meta(__item: &::syn::Meta) -> ::darling::Result<Self> {
-                        Ok(#ty_ident(::darling::FromMeta::from_meta(__item)?))
+                        ::darling::FromMeta::from_meta(__item)
+                            .map_err(|e| e.with_span(&__item))
+                            .map(#ty_ident)
                     }
                 )
             }

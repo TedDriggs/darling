@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use quote::{TokenStreamExt, ToTokens};
+use quote::{ToTokens, TokenStreamExt};
 use syn::{Ident, Path, Type};
 
 use codegen::DefaultExpression;
@@ -104,7 +104,12 @@ impl<'a> ToTokens for MatchArm<'a> {
                 quote!(#name_str)
             };
 
-            let mut extractor = quote!(#with_path(__inner).map_err(|e| e.at(#location)));
+            // Add the span immediately on extraction failure, so that it's as specific as possible.
+            // The behavior of `with_span` makes this safe to do; if the child applied an
+            // even-more-specific span, our attempt here will not overwrite that and will only cost
+            // us one `if` check.
+            let mut extractor =
+                quote!(#with_path(__inner).map_err(|e| e.with_span(&__inner).at(#location)));
             if let Some(ref map) = field.map {
                 extractor = quote!(#extractor.map(#map))
             }
@@ -139,7 +144,7 @@ impl<'a> ToTokens for MatchArm<'a> {
                                 }
                             }
                         } else {
-                            __errors.push(::darling::Error::duplicate_field(#name_str));
+                            __errors.push(::darling::Error::duplicate_field(#name_str).with_span(&__inner));
                         }
                     }
                 )

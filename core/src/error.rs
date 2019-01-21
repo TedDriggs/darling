@@ -192,10 +192,6 @@ impl fmt::Display for Error {
             write!(f, " at {}", self.locations.join("/"))?;
         }
 
-        if self.span.is_some() {
-            write!(f, " (has span)")?;
-        }
-
         Ok(())
     }
 }

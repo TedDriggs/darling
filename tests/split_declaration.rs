@@ -46,9 +46,10 @@ fn duplicates_across_split_attrs_error() {
     "#,
     ).unwrap();
 
-    let pr = Lorem::from_derive_input(&di);
+    let pr = Lorem::from_derive_input(&di).unwrap_err();
+    assert!(pr.has_span());
     assert_eq!(
-        pr.unwrap_err().to_string(),
+        pr.to_string(),
         Error::duplicate_field("foo").to_string()
     );
 }
@@ -66,11 +67,12 @@ fn multiple_errors_accrue_to_instance() {
     let pr = Lorem::from_derive_input(&di);
     let err: Error = pr.unwrap_err();
     assert_eq!(2, err.len());
-    let mut errs = err.into_iter();
+    let mut errs = err.into_iter().peekable();
     assert_eq!(
-        errs.next().unwrap().to_string(),
+        errs.peek().unwrap().to_string(),
         Error::duplicate_field("foo").to_string()
     );
+    assert!(errs.next().unwrap().has_span());
     assert_eq!(
         errs.next().unwrap().to_string(),
         Error::missing_field("bar").to_string()
