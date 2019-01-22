@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use quote::{TokenStreamExt, ToTokens};
+use quote::{ToTokens, TokenStreamExt};
 use syn::{Meta, NestedMeta};
 
 use {Error, FromMeta, Result};
@@ -57,7 +57,7 @@ impl FromMeta for Shape {
 
 impl ToTokens for Shape {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let fn_body = if self.any == true {
+        let fn_body = if self.any {
             quote!(::darling::export::Ok(()))
         } else {
             let en = &self.enum_values;
@@ -85,7 +85,7 @@ impl ToTokens for Shape {
         };
 
         // FIXME: Remove the &[]
-        tokens.append_all(&[quote!{
+        tokens.append_all(&[quote! {
             #[allow(unused_variables)]
             fn __validate_body(__body: &::syn::Data) -> ::darling::Result<()> {
                 #fn_body

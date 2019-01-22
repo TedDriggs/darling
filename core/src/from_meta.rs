@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::collections::hash_map::{Entry, HashMap};
+use std::hash::BuildHasher;
 use std::rc::Rc;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
@@ -301,9 +302,9 @@ impl<T: FromMeta> FromMeta for RefCell<T> {
     }
 }
 
-impl<V: FromMeta> FromMeta for HashMap<String, V> {
+impl<V: FromMeta, S: BuildHasher + Default> FromMeta for HashMap<String, V, S> {
     fn from_list(nested: &[syn::NestedMeta]) -> Result<Self> {
-        let mut map = HashMap::with_capacity(nested.len());
+        let mut map = HashMap::with_capacity_and_hasher(nested.len(), Default::default());
         for item in nested {
             if let syn::NestedMeta::Meta(ref inner) = *item {
                 match map.entry(inner.name().to_string()) {

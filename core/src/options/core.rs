@@ -94,7 +94,7 @@ impl ParseAttribute for Core {
                 self.bound = FromMeta::from_meta(mi)?;
                 Ok(())
             }
-            n => Err(Error::unknown_field(n.as_ref())),
+            n => Err(Error::unknown_field(n)),
         }
     }
 }

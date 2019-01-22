@@ -44,17 +44,18 @@ impl<'a> TraitImpl<'a> {
         let declared = self.declared_type_params();
         match self.data {
             Data::Struct(ref v) => self.type_params_in_fields(v, &field_filter, &declared),
-            Data::Enum(ref v) => v.iter().filter(variant_filter).fold(
-                Default::default(),
-                |mut state, variant| {
-                    state.extend(self.type_params_in_fields(
-                        &variant.data,
-                        &field_filter,
-                        &declared,
-                    ));
-                    state
-                },
-            ),
+            Data::Enum(ref v) => {
+                v.iter()
+                    .filter(variant_filter)
+                    .fold(Default::default(), |mut state, variant| {
+                        state.extend(self.type_params_in_fields(
+                            &variant.data,
+                            &field_filter,
+                            &declared,
+                        ));
+                        state
+                    })
+            }
         }
     }
 
@@ -129,21 +130,17 @@ impl<'a> TraitImpl<'a> {
     }
 
     pub(in codegen) fn initializers(&self) -> TokenStream {
-        let foo = match self.data {
+        match self.data {
             Data::Enum(_) => panic!("Core loop on enums isn't supported"),
-            Data::Struct(ref data) => FieldsGen(data),
-        };
-
-        foo.initializers()
+            Data::Struct(ref data) => FieldsGen(data).initializers(),
+        }
     }
 
     /// Generate the loop which walks meta items looking for property matches.
     pub(in codegen) fn core_loop(&self) -> TokenStream {
-        let foo = match self.data {
+        match self.data {
             Data::Enum(_) => panic!("Core loop on enums isn't supported"),
-            Data::Struct(ref data) => FieldsGen(data),
-        };
-
-        foo.core_loop()
+            Data::Struct(ref data) => FieldsGen(data).core_loop(),
+        }
     }
 }
