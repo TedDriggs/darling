@@ -79,12 +79,12 @@ impl<'a> TraitImpl<'a> {
 impl<'a> TraitImpl<'a> {
     /// Gets the `let` declaration for errors accumulated during parsing.
     pub fn declare_errors(&self) -> ErrorDeclaration {
-        ErrorDeclaration::new()
+        ErrorDeclaration::default()
     }
 
     /// Gets the check which performs an early return if errors occurred during parsing.
     pub fn check_errors(&self) -> ErrorCheck {
-        ErrorCheck::new()
+        ErrorCheck::default()
     }
 
     /// Generate local variable declarations for all fields.

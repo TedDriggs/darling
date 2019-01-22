@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use quote::{TokenStreamExt, ToTokens};
+use quote::{ToTokens, TokenStreamExt};
 use syn::Ident;
 
 use ast::Fields;
@@ -97,7 +97,7 @@ impl<'a> ToTokens for DataMatchArm<'a> {
         let vdg = FieldsGen(&val.data);
 
         if val.data.is_struct() {
-            let declare_errors = ErrorDeclaration::new();
+            let declare_errors = ErrorDeclaration::default();
             let check_errors = ErrorCheck::with_location(&name_in_attr);
             let require_fields = vdg.require_fields();
             let decls = vdg.declarations();
