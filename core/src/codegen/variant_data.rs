@@ -13,7 +13,7 @@ impl<'a> FieldsGen<'a> {
                 style: Style::Struct,
                 ref fields,
             } => {
-                let vdr = fields.into_iter().map(Field::as_declaration);
+                let vdr = fields.iter().map(Field::as_declaration);
                 quote!(#(#vdr)*)
             }
             _ => panic!("FieldsGen doesn't support tuples yet"),
@@ -45,7 +45,7 @@ impl<'a> FieldsGen<'a> {
                 style: Style::Struct,
                 ref fields,
             } => {
-                let checks = fields.into_iter().map(Field::as_presence_check);
+                let checks = fields.iter().map(Field::as_presence_check);
                 quote!(#(#checks)*)
             }
             _ => panic!("FieldsGen doesn't support tuples for requirement checks"),

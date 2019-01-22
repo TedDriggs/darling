@@ -139,14 +139,14 @@ impl Error {
 
     /// Recursively converts a tree of errors to a flattened list.
     pub fn flatten(self) -> Self {
-        Error::multiple(self.to_vec())
+        Error::multiple(self.into_vec())
     }
 
-    fn to_vec(self) -> Vec<Self> {
+    fn into_vec(self) -> Vec<Self> {
         if let ErrorKind::Multiple(errors) = self.kind {
             let mut flat = Vec::new();
             for error in errors {
-                flat.extend(error.prepend_at(self.locations.clone()).to_vec());
+                flat.extend(error.prepend_at(self.locations.clone()).into_vec());
             }
 
             flat

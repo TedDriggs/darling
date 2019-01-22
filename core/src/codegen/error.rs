@@ -2,14 +2,9 @@ use proc_macro2::TokenStream;
 use quote::{TokenStreamExt, ToTokens};
 
 /// Declares the local variable into which errors will be accumulated.
+#[derive(Default)]
 pub struct ErrorDeclaration {
     __hidden: (),
-}
-
-impl ErrorDeclaration {
-    pub fn new() -> Self {
-        ErrorDeclaration { __hidden: () }
-    }
 }
 
 impl ToTokens for ErrorDeclaration {
@@ -21,19 +16,13 @@ impl ToTokens for ErrorDeclaration {
 }
 
 /// Returns early if attribute or body parsing has caused any errors.
+#[derive(Default)]
 pub struct ErrorCheck<'a> {
     location: Option<&'a str>,
     __hidden: (),
 }
 
 impl<'a> ErrorCheck<'a> {
-    pub fn new() -> Self {
-        ErrorCheck {
-            location: None,
-            __hidden: (),
-        }
-    }
-
     pub fn with_location(location: &'a str) -> Self {
         ErrorCheck {
             location: Some(location),

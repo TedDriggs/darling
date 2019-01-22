@@ -16,7 +16,7 @@ pub enum Data<V, F> {
     Struct(Fields<F>),
 }
 
-#[deprecated(since = "0.3", note = "this has been renamed to Data")]
+#[deprecated(since = "0.3.0", note = "this has been renamed to Data")]
 pub type Body<V, F> = Data<V, F>;
 
 impl<V, F> Data<V, F> {
@@ -32,7 +32,7 @@ impl<V, F> Data<V, F> {
     /// Creates a new `Data<&'a V, &'a F>` instance from `Data<V, F>`.
     pub fn as_ref<'a>(&'a self) -> Data<&'a V, &'a F> {
         match *self {
-            Data::Enum(ref variants) => Data::Enum(variants.into_iter().collect()),
+            Data::Enum(ref variants) => Data::Enum(variants.iter().collect()),
             Data::Struct(ref data) => Data::Struct(data.as_ref()),
         }
     }
@@ -163,7 +163,7 @@ pub struct Fields<T> {
     pub fields: Vec<T>,
 }
 
-#[deprecated(since = "0.3", note = "this has been renamed to Fields")]
+#[deprecated(since = "0.3.0", note = "this has been renamed to Fields")]
 pub type VariantData<T> = Fields<T>;
 
 impl<T> Fields<T> {
@@ -324,16 +324,16 @@ pub enum Style {
 }
 
 impl Style {
-    pub fn is_unit(&self) -> bool {
-        *self == Style::Unit
+    pub fn is_unit(self) -> bool {
+        self == Style::Unit
     }
 
-    pub fn is_tuple(&self) -> bool {
-        *self == Style::Tuple
+    pub fn is_tuple(self) -> bool {
+        self == Style::Tuple
     }
 
-    pub fn is_struct(&self) -> bool {
-        *self == Style::Struct
+    pub fn is_struct(self) -> bool {
+        self == Style::Struct
     }
 
     /// Creates a new `Fields` of the specified style with the passed-in fields.

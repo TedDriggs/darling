@@ -99,10 +99,9 @@ impl<T: UsesLifetimes> UsesLifetimes for Option<T> {
         options: &Options,
         lifetimes: &'a LifetimeSet,
     ) -> LifetimeRefSet<'a> {
-        self.as_ref().map_or_else(
-            || Default::default(),
-            |v| v.uses_lifetimes(options, lifetimes),
-        )
+        self.as_ref()
+            .map(|v| v.uses_lifetimes(options, lifetimes))
+            .unwrap_or_default()
     }
 }
 

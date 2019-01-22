@@ -170,15 +170,13 @@ impl<'a> ToTokens for Initializer<'a> {
             } else {
                 quote!(#ident: #ident)
             }
+        } else if let Some(ref expr) = field.default_expression {
+            quote!(#ident: match #ident.1 {
+                ::darling::export::Some(__val) => __val,
+                ::darling::export::None => #expr,
+            })
         } else {
-            if let Some(ref expr) = field.default_expression {
-                quote!(#ident: match #ident.1 {
-                    ::darling::export::Some(__val) => __val,
-                    ::darling::export::None => #expr,
-                })
-            } else {
-                quote!(#ident: #ident.1.expect("Uninitialized fields without defaults were already checked"))
-            }
+            quote!(#ident: #ident.1.expect("Uninitialized fields without defaults were already checked"))
         });
     }
 }
