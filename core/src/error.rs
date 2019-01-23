@@ -1,6 +1,6 @@
 //! Types for working with darling errors and results.
 
-use proc_macro2::Span;
+use proc_macro2::{Span, TokenStream};
 use std::error::Error as StdError;
 use std::fmt;
 use std::iter::{self, Iterator};
@@ -184,6 +184,49 @@ impl Error {
     #[cfg(test)]
     pub(crate) fn location(&self) -> Vec<&str> {
         self.locations.iter().map(|i| i.as_str()).collect()
+    }
+
+    /// Write this error and any children as compile errors into a `TokenStream` to
+    /// be returned by the proc-macro.
+    ///
+    /// The behavior of this method will be slightly different if the `diagnostics` feature
+    /// is enabled: In that case, the diagnostics will be emitted immediately by this call,
+    /// and an empty `TokenStream` will be returned.
+    ///
+    /// Return these tokens unmodified to avoid disturbing the attached span information.
+    ///
+    /// # Usage
+    /// ```rust,ignore
+    /// // in your proc-macro function
+    /// let opts = match MyOptions::from_derive_input(&ast) {
+    ///     Ok(val) => val,
+    ///     Err(err) => {
+    ///         return err.write_errors();
+    ///     }
+    /// }
+    /// ```
+    pub fn write_errors(self) -> TokenStream {
+        #[cfg(feature = "diagnostics")]
+        {
+            self.emit();
+            quote!()
+        }
+
+        #[cfg(not(feature = "diagnostics"))]
+        {
+            self.flatten()
+                .into_iter()
+                .map(|e| e.single_to_syn_error().to_compile_error())
+                .collect()
+        }
+    }
+
+    #[cfg(not(feature = "diagnostics"))]
+    fn single_to_syn_error(self) -> ::syn::Error {
+        match self.span {
+            Some(span) => ::syn::Error::new(span, self.kind),
+            None => ::syn::Error::new(Span::call_site(), self),
+        }
     }
 
     #[cfg(feature = "diagnostics")]
