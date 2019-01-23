@@ -1,6 +1,6 @@
 //! Types for working with darling errors and results.
 
-use proc_macro2::Span;
+use proc_macro2::{Span, TokenStream};
 use std::error::Error as StdError;
 use std::fmt;
 use std::iter::{self, Iterator};
@@ -184,6 +184,99 @@ impl Error {
     #[cfg(test)]
     pub(crate) fn location(&self) -> Vec<&str> {
         self.locations.iter().map(|i| i.as_str()).collect()
+    }
+
+    /// Write this error and any children as compile errors into a `TokenStream` to
+    /// be returned by the proc-macro.
+    ///
+    /// The behavior of this method will be slightly different if the `diagnostics` feature
+    /// is enabled: In that case, the diagnostics will be emitted immediately by this call,
+    /// and an empty `TokenStream` will be returned.
+    ///
+    /// Return these tokens unmodified to avoid disturbing the attached span information.
+    ///
+    /// # Usage
+    /// ```rust,ignore
+    /// // in your proc-macro function
+    /// let opts = match MyOptions::from_derive_input(&ast) {
+    ///     Ok(val) => val,
+    ///     Err(err) => {
+    ///         return err.write_errors();
+    ///     }
+    /// }
+    /// ```
+    pub fn write_errors(self) -> TokenStream {
+        #[cfg(feature = "diagnostics")]
+        {
+            self.emit();
+            quote!()
+        }
+
+        #[cfg(not(feature = "diagnostics"))]
+        {
+            self.flatten()
+                .into_iter()
+                .map(|e| e.single_to_syn_error().to_compile_error())
+                .collect()
+        }
+    }
+
+    #[cfg(not(feature = "diagnostics"))]
+    fn single_to_syn_error(self) -> ::syn::Error {
+        match self.span {
+            Some(span) => ::syn::Error::new(span, self.kind),
+            None => ::syn::Error::new(Span::call_site(), self),
+        }
+    }
+
+    #[cfg(feature = "diagnostics")]
+    fn single_to_diagnostic(self) -> ::proc_macro::Diagnostic {
+        use proc_macro::{Diagnostic, Level};
+
+        // If span information is available, don't include the error property path
+        // since it's redundant and not consistent with native compiler diagnostics.
+        match self.span {
+            Some(span) => span.unwrap().error(self.kind.to_string()),
+            None => Diagnostic::new(Level::Error, self.to_string()),
+        }
+    }
+
+    /// Transform this error and its children into a list of compiler diagnostics
+    /// and emit them. If the `Error` has associated span information, the diagnostics
+    /// will identify the correct location in source code automatically.
+    ///
+    /// # Stability
+    /// This is only available on `nightly` until the compiler `proc_macro_diagnostic`
+    /// feature stabilizes. Until then, it may break at any time.
+    #[cfg(feature = "diagnostics")]
+    pub fn emit(self) {
+        for error in self.flatten() {
+            error.single_to_diagnostic().emit()
+        }
+    }
+
+    /// Transform the error into a compiler diagnostic and - if the diagnostic points to
+    /// a specific code location - add a spanned help child diagnostic that points to the
+    /// parent derived trait.
+    ///
+    /// This is experimental and therefore not exposed outside the crate.
+    #[cfg(feature = "diagnostics")]
+    #[allow(dead_code)]
+    fn emit_with_macro_help_span(self) {
+        use proc_macro::Diagnostic;
+
+        for error in self.flatten() {
+            let needs_help = error.has_span();
+            let diagnostic = error.single_to_diagnostic();
+            Diagnostic::emit(if needs_help {
+                diagnostic.span_help(
+                    Span::call_site().unwrap(),
+                    "Encountered as part of this derive-mode-macro",
+                )
+            } else {
+                diagnostic
+            })
+        }
     }
 }
 
