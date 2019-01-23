@@ -4,6 +4,8 @@
 - Use `syn::Error` to provide precise errors before `proc_macro::Diagnostic` is available
 - Add `diagnostics` feature flag to toggle between stable and unstable error backends
 - Attach error information in more contexts
+- Add `allow_unknown_fields` to support parsing the same attribute multiple times for different macros [#51](https://github.com/darling/issues/51)
+- Proc-macro authors will now see better errors in `darling` attributes
 
 ## v0.8.3 (January 21, 2019)
 - Attach spans to errors in generated trait impls [#37](https://github.com/darling/issues/37)

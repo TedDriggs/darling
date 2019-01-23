@@ -23,6 +23,8 @@ pub struct Variant<'a> {
 
     /// Whether or not the variant should be skipped in the generated code.
     pub skip: bool,
+
+    pub allow_unknown_fields: bool,
 }
 
 impl<'a> Variant<'a> {
@@ -94,7 +96,7 @@ impl<'a> ToTokens for DataMatchArm<'a> {
             return;
         }
 
-        let vdg = FieldsGen(&val.data);
+        let vdg = FieldsGen::new(&val.data, val.allow_unknown_fields);
 
         if val.data.is_struct() {
             let declare_errors = ErrorDeclaration::default();

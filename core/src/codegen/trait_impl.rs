@@ -15,6 +15,7 @@ pub struct TraitImpl<'a> {
     pub default: Option<DefaultExpression<'a>>,
     pub map: Option<&'a Path>,
     pub bound: Option<&'a [WherePredicate]>,
+    pub allow_unknown_fields: bool,
 }
 
 impl<'a> TraitImpl<'a> {
@@ -130,17 +131,18 @@ impl<'a> TraitImpl<'a> {
     }
 
     pub(in codegen) fn initializers(&self) -> TokenStream {
-        match self.data {
-            Data::Enum(_) => panic!("Core loop on enums isn't supported"),
-            Data::Struct(ref data) => FieldsGen(data).initializers(),
-        }
+        self.make_field_ctx().initializers()
     }
 
     /// Generate the loop which walks meta items looking for property matches.
     pub(in codegen) fn core_loop(&self) -> TokenStream {
+        self.make_field_ctx().core_loop()
+    }
+
+    fn make_field_ctx(&'a self) -> FieldsGen<'a> {
         match self.data {
             Data::Enum(_) => panic!("Core loop on enums isn't supported"),
-            Data::Struct(ref data) => FieldsGen(data).core_loop(),
+            Data::Struct(ref data) => FieldsGen::new(data, self.allow_unknown_fields),
         }
     }
 }

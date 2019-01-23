@@ -11,6 +11,8 @@ pub struct InputVariant {
     attr_name: Option<String>,
     data: Fields<InputField>,
     skip: bool,
+    /// Whether or not unknown fields are acceptable in this
+    allow_unknown_fields: Option<bool>,
 }
 
 impl InputVariant {
@@ -18,11 +20,13 @@ impl InputVariant {
         codegen::Variant {
             ty_ident,
             variant_ident: &self.ident,
-            name_in_attr: self.attr_name
+            name_in_attr: self
+                .attr_name
                 .clone()
                 .unwrap_or_else(|| self.ident.to_string()),
             data: self.data.as_ref().map(InputField::as_codegen_field),
             skip: self.skip,
+            allow_unknown_fields: self.allow_unknown_fields.unwrap_or_default(),
         }
     }
 
@@ -32,7 +36,9 @@ impl InputVariant {
             attr_name: Default::default(),
             data: Fields::empty_from(&v.fields),
             skip: Default::default(),
-        }).parse_attributes(&v.attrs)?;
+            allow_unknown_fields: None,
+        })
+        .parse_attributes(&v.attrs)?;
 
         starter.data = match v.fields {
             syn::Fields::Unit => Style::Unit.into(),
@@ -70,6 +76,10 @@ impl InputVariant {
     fn with_inherited(mut self, parent: &Core) -> Self {
         if self.attr_name.is_none() {
             self.attr_name = Some(parent.rename_rule.apply_to_variant(self.ident.to_string()));
+        }
+
+        if self.allow_unknown_fields.is_none() {
+            self.allow_unknown_fields = Some(parent.allow_unknown_fields.is_some());
         }
 
         self
