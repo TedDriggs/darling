@@ -185,6 +185,56 @@ impl Error {
     pub(crate) fn location(&self) -> Vec<&str> {
         self.locations.iter().map(|i| i.as_str()).collect()
     }
+
+    #[cfg(feature = "diagnostics")]
+    fn single_to_diagnostic(self) -> ::proc_macro::Diagnostic {
+        use proc_macro::{Diagnostic, Level};
+
+        // If span information is available, don't include the error property path
+        // since it's redundant and not consistent with native compiler diagnostics.
+        match self.span {
+            Some(span) => span.unwrap().error(self.kind.to_string()),
+            None => Diagnostic::new(Level::Error, self.to_string()),
+        }
+    }
+
+    /// Transform this error and its children into a list of compiler diagnostics
+    /// and emit them. If the `Error` has associated span information, the diagnostics
+    /// will identify the correct location in source code automatically.
+    ///
+    /// # Stability
+    /// This is only available on `nightly` until the compiler `proc_macro_diagnostic`
+    /// feature stabilizes. Until then, it may break at any time.
+    #[cfg(feature = "diagnostics")]
+    pub fn emit(self) {
+        for error in self.flatten() {
+            error.single_to_diagnostic().emit()
+        }
+    }
+
+    /// Transform the error into a compiler diagnostic and - if the diagnostic points to
+    /// a specific code location - add a spanned help child diagnostic that points to the
+    /// parent derived trait.
+    ///
+    /// This is experimental and therefore not exposed outside the crate.
+    #[cfg(feature = "diagnostics")]
+    #[allow(dead_code)]
+    fn emit_with_macro_help_span(self) {
+        use proc_macro::Diagnostic;
+
+        for error in self.flatten() {
+            let needs_help = error.has_span();
+            let diagnostic = error.single_to_diagnostic();
+            Diagnostic::emit(if needs_help {
+                diagnostic.span_help(
+                    Span::call_site().unwrap(),
+                    "Encountered as part of this derive-mode-macro",
+                )
+            } else {
+                diagnostic
+            })
+        }
+    }
 }
 
 impl StdError for Error {

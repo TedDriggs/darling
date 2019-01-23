@@ -21,7 +21,10 @@ darling_macro = { version = "=0.8.3", path = "macro" }
 [dev-dependencies]
 proc-macro2 = "0.4"
 quote = "0.6"
-syn = "0.15"
+syn = "0.15.26"
+
+[features]
+diagnostics = [ "darling_core/diagnostics" ]
 
 [workspace]
 members = ["macro", "core"]
