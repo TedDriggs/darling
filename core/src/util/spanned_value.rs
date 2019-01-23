@@ -1,8 +1,10 @@
-use ::{FromMeta, Result};
 use proc_macro2::Span;
 use std::ops::{Deref, DerefMut};
 use syn::spanned::Spanned;
-use syn::Meta;
+use {
+    FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta, FromTypeParam,
+    FromVariant, Result,
+};
 
 /// A value and an associated position in source code. The main use case for this is
 /// to preserve position information to emit warnings from proc macros. You can use
@@ -59,14 +61,26 @@ impl<T> AsRef<T> for SpannedValue<T> {
     }
 }
 
-impl<T: FromMeta> FromMeta for SpannedValue<T> {
-    fn from_meta(item: &Meta) -> Result<Self> {
-        Ok(SpannedValue::new(
-            FromMeta::from_meta(item).map_err(|e| e.with_span(item))?,
-            item.span(),
-        ))
-    }
+macro_rules! spanned {
+    ($trayt:ident, $method:ident, $syn:path) => {
+        impl<T: $trayt> $trayt for SpannedValue<T> {
+            fn $method(value: &$syn) -> Result<Self> {
+                Ok(SpannedValue::new(
+                    $trayt::$method(value).map_err(|e| e.with_span(value))?,
+                    value.span(),
+                ))
+            }
+        }
+    };
 }
+
+spanned!(FromGenericParam, from_generic_param, syn::GenericParam);
+spanned!(FromGenerics, from_generics, syn::Generics);
+spanned!(FromTypeParam, from_type_param, syn::TypeParam);
+spanned!(FromMeta, from_meta, syn::Meta);
+spanned!(FromDeriveInput, from_derive_input, syn::DeriveInput);
+spanned!(FromField, from_field, syn::Field);
+spanned!(FromVariant, from_variant, syn::Variant);
 
 impl<T: Spanned> From<T> for SpannedValue<T> {
     fn from(value: T) -> Self {
