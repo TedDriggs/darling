@@ -29,9 +29,9 @@ impl<T> SpannedValue<T> {
         SpannedValue { value, span }
     }
 
-    /// Get a reference to the source code location described by this struct.
-    pub fn span(&self) -> &Span {
-        &self.span
+    /// Get the source code location referenced by this struct.
+    pub fn span(&self) -> Span {
+        self.span
     }
 }
 
