@@ -1,5 +1,6 @@
 use proc_macro2::Span;
 use std::ops::{Deref, DerefMut};
+use syn;
 use syn::spanned::Spanned;
 use {
     FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta, FromTypeParam,
