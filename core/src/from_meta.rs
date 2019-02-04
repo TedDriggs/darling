@@ -92,7 +92,7 @@ pub trait FromMeta: Sized {
         (match *value {
             Lit::Bool(ref b) => Self::from_bool(b.value),
             Lit::Str(ref s) => Self::from_string(&s.value()),
-            ref _other => Err(Error::unexpected_type("other")),
+            _ => Err(Error::unexpected_lit_type(value)),
         })
         .map_err(|e| e.with_span(value))
     }

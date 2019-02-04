@@ -7,6 +7,7 @@ use std::iter::{self, Iterator};
 use std::string::ToString;
 use std::vec;
 use syn::spanned::Spanned;
+use syn::Lit;
 
 /// An alias of `Result` specific to attribute parsing.
 pub type Result<T> = ::std::result::Result<T, Error>;
@@ -67,6 +68,21 @@ impl Error {
     /// Creates a new error for a field which has an unexpected literal type.
     pub fn unexpected_type(ty: &str) -> Self {
         Error::new(ErrorKind::UnexpectedType(ty.into()))
+    }
+
+    /// Creates a new error for a field which has an unexpected literal type. This will automatically
+    /// extract the literal type name from the passed-in `Lit`.
+    pub fn unexpected_lit_type(lit: &Lit) -> Self {
+        Error::unexpected_type(match *lit {
+            Lit::Str(_) => "string",
+            Lit::ByteStr(_) => "byte string",
+            Lit::Byte(_) => "byte",
+            Lit::Char(_) => "char",
+            Lit::Int(_) => "int",
+            Lit::Float(_) => "float",
+            Lit::Bool(_) => "bool",
+            Lit::Verbatim(_) => "verbatim",
+        })
     }
 
     /// Creates a new error for a value which doesn't match a set of expected literals.
