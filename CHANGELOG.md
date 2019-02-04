@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.8.5 (February 4, 2019)
 - Accept unquoted positive numeric literals [#52](https://github.com/TedDriggs/issues/52)
 - Add `FromMeta` to the `syn::Lit` enum and its variants
 - Improve error message for unexpected literal formats to not say "other"
