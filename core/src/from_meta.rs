@@ -27,6 +27,10 @@ use {Error, Result};
 /// * As a string literal, e.g. `foo = "hello"`.
 /// * As a raw string literal, e.g. `foo = r#"hello "world""#`.
 ///
+/// ## Number
+/// * As a string literal, e.g. `foo = "-25"`.
+/// * As an unquoted positive value, e.g. `foo = 404`. Negative numbers must be in quotation marks.
+///
 /// ## ()
 /// * Word with no value specified, e.g. `foo`. This is best used with `Option`.
 ///   See `darling::util::Flag` for a more strongly-typed alternative.
@@ -152,65 +156,61 @@ impl FromMeta for String {
     }
 }
 
-impl FromMeta for u8 {
-    fn from_string(s: &str) -> Result<Self> {
-        s.parse().map_err(|_| Error::unknown_value(s))
-    }
+/// Generate an impl of `FromMeta` that will accept strings which parse to numbers or
+/// integer literals.
+macro_rules! from_meta_num {
+    ($ty:ident) => {
+        impl FromMeta for $ty {
+            fn from_string(s: &str) -> Result<Self> {
+                s.parse().map_err(|_| Error::unknown_value(s))
+            }
+
+            fn from_value(value: &Lit) -> Result<Self> {
+                (match *value {
+                    Lit::Str(ref s) => Self::from_string(&s.value()),
+                    Lit::Int(ref s) => Ok(s.value() as $ty),
+                    _ => Err(Error::unexpected_lit_type(value)),
+                })
+                .map_err(|e| e.with_span(value))
+            }
+        }
+    };
 }
 
-impl FromMeta for u16 {
-    fn from_string(s: &str) -> Result<Self> {
-        s.parse().map_err(|_| Error::unknown_value(s))
-    }
+from_meta_num!(u8);
+from_meta_num!(u16);
+from_meta_num!(u32);
+from_meta_num!(u64);
+from_meta_num!(usize);
+from_meta_num!(i8);
+from_meta_num!(i16);
+from_meta_num!(i32);
+from_meta_num!(i64);
+from_meta_num!(isize);
+
+/// Generate an impl of `FromMeta` that will accept strings which parse to floats or
+/// float literals.
+macro_rules! from_meta_float {
+    ($ty:ident) => {
+        impl FromMeta for $ty {
+            fn from_string(s: &str) -> Result<Self> {
+                s.parse().map_err(|_| Error::unknown_value(s))
+            }
+
+            fn from_value(value: &Lit) -> Result<Self> {
+                (match *value {
+                    Lit::Str(ref s) => Self::from_string(&s.value()),
+                    Lit::Float(ref s) => Ok(s.value() as $ty),
+                    _ => Err(Error::unexpected_lit_type(value)),
+                })
+                .map_err(|e| e.with_span(value))
+            }
+        }
+    };
 }
 
-impl FromMeta for u32 {
-    fn from_string(s: &str) -> Result<Self> {
-        s.parse().map_err(|_| Error::unknown_value(s))
-    }
-}
-
-impl FromMeta for u64 {
-    fn from_string(s: &str) -> Result<Self> {
-        s.parse().map_err(|_| Error::unknown_value(s))
-    }
-}
-
-impl FromMeta for usize {
-    fn from_string(s: &str) -> Result<Self> {
-        s.parse().map_err(|_| Error::unknown_value(s))
-    }
-}
-
-impl FromMeta for i8 {
-    fn from_string(s: &str) -> Result<Self> {
-        s.parse().map_err(|_| Error::unknown_value(s))
-    }
-}
-
-impl FromMeta for i16 {
-    fn from_string(s: &str) -> Result<Self> {
-        s.parse().map_err(|_| Error::unknown_value(s))
-    }
-}
-
-impl FromMeta for i32 {
-    fn from_string(s: &str) -> Result<Self> {
-        s.parse().map_err(|_| Error::unknown_value(s))
-    }
-}
-
-impl FromMeta for i64 {
-    fn from_string(s: &str) -> Result<Self> {
-        s.parse().map_err(|_| Error::unknown_value(s))
-    }
-}
-
-impl FromMeta for isize {
-    fn from_string(s: &str) -> Result<Self> {
-        s.parse().map_err(|_| Error::unknown_value(s))
-    }
-}
+from_meta_float!(f32);
+from_meta_float!(f64);
 
 /// Parsing support for identifiers. This attempts to preserve span information
 /// when available, but also supports parsing strings with the call site as the
@@ -248,6 +248,35 @@ impl FromMeta for syn::Path {
         }
     }
 }
+
+impl FromMeta for syn::Lit {
+    fn from_value(value: &Lit) -> Result<Self> {
+        Ok(value.clone())
+    }
+}
+
+macro_rules! from_meta_lit {
+    ($impl_ty:path, $lit_variant:path) => {
+        impl FromMeta for $impl_ty {
+            fn from_value(value: &Lit) -> Result<Self> {
+                if let $lit_variant(ref value) = *value {
+                    Ok(value.clone())
+                } else {
+                    Err(Error::unexpected_lit_type(value))
+                }
+            }
+        }
+    };
+}
+
+from_meta_lit!(syn::LitInt, Lit::Int);
+from_meta_lit!(syn::LitFloat, Lit::Float);
+from_meta_lit!(syn::LitStr, Lit::Str);
+from_meta_lit!(syn::LitByte, Lit::Byte);
+from_meta_lit!(syn::LitByteStr, Lit::ByteStr);
+from_meta_lit!(syn::LitChar, Lit::Char);
+from_meta_lit!(syn::LitBool, Lit::Bool);
+from_meta_lit!(syn::LitVerbatim, Lit::Verbatim);
 
 impl FromMeta for syn::Meta {
     fn from_meta(value: &syn::Meta) -> Result<Self> {
@@ -396,6 +425,24 @@ mod tests {
     fn number_succeeds() {
         assert_eq!(fm::<u8>(quote!(ignore = "2")), 2u8);
         assert_eq!(fm::<i16>(quote!(ignore = "-25")), -25i16);
+        assert_eq!(fm::<f64>(quote!(ignore = "1.4e10")), 1.4e10);
+    }
+
+    #[test]
+    fn int_without_quotes() {
+        assert_eq!(fm::<u8>(quote!(ignore = 2)), 2u8);
+        assert_eq!(fm::<u16>(quote!(ignore = 255)), 255u16);
+        assert_eq!(fm::<u32>(quote!(ignore = 5000)), 5000u32);
+
+        // Check that we aren't tripped up by incorrect suffixes
+        assert_eq!(fm::<u32>(quote!(ignore = 5000i32)), 5000u32);
+    }
+
+    #[test]
+    fn float_without_quotes() {
+        assert_eq!(fm::<f32>(quote!(ignore = 2.)), 2.0f32);
+        assert_eq!(fm::<f32>(quote!(ignore = 2.0)), 2.0f32);
+        assert_eq!(fm::<f64>(quote!(ignore = 1.4e10)), 1.4e10f64);
     }
 
     #[test]

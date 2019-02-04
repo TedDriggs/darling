@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+- Accept unquoted positive numeric literals [#52](https://github.com/TedDriggs/issues/52)
+- Add `FromMeta` to the `syn::Lit` enum and its variants
+- Improve error message for unexpected literal formats to not say "other"
+
 ## v0.8.4 (February 4, 2019)
 - Use `syn::Error` to provide precise errors before `proc_macro::Diagnostic` is available
 - Add `diagnostics` feature flag to toggle between stable and unstable error backends
