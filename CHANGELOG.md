@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.8.4
+## v0.8.4 (February 4, 2019)
 - Use `syn::Error` to provide precise errors before `proc_macro::Diagnostic` is available
 - Add `diagnostics` feature flag to toggle between stable and unstable error backends
 - Attach error information in more contexts
