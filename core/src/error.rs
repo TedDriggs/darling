@@ -71,7 +71,34 @@ impl Error {
     }
 
     /// Creates a new error for a field which has an unexpected literal type. This will automatically
-    /// extract the literal type name from the passed-in `Lit`.
+    /// extract the literal type name from the passed-in `Lit` and set the span to encompass only the
+    /// literal value.
+    ///
+    /// # Usage
+    /// This is most frequently used in overrides of the `FromMeta::from_value` method.
+    ///
+    /// ```rust
+    /// # // pretend darling_core is darling so the doc example looks correct.
+    /// # extern crate darling_core as darling;
+    /// # extern crate syn;
+    ///
+    /// use darling::{FromMeta, Error, Result};
+    /// use syn::{Lit, LitStr};
+    ///
+    /// pub struct Foo(String);
+    ///
+    /// impl FromMeta for Foo {
+    ///     fn from_value(value: &Lit) -> Result<Self> {
+    ///         if let Lit::Str(ref lit_str) = value {
+    ///             Ok(Foo(lit_str.value()))
+    ///         } else {
+    ///             Err(Error::unexpected_lit_type(value))
+    ///         }
+    ///     }
+    /// }
+    ///
+    /// # fn main() {}
+    /// ```
     pub fn unexpected_lit_type(lit: &Lit) -> Self {
         Error::unexpected_type(match *lit {
             Lit::Str(_) => "string",
@@ -82,7 +109,7 @@ impl Error {
             Lit::Float(_) => "float",
             Lit::Bool(_) => "bool",
             Lit::Verbatim(_) => "verbatim",
-        })
+        }).with_span(lit)
     }
 
     /// Creates a new error for a value which doesn't match a set of expected literals.
