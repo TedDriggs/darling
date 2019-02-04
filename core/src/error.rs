@@ -7,7 +7,7 @@ use std::iter::{self, Iterator};
 use std::string::ToString;
 use std::vec;
 use syn::spanned::Spanned;
-use syn::Lit;
+use syn::{Lit, LitStr};
 
 /// An alias of `Result` specific to attribute parsing.
 pub type Result<T> = ::std::result::Result<T, Error>;
@@ -142,6 +142,15 @@ impl Error {
         } else {
             panic!("Can't deal with 0 errors")
         }
+    }
+}
+
+impl Error {
+    /// Create a new error about a literal string that doesn't match a set of known
+    /// or permissible values. This function can be made public if the API proves useful
+    /// beyond impls for `syn` types.
+    pub(crate) fn unknown_lit_str_value(value: &LitStr) -> Self {
+        Error::unknown_value(&value.value()).with_span(value)
     }
 }
 

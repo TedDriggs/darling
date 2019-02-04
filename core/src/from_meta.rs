@@ -212,24 +212,42 @@ impl FromMeta for isize {
     }
 }
 
+/// Parsing support for identifiers. This attempts to preserve span information
+/// when available, but also supports parsing strings with the call site as the
+/// emitted span.
 impl FromMeta for syn::Ident {
     fn from_string(value: &str) -> Result<Self> {
         Ok(syn::Ident::new(value, ::proc_macro2::Span::call_site()))
     }
+
+    fn from_value(value: &Lit) -> Result<Self> {
+        if let Lit::Str(ref ident) = value {
+            ident
+                .parse()
+                .map_err(|_| Error::unknown_lit_str_value(ident))
+        } else {
+            Err(Error::unexpected_lit_type(value))
+        }
+    }
 }
 
+/// Parsing support for paths. This attempts to preserve span information when available,
+/// but also supports parsing strings with the call site as the emitted span.
 impl FromMeta for syn::Path {
     fn from_string(value: &str) -> Result<Self> {
         syn::parse_str(value).map_err(|_| Error::unknown_value(value))
     }
-}
-/*
-impl FromMeta for syn::TypeParamBound {
-    fn from_string(value: &str) -> Result<Self> {
-        Ok(syn::TypeParamBound::from(value))
+
+    fn from_value(value: &Lit) -> Result<Self> {
+        if let Lit::Str(ref path_str) = value {
+            path_str
+                .parse()
+                .map_err(|_| Error::unknown_lit_str_value(path_str))
+        } else {
+            Err(Error::unexpected_lit_type(value))
+        }
     }
 }
-*/
 
 impl FromMeta for syn::Meta {
     fn from_meta(value: &syn::Meta) -> Result<Self> {
