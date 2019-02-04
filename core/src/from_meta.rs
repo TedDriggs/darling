@@ -221,7 +221,7 @@ impl FromMeta for syn::Ident {
     }
 
     fn from_value(value: &Lit) -> Result<Self> {
-        if let Lit::Str(ref ident) = value {
+        if let Lit::Str(ref ident) = *value {
             ident
                 .parse()
                 .map_err(|_| Error::unknown_lit_str_value(ident))
@@ -239,7 +239,7 @@ impl FromMeta for syn::Path {
     }
 
     fn from_value(value: &Lit) -> Result<Self> {
-        if let Lit::Str(ref path_str) = value {
+        if let Lit::Str(ref path_str) = *value {
             path_str
                 .parse()
                 .map_err(|_| Error::unknown_lit_str_value(path_str))
