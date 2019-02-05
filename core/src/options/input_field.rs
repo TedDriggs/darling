@@ -137,7 +137,7 @@ impl ParseAttribute for InputField {
                 self.multiple = FromMeta::from_meta(mi)?;
                 Ok(())
             }
-            n => Err(Error::unknown_field(n)),
+            n => Err(Error::unknown_field(n).with_span(mi)),
         }
     }
 }
