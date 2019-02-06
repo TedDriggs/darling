@@ -46,6 +46,11 @@ The above code will then be able to parse this input:
 pub struct ConsumingType;
 ```
 
+# Attribute Macros
+Non-derive attribute macros are supported.
+To parse arguments for attribute macros, derive `FromMeta` on the argument receiver type, then pass `&syn::AttributeArgs` to the `from_list` method.
+This will produce a normal `darling::Result<T>` that can be used the same as a result from parsing a `DeriveInput`.
+
 # Features
 Darling's features are built to work well for real-world projects.
 
