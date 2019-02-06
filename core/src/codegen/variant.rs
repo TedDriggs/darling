@@ -7,7 +7,7 @@ use codegen::error::{ErrorCheck, ErrorDeclaration};
 use codegen::{Field, FieldsGen};
 use usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
 
-/// An enum variant.
+/// A variant of the enum which is deriving `FromMeta`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Variant<'a> {
     /// The name which will appear in code passed to the `FromMeta` input.
@@ -47,6 +47,9 @@ impl<'a> UsesTypeParams for Variant<'a> {
     }
 }
 
+/// Code generator for an enum variant in a unit match position.
+/// This is placed in generated `from_string` calls for the parent enum.
+/// Value-carrying variants wrapped in this type will emit code to produce an "unsupported format" error.
 pub struct UnitMatchArm<'a>(&'a Variant<'a>);
 
 impl<'a> ToTokens for UnitMatchArm<'a> {
@@ -74,6 +77,9 @@ impl<'a> ToTokens for UnitMatchArm<'a> {
     }
 }
 
+/// Code generator for an enum variant in a data-carrying match position.
+/// This is placed in generated `from_list` calls for the parent enum.
+/// Unit variants wrapped in this type will emit code to produce an "unsupported format" error.
 pub struct DataMatchArm<'a>(&'a Variant<'a>);
 
 impl<'a> ToTokens for DataMatchArm<'a> {
