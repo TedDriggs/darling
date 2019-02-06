@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use proc_macro2::TokenStream;
 use quote::{ToTokens, TokenStreamExt};
 use syn::{Ident, Path, Type};
@@ -11,7 +13,7 @@ use usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
 pub struct Field<'a> {
     /// The name presented to the user of the library. This will appear
     /// in error messages and will be looked when parsing names.
-    pub name_in_attr: String,
+    pub name_in_attr: Cow<'a, String>,
 
     /// The name presented to the author of the library. This will appear
     /// in the setters or temporary variables which contain the values.
@@ -20,7 +22,7 @@ pub struct Field<'a> {
     /// The type of the field in the input.
     pub ty: &'a Type,
     pub default_expression: Option<DefaultExpression<'a>>,
-    pub with_path: Path,
+    pub with_path: Cow<'a, Path>,
     pub map: Option<&'a Path>,
     pub skip: bool,
     pub multiple: bool,

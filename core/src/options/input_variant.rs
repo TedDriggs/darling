@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use syn;
 
 use ast::{Fields, Style};
@@ -22,8 +24,9 @@ impl InputVariant {
             variant_ident: &self.ident,
             name_in_attr: self
                 .attr_name
-                .clone()
-                .unwrap_or_else(|| self.ident.to_string()),
+                .as_ref()
+                .map(Cow::Borrowed)
+                .unwrap_or_else(|| Cow::Owned(self.ident.to_string())),
             data: self.data.as_ref().map(InputField::as_codegen_field),
             skip: self.skip,
             allow_unknown_fields: self.allow_unknown_fields.unwrap_or_default(),

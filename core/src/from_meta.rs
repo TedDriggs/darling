@@ -64,8 +64,8 @@ pub trait FromMeta: Sized {
             Meta::List(ref value) => Self::from_list(
                 &value
                     .nested
-                    .clone()
-                    .into_iter()
+                    .iter()
+                    .cloned()
                     .collect::<Vec<syn::NestedMeta>>()[..],
             ),
             Meta::NameValue(ref value) => Self::from_value(&value.lit),

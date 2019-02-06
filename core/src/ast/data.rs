@@ -107,11 +107,7 @@ impl<V: FromVariant, F: FromField> Data<V, F> {
             syn::Data::Enum(ref data) => {
                 let mut items = Vec::with_capacity(data.variants.len());
                 let mut errors = Vec::new();
-                for v_result in data.variants
-                    .clone()
-                    .into_iter()
-                    .map(|v| FromVariant::from_variant(&v))
-                {
+                for v_result in data.variants.iter().map(FromVariant::from_variant) {
                     match v_result {
                         Ok(val) => items.push(val),
                         Err(err) => errors.push(err),
@@ -227,8 +223,7 @@ impl<F: FromField> Fields<F> {
                 let mut errors = Vec::new();
 
                 for field in &fields.named {
-                    let f_result = FromField::from_field(field);
-                    match f_result {
+                    match FromField::from_field(field) {
                         Ok(val) => items.push(val),
                         Err(err) => errors.push(if let Some(ref ident) = field.ident {
                             err.at(ident)
@@ -245,8 +240,7 @@ impl<F: FromField> Fields<F> {
                 let mut errors = Vec::new();
 
                 for field in &fields.unnamed {
-                    let f_result = FromField::from_field(field);
-                    match f_result {
+                    match FromField::from_field(field) {
                         Ok(val) => items.push(val),
                         Err(err) => errors.push(if let Some(ref ident) = field.ident {
                             err.at(ident)
