@@ -18,7 +18,7 @@ mod macros_public;
 
 pub mod ast;
 pub mod codegen;
-pub mod derive_fns;
+pub mod derive;
 pub mod error;
 mod from_derive_input;
 mod from_field;
