@@ -3,19 +3,17 @@
 
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use syn::{DeriveInput};
+use syn::DeriveInput;
 
-use ::{options, codegen};
+use options;
 
-/// Run an expression which returns a `darling::Result`, then either return the `Ok` value
-/// or return early with compile errors.
-macro_rules! check_errors {
+/// Run an expression which returns a `darling::Result`, then either return the tokenized
+/// representation of the `Ok` value, or the tokens of the compiler errors in the `Err` case.
+macro_rules! emit_impl_or_error {
     ($e:expr) => {
         match $e {
-            Ok(val) => val,
-            Err(err) => {
-                return err.write_errors().into();
-            }
+            Ok(val) => val.into_token_stream(),
+            Err(err) => err.write_errors(),
         }
     };
 }
@@ -24,38 +22,33 @@ macro_rules! check_errors {
 /// the input cannot produce a valid impl, the returned tokens will contain
 /// compile errors instead.
 pub fn from_meta(input: &DeriveInput) -> TokenStream {
-    let container = check_errors!(options::FromMetaOptions::new(input));
-    codegen::FromMetaImpl::from(&container).into_token_stream()
+    emit_impl_or_error!(options::FromMetaOptions::new(input))
 }
 
 /// Create tokens for a `darling::FromDeriveInput` impl from a `DeriveInput`. If
 /// the input cannot produce a valid impl, the returned tokens will contain
 /// compile errors instead.
 pub fn from_derive_input(input: &DeriveInput) -> TokenStream {
-    let container = check_errors!(options::FdiOptions::new(&input));
-    codegen::FromDeriveInputImpl::from(&container).into_token_stream()
+    emit_impl_or_error!(options::FdiOptions::new(&input))
 }
 
 /// Create tokens for a `darling::FromField` impl from a `DeriveInput`. If
 /// the input cannot produce a valid impl, the returned tokens will contain
 /// compile errors instead.
 pub fn from_field(input: &DeriveInput) -> TokenStream {
-    let fdic = check_errors!(options::FromFieldOptions::new(input));
-    codegen::FromFieldImpl::from(&fdic).into_token_stream()
+    emit_impl_or_error!(options::FromFieldOptions::new(input))
 }
 
 /// Create tokens for a `darling::FromTypeParam` impl from a `DeriveInput`. If
 /// the input cannot produce a valid impl, the returned tokens will contain
 /// compile errors instead.
 pub fn from_type_param(input: &DeriveInput) -> TokenStream {
-    let fdic = check_errors!(options::FromTypeParamOptions::new(input));
-    codegen::FromTypeParamImpl::from(&fdic).into_token_stream()
+    emit_impl_or_error!(options::FromTypeParamOptions::new(input))
 }
 
 /// Create tokens for a `darling::FromVariant` impl from a `DeriveInput`. If
 /// the input cannot produce a valid impl, the returned tokens will contain
 /// compile errors instead.
 pub fn from_variant(input: &DeriveInput) -> TokenStream {
-    let fdic = check_errors!(options::FromVariantOptions::new(input));
-    codegen::FromVariantImpl::from(&fdic).into_token_stream()
+    emit_impl_or_error!(options::FromVariantOptions::new(input))
 }
