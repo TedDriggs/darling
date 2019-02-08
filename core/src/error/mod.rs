@@ -1,4 +1,10 @@
-//! Types for working with darling errors and results.
+//! The `darling::Error` type and its internals.
+//!
+//! Error handling is one of the core values of `darling`; creating great errors is hard and
+//! never the reason that a proc-macro author started writing their crate. As a result, the
+//! `Error` type in `darling` tries to make adding span information, suggestions, and other
+//! help content easy when manually implementing `darling` traits, and automatic when deriving
+//! them.
 
 use proc_macro2::{Span, TokenStream};
 use std::error::Error as StdError;
@@ -8,6 +14,10 @@ use std::string::ToString;
 use std::vec;
 use syn::spanned::Spanned;
 use syn::{Lit, LitStr};
+
+mod kind;
+
+use self::kind::{ErrorKind, ErrorUnknownField};
 
 /// An alias of `Result` specific to attribute parsing.
 pub type Result<T> = ::std::result::Result<T, Error>;
@@ -27,7 +37,7 @@ pub struct Error {
 
 /// Error creation functions
 impl Error {
-    fn new(kind: ErrorKind) -> Self {
+    pub(in error) fn new(kind: ErrorKind) -> Self {
         Error {
             kind,
             locations: Vec::new(),
@@ -54,6 +64,17 @@ impl Error {
     /// to a known field.
     pub fn unknown_field(name: &str) -> Self {
         Error::new(ErrorKind::UnknownField(name.into()))
+    }
+
+    /// Creates a new error for a field name that appears in the input but does not correspond to
+    /// a known attribute. The second argument is the list of known attributes; if a similar name
+    /// is found that will be shown in the emitted error message.
+    pub fn unknown_field_with_alts<'a, T, I>(field: &str, alternates: I) -> Self
+    where
+        T: AsRef<str> + 'a,
+        I: IntoIterator<Item = &'a T>,
+    {
+        Error::new(ErrorUnknownField::with_alts(field, alternates).into())
     }
 
     /// Creates a new error for a struct or variant that does not adhere to the supported shape.
@@ -109,7 +130,8 @@ impl Error {
             Lit::Float(_) => "float",
             Lit::Bool(_) => "bool",
             Lit::Verbatim(_) => "verbatim",
-        }).with_span(lit)
+        })
+        .with_span(lit)
     }
 
     /// Creates a new error for a value which doesn't match a set of expected literals.
@@ -285,11 +307,16 @@ impl Error {
     fn single_to_diagnostic(self) -> ::proc_macro::Diagnostic {
         use proc_macro::{Diagnostic, Level};
 
+        // Delegate to dedicated error formatters when applicable.
+        //
         // If span information is available, don't include the error property path
         // since it's redundant and not consistent with native compiler diagnostics.
-        match self.span {
-            Some(span) => span.unwrap().error(self.kind.to_string()),
-            None => Diagnostic::new(Level::Error, self.to_string()),
+        match self.kind {
+            ErrorKind::UnknownField(euf) => euf.to_diagnostic(self.span),
+            kind => match self.span {
+                Some(span) => span.unwrap().error(kind.to_string()),
+                None => Diagnostic::new(Level::Error, self.to_string()),
+            },
         }
     }
 
@@ -409,100 +436,6 @@ impl Iterator for IntoIter {
 
     fn next(&mut self) -> Option<Error> {
         self.inner.next()
-    }
-}
-
-type DeriveInputShape = String;
-type FieldName = String;
-type MetaFormat = String;
-
-#[derive(Debug)]
-// Don't want to publicly commit to ErrorKind supporting equality yet, but
-// not having it makes testing very difficult.
-#[cfg_attr(test, derive(Clone, PartialEq, Eq))]
-enum ErrorKind {
-    /// An arbitrary error message.
-    Custom(String),
-    DuplicateField(FieldName),
-    MissingField(FieldName),
-    UnsupportedShape(DeriveInputShape),
-    UnknownField(FieldName),
-    UnexpectedFormat(MetaFormat),
-    UnexpectedType(String),
-    UnknownValue(String),
-    TooFewItems(usize),
-    TooManyItems(usize),
-    /// A set of errors.
-    Multiple(Vec<Error>),
-
-    // TODO make this variant take `!` so it can't exist
-    #[doc(hidden)]
-    __NonExhaustive,
-}
-
-impl ErrorKind {
-    pub fn description(&self) -> &str {
-        use self::ErrorKind::*;
-
-        match *self {
-            Custom(ref s) => s,
-            DuplicateField(_) => "Duplicate field",
-            MissingField(_) => "Missing field",
-            UnknownField(_) => "Unexpected field",
-            UnsupportedShape(_) => "Unsupported shape",
-            UnexpectedFormat(_) => "Unexpected meta-item format",
-            UnexpectedType(_) => "Unexpected literal type",
-            UnknownValue(_) => "Unknown literal value",
-            TooFewItems(_) => "Too few items",
-            TooManyItems(_) => "Too many items",
-            Multiple(_) => "Multiple errors",
-            __NonExhaustive => unreachable!(),
-        }
-    }
-
-    /// Deeply counts the number of errors this item represents.
-    pub fn len(&self) -> usize {
-        if let ErrorKind::Multiple(ref items) = *self {
-            items.iter().map(Error::len).sum()
-        } else {
-            1
-        }
-    }
-}
-
-impl fmt::Display for ErrorKind {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use self::ErrorKind::*;
-
-        match *self {
-            Custom(ref s) => s.fmt(f),
-            DuplicateField(ref field) => write!(f, "Duplicate field `{}`", field),
-            MissingField(ref field) => write!(f, "Missing field `{}`", field),
-            UnknownField(ref field) => write!(f, "Unexpected field `{}`", field),
-            UnsupportedShape(ref shape) => write!(f, "Unsupported shape `{}`", shape),
-            UnexpectedFormat(ref format) => write!(f, "Unexpected meta-item format `{}`", format),
-            UnexpectedType(ref ty) => write!(f, "Unexpected literal type `{}`", ty),
-            UnknownValue(ref val) => write!(f, "Unknown literal value `{}`", val),
-            TooFewItems(ref min) => write!(f, "Too few items: Expected at least {}", min),
-            TooManyItems(ref max) => write!(f, "Too many items: Expected no more than {}", max),
-            Multiple(ref items) if items.len() == 1 => items[0].fmt(f),
-            Multiple(ref items) => {
-                write!(f, "Multiple errors: (")?;
-                let mut first = true;
-                for item in items {
-                    if !first {
-                        write!(f, ", ")?;
-                    } else {
-                        first = false;
-                    }
-
-                    item.fmt(f)?;
-                }
-
-                write!(f, ")")
-            }
-            __NonExhaustive => unreachable!(),
-        }
     }
 }
 

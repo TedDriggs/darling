@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+- Added "did you mean" suggestions for unknown fields behind the `suggestions` flag [#60](https://github.com/TedDriggs/issues/60)
+- Added `Error::unknown_field_with_alts` to support the suggestion use-case.
+- Added `ast::Fields::len` and `ast::Fields::is_empty` methods.
+
 ## v0.8.5 (February 4, 2019)
 - Accept unquoted positive numeric literals [#52](https://github.com/TedDriggs/issues/52)
 - Add `FromMeta` to the `syn::Lit` enum and its variants
