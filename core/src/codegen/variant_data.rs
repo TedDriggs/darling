@@ -40,8 +40,9 @@ impl<'a> FieldsGen<'a> {
         let handle_unknown = if self.allow_unknown_fields {
             quote!()
         } else {
+            let names = self.fields.as_ref().map(Field::as_name);
             quote! {
-                __errors.push(::darling::Error::unknown_field(__other).with_span(__inner));
+                __errors.push(::darling::Error::unknown_field_with_alts(__other, &[#(#names),*]).with_span(__inner));
             }
         };
 

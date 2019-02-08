@@ -25,6 +25,7 @@ syn = "0.15.26"
 
 [features]
 diagnostics = [ "darling_core/diagnostics" ]
+suggestions = [ "darling_core/suggestions" ]
 
 [workspace]
 members = ["macro", "core"]

@@ -29,6 +29,10 @@ pub struct Field<'a> {
 }
 
 impl<'a> Field<'a> {
+    pub fn as_name(&'a self) -> &'a str {
+        &self.name_in_attr
+    }
+
     pub fn as_declaration(&'a self) -> Declaration<'a> {
         Declaration(self, !self.skip)
     }
