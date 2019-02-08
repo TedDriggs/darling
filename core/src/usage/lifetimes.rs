@@ -287,13 +287,14 @@ mod tests {
     use usage::GenericsExt;
     use usage::Purpose::*;
 
-    fn parse(src: &str) -> DeriveInput {
-        syn::parse_str(src).unwrap()
-    }
-
     #[test]
     fn struct_named() {
-        let input = parse("struct Foo<'a, 'b: 'a> { parent: &'b Bar, child: &'a Baz, }");
+        let input: DeriveInput = parse_quote! {
+            struct Foo<'a, 'b: 'a> {
+                parent: &'b Bar,
+                child: &'a Baz,
+            }
+        };
         let omitted = syn::Lifetime::new("'c", Span::call_site());
 
         let lifetimes = {
@@ -308,9 +309,12 @@ mod tests {
 
     #[test]
     fn qself() {
-        let input = parse(
-            "struct Foo<'a, 'b: 'a> { parent: &'b Bar, child: <Bar<'a> as MyIterator>::Item, }",
-        );
+        let input: DeriveInput = parse_quote! {
+            struct Foo<'a, 'b: 'a> {
+                parent: &'b Bar,
+                child: <Bar<'a> as MyIterator>::Item,
+            }
+        };
         let lifetimes = input.generics.declared_lifetimes();
         let matches = input.data.uses_lifetimes(&BoundImpl.into(), &lifetimes);
         assert_eq!(matches.len(), 1);
