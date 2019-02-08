@@ -178,7 +178,7 @@ impl<T> Fields<T> {
 
     /// Returns true if this variant's data makes it a newtype.
     pub fn is_newtype(&self) -> bool {
-        self.style == Style::Tuple && self.fields.len() == 1
+        self.style == Style::Tuple && self.len() == 1
     }
 
     pub fn is_unit(&self) -> bool {
@@ -212,6 +212,16 @@ impl<T> Fields<T> {
 
     pub fn iter(&self) -> slice::Iter<T> {
         self.fields.iter()
+    }
+
+    /// Returns the number of fields in the structure.
+    pub fn len(&self) -> usize {
+        self.fields.len()
+    }
+
+    /// Returns `true` if the `Fields` contains no fields.
+    pub fn is_empty(&self) -> bool {
+        self.fields.is_empty()
     }
 }
 
