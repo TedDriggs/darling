@@ -10,3 +10,9 @@ rust:
 env:
   global:
     - RUST_BACKTRACE=1
+
+# Test with and without the suggestion feature enabled
+# See https://github.com/servo/rust-smallvec/blob/master/.travis.yml for guide
+script: |
+  cargo test --verbose &&
+  ([ $TRAVIS_RUST_VERSION = 1.18.0 ] || cargo test --verbose --features suggestions)
