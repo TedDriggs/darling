@@ -25,8 +25,7 @@ impl InputVariant {
             name_in_attr: self
                 .attr_name
                 .as_ref()
-                .map(Cow::Borrowed)
-                .unwrap_or_else(|| Cow::Owned(self.ident.to_string())),
+                .map_or_else(|| Cow::Owned(self.ident.to_string()), Cow::Borrowed),
             data: self.data.as_ref().map(InputField::as_codegen_field),
             skip: self.skip,
             allow_unknown_fields: self.allow_unknown_fields.unwrap_or_default(),
