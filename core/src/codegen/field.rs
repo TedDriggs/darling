@@ -127,10 +127,10 @@ impl<'a> ToTokens for MatchArm<'a> {
                         // it for error reporting.
                         let __len = #ident.len();
                         match #extractor {
-                            Ok(__val) => {
+                            ::darling::export::Ok(__val) => {
                                 #ident.push(__val)
                             }
-                            Err(__err) => {
+                            ::darling::export::Err(__err) => {
                                 __errors.push(__err)
                             }
                         }
@@ -141,10 +141,10 @@ impl<'a> ToTokens for MatchArm<'a> {
                     #name_str => {
                         if !#ident.0 {
                             match #extractor {
-                                Ok(__val) => {
+                                ::darling::export::Ok(__val) => {
                                     #ident = (true, ::darling::export::Some(__val));
                                 }
-                                Err(__err) => {
+                                ::darling::export::Err(__err) => {
                                     #ident = (true, None);
                                     __errors.push(__err);
                                 }

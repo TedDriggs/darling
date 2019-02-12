@@ -10,7 +10,7 @@ pub struct ErrorDeclaration {
 impl ToTokens for ErrorDeclaration {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         tokens.append_all(quote! {
-            let mut __errors = Vec::new();
+            let mut __errors = ::darling::export::Vec::new();
         })
     }
 }
