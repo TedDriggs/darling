@@ -130,8 +130,11 @@ impl ErrorUnknownField {
     }
 
     #[cfg(feature = "diagnostics")]
-    pub fn to_diagnostic(self, span: Option<Span>) -> ::proc_macro::Diagnostic {
-        let base = span.unwrap().unwrap().error(self.top_line());
+    pub fn to_diagnostic(self, span: Option<::proc_macro2::Span>) -> ::proc_macro::Diagnostic {
+        let base = span
+            .unwrap_or_else(::proc_macro2::Span::call_site)
+            .unwrap()
+            .error(self.top_line());
         match self.did_you_mean {
             Some(alt_name) => base.help(format!("did you mean `{}`?", alt_name)),
             None => base,

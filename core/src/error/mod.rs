@@ -313,8 +313,8 @@ impl Error {
         // since it's redundant and not consistent with native compiler diagnostics.
         match self.kind {
             ErrorKind::UnknownField(euf) => euf.to_diagnostic(self.span),
-            kind => match self.span {
-                Some(span) => span.unwrap().error(kind.to_string()),
+            _ => match self.span {
+                Some(span) => span.unwrap().error(self.kind.to_string()),
                 None => Diagnostic::new(Level::Error, self.to_string()),
             },
         }
