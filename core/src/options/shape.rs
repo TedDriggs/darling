@@ -88,13 +88,12 @@ impl ToTokens for Shape {
             }
         };
 
-        // FIXME: Remove the &[]
-        tokens.append_all(&[quote! {
+        tokens.append_all(quote! {
             #[allow(unused_variables)]
             fn __validate_body(__body: &::syn::Data) -> ::darling::Result<()> {
                 #fn_body
             }
-        }]);
+        });
     }
 }
 
@@ -199,15 +198,13 @@ impl ToTokens for DataShape {
         };
 
         if self.embedded {
-            // FIXME: Remove the &[]
-            tokens.append_all(&[body]);
+            body.to_tokens(tokens);
         } else {
-            // FIXME: Remove the &[]
-            tokens.append_all(&[quote! {
+            tokens.append_all(quote! {
                 fn __validate_data(data: &::syn::Fields) -> ::darling::Result<()> {
                     #body
                 }
-            }]);
+            });
         }
     }
 }
