@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use syn;
 
-use ast::{Fields, Style};
+use ast::Fields;
 use codegen;
 use options::{Core, InputField, ParseAttribute};
 use {Error, FromMeta, Result};
@@ -43,18 +43,15 @@ impl InputVariant {
         })
         .parse_attributes(&v.attrs)?;
 
-        starter.data = match v.fields {
-            syn::Fields::Unit => Style::Unit.into(),
+        starter.data.fields = match v.fields {
+            syn::Fields::Unit => vec![],
             syn::Fields::Unnamed(ref fields) => {
                 let mut items = Vec::with_capacity(fields.unnamed.len());
                 for item in &fields.unnamed {
                     items.push(InputField::from_field(item, parent)?);
                 }
 
-                Fields {
-                    style: v.fields.clone().into(),
-                    fields: items,
-                }
+                items
             }
             syn::Fields::Named(ref fields) => {
                 let mut items = Vec::with_capacity(fields.named.len());
@@ -62,10 +59,7 @@ impl InputVariant {
                     items.push(InputField::from_field(item, parent)?);
                 }
 
-                Fields {
-                    style: v.fields.clone().into(),
-                    fields: items,
-                }
+                items
             }
         };
 
