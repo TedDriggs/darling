@@ -30,6 +30,10 @@ pub struct Variant<'a> {
 }
 
 impl<'a> Variant<'a> {
+    pub fn as_name(&'a self) -> &'a str {
+        &self.name_in_attr
+    }
+
     pub fn as_unit_match_arm(&'a self) -> UnitMatchArm<'a> {
         UnitMatchArm(self)
     }
