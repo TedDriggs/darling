@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.8.6 (March 18, 2019)
 - Added "did you mean" suggestions for unknown fields behind the `suggestions` flag [#60](https://github.com/TedDriggs/issues/60)
 - Added `Error::unknown_field_with_alts` to support the suggestion use-case.
 - Added `ast::Fields::len` and `ast::Fields::is_empty` methods.
