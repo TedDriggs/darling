@@ -142,7 +142,7 @@ pub struct Generics<P, W = syn::WhereClause> {
 }
 
 impl<P, W> Generics<P, W> {
-    pub fn type_params<'a>(&'a self) -> TypeParams<'a, P> {
+    pub fn type_params(&self) -> TypeParams<'_, P> {
         TypeParams(self.params.iter())
     }
 }

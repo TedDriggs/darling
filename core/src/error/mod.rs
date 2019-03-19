@@ -177,6 +177,7 @@ impl Error {
 }
 
 /// Error instance methods
+#[allow(clippy::len_without_is_empty)]
 impl Error {
     /// Check if this error is associated with a span in the token stream.
     pub fn has_span(&self) -> bool {
