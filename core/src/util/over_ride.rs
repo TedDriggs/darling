@@ -59,7 +59,7 @@ impl<T> Override<T> {
     /// Converts from `Override<T>` to `Override<&mut T>`.
     ///
     /// Produces a new `Override`, containing a mutable reference into the original.
-    pub fn as_mut(&mut self) -> Override<&T> {
+    pub fn as_mut(&mut self) -> Override<&mut T> {
         match *self {
             Inherit => Inherit,
             Explicit(ref mut val) => Explicit(val),
