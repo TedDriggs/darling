@@ -26,15 +26,6 @@ pub struct Shape {
     any: bool,
 }
 
-impl Shape {
-    pub fn all() -> Self {
-        Shape {
-            any: true,
-            ..Default::default()
-        }
-    }
-}
-
 impl Default for Shape {
     fn default() -> Self {
         Shape {
