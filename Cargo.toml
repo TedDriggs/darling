@@ -25,6 +25,7 @@ quote = "0.6"
 syn = "0.15.26"
 
 [features]
+default = ["suggestions"]
 diagnostics = ["darling_core/diagnostics"]
 suggestions = ["darling_core/suggestions"]
 
