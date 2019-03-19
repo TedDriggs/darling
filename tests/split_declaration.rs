@@ -1,7 +1,6 @@
 //! When input is split across multiple attributes on one element,
 //! darling should collapse that into one struct.
 
-#[macro_use]
 extern crate darling;
 #[macro_use]
 extern crate syn;

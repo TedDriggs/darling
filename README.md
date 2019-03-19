@@ -17,9 +17,10 @@ Darling
 # Example
 
 ```rust,ignore
-#[macro_use]
 extern crate darling;
 extern crate syn;
+
+use darling::{FromDeriveInput, FromMeta};
 
 #[derive(Default, FromMeta)]
 #[darling(default)]
