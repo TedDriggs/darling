@@ -134,7 +134,7 @@ impl DataShape {
     }
 
     fn set_word(&mut self, word: &str) -> Result<()> {
-        match word.trim_left_matches(self.prefix) {
+        match word.trim_start_matches(self.prefix) {
             "newtype" => {
                 self.newtype = true;
                 Ok(())
@@ -188,7 +188,7 @@ impl ToTokens for DataShape {
         let body = if self.any {
             quote!(::darling::export::Ok(()))
         } else if self.supports_none() {
-            let ty = self.prefix.trim_right_matches('_');
+            let ty = self.prefix.trim_end_matches('_');
             quote!(::darling::export::Err(::darling::Error::unsupported_shape(#ty)))
         } else {
             let unit = match_arm("unit", self.unit);
