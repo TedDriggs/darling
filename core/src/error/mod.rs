@@ -183,15 +183,6 @@ impl Error {
         self.span.is_some()
     }
 
-    /// Override the source code location of this error with a new one.
-    #[deprecated(
-        since = "0.8.3",
-        note = "Callers should not broaden error spans. Use with_span instead."
-    )]
-    pub fn set_span(&mut self, span: Span) {
-        self.span = Some(span)
-    }
-
     /// Tie a span to the error if none is already present. This is used in `darling::FromMeta`
     /// and other traits to attach errors to the most specific possible location in the input
     /// source code.
