@@ -110,7 +110,7 @@ impl Error {
     ///
     /// impl FromMeta for Foo {
     ///     fn from_value(value: &Lit) -> Result<Self> {
-    ///         if let Lit::Str(ref lit_str) = value {
+    ///         if let Lit::Str(ref lit_str) = *value {
     ///             Ok(Foo(lit_str.value()))
     ///         } else {
     ///             Err(Error::unexpected_lit_type(value))
