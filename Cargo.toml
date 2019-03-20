@@ -14,6 +14,7 @@ exclude = ["/.travis.yml", "/publish.sh"]
 
 [badges]
 travis-ci = { repository = "TedDriggs/darling" }
+maintenance = { status = "actively-developed" }
 
 [dependencies]
 darling_core = { version = "=0.9.0", path = "core" }
