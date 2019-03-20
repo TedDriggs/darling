@@ -1,7 +1,9 @@
 # Changelog
 
-## v0.9.0
+## v0.9.0 (March 20, 2019)
 - Enable "did you mean" suggestions by default
+- Make `darling_core::{codegen, options}` private [#58](https://github.com/TedDriggs/darling/issues/58)
+- Fix `Override::as_mut`: [#66](https://github.com/TedDriggs/darling/issues/66)
 
 ## v0.8.6 (March 18, 2019)
 - Added "did you mean" suggestions for unknown fields behind the `suggestions` flag [#60](https://github.com/TedDriggs/issues/60)
