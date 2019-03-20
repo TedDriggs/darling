@@ -14,5 +14,7 @@ env:
 # Test with and without the suggestion feature enabled
 # See https://github.com/servo/rust-smallvec/blob/master/.travis.yml for guide
 script: |
-  cargo test --verbose &&
-  ([ $TRAVIS_RUST_VERSION = 1.18.0 ] || cargo test --verbose --features suggestions)
+  cargo test --verbose
+
+# To enable version-specific feature tests, add `&&` to the script, followed by this line:
+# ([ $TRAVIS_RUST_VERSION = 1.18.0 ] || cargo test --verbose --features suggestions)
