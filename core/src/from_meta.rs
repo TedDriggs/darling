@@ -321,6 +321,12 @@ impl<T: FromMeta> FromMeta for Result<T> {
     }
 }
 
+impl<T: FromMeta> FromMeta for Vec<T> {
+    fn from_list(items: &[NestedMeta]) -> Result<Self> {
+        items.iter().map(|item| T::from_nested_meta(item)).collect()
+    }
+}
+
 /// Parses the meta-item, and in case of error preserves a copy of the input for
 /// later analysis.
 impl<T: FromMeta> FromMeta for ::std::result::Result<T, Meta> {
