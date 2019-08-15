@@ -12,7 +12,7 @@ mod over_ride;
 mod with_original;
 mod spanned_value;
 
-pub use self::ident_list::IdentList;
+pub use self::ident_list::PathList;
 pub use self::ident_string::IdentString;
 pub use self::ignored::Ignored;
 pub use self::over_ride::Override;
