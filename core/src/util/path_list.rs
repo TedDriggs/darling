@@ -70,7 +70,7 @@ mod tests {
     /// parse a string as a syn::Meta instance.
     fn pm(tokens: TokenStream) -> ::std::result::Result<Meta, String> {
         let attribute: Attribute = parse_quote!(#[#tokens]);
-        attribute.parse_meta().ok_or("Unable to parse".into())
+        attribute.parse_meta().map_err(|_| "Unable to parse".into())
     }
 
     fn fm<T: FromMeta>(tokens: TokenStream) -> T {
@@ -82,7 +82,7 @@ mod tests {
     fn succeeds() {
         let paths = fm::<PathList>(quote!(ignore(Debug, Clone, Eq)));
         assert_eq!(
-            idents.to_strings(),
+            paths.to_strings(),
             vec![
                 String::from("Debug"),
                 String::from("Clone"),
