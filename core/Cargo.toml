@@ -17,6 +17,6 @@ suggestions = ["strsim"]
 ident_case = "1.0.0"
 proc-macro2 = "1"
 quote = "1"
-syn = { version = "1", features = ["full", "extra-traits"] }
+syn = { version = "1.0.1", features = ["full", "extra-traits"] }
 fnv = "1.0.6"
 strsim = { version = "0.9.0", optional = true }
