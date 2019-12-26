@@ -60,7 +60,7 @@ impl Core {
         }
     }
 
-    fn as_codegen_default<'a>(&'a self) -> Option<codegen::DefaultExpression<'a>> {
+    fn as_codegen_default(&self) -> Option<codegen::DefaultExpression<'_>> {
         self.default.as_ref().map(|expr| match *expr {
             DefaultExpression::Explicit(ref path) => codegen::DefaultExpression::Explicit(path),
             DefaultExpression::Inherit | DefaultExpression::Trait => {

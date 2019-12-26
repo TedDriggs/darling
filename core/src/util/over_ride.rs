@@ -49,20 +49,20 @@ impl<T> Override<T> {
     /// Converts from `Override<T>` to `Override<&T>`.
     ///
     /// Produces a new `Override`, containing a reference into the original, leaving the original in place.
-    pub fn as_ref<'a>(&'a self) -> Override<&'a T> {
-        match *self {
+    pub fn as_ref(&self) -> Override<&T> {
+        match &self {
             Inherit => Inherit,
-            Explicit(ref val) => Explicit(val),
+            Explicit(val) => Explicit(val),
         }
     }
 
     /// Converts from `Override<T>` to `Override<&mut T>`.
     ///
     /// Produces a new `Override`, containing a mutable reference into the original.
-    pub fn as_mut<'a>(&'a mut self) -> Override<&'a mut T> {
-        match *self {
+    pub fn as_mut(&mut self) -> Override<&mut T> {
+        match self {
             Inherit => Inherit,
-            Explicit(ref mut val) => Explicit(val),
+            Explicit(val) => Explicit(val),
         }
     }
 

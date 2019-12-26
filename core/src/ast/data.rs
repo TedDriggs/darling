@@ -26,8 +26,8 @@ impl<V, F> Data<V, F> {
         }
     }
 
-    /// Creates a new `Data<&'a V, &'a F>` instance from `Data<V, F>`.
-    pub fn as_ref<'a>(&'a self) -> Data<&'a V, &'a F> {
+    /// Creates a new `Data<&V, &F>` instance from `Data<V, F>`.
+    pub fn as_ref(&self) -> Data<&V, &F> {
         match *self {
             Data::Enum(ref variants) => Data::Enum(variants.iter().collect()),
             Data::Struct(ref data) => Data::Struct(data.as_ref()),
