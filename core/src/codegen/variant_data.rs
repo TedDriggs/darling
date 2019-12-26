@@ -23,6 +23,7 @@ impl<'a> FieldsGen<'a> {
             Fields {
                 style: Style::Struct,
                 ref fields,
+                ..
             } => {
                 let vdr = fields.iter().map(Field::as_declaration);
                 quote!(#(#vdr)*)
@@ -74,6 +75,7 @@ impl<'a> FieldsGen<'a> {
             Fields {
                 style: Style::Struct,
                 ref fields,
+                ..
             } => {
                 let checks = fields.iter().map(Field::as_presence_check);
                 quote!(#(#checks)*)
