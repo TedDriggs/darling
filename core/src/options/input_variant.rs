@@ -33,7 +33,7 @@ impl InputVariant {
     }
 
     pub fn from_variant(v: &syn::Variant, parent: Option<&Core>) -> Result<Self> {
-        let mut starter = (InputVariant {
+        let mut starter = (Self {
             ident: v.ident.clone(),
             attr_name: Default::default(),
             data: Fields::empty_from(&v.fields),

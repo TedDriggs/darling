@@ -28,7 +28,7 @@ pub struct Shape {
 
 impl Default for Shape {
     fn default() -> Self {
-        Shape {
+        Self {
             enum_values: DataShape::new("enum_"),
             struct_values: DataShape::new("struct_"),
             any: Default::default(),
@@ -38,7 +38,7 @@ impl Default for Shape {
 
 impl FromMeta for Shape {
     fn from_list(items: &[NestedMeta]) -> Result<Self> {
-        let mut new = Shape::default();
+        let mut new = Self::default();
         for item in items {
             if let NestedMeta::Meta(Meta::Path(ref path)) = *item {
                 let ident = &path.segments.first().unwrap().ident;
@@ -122,7 +122,7 @@ pub struct DataShape {
 
 impl DataShape {
     fn new(prefix: &'static str) -> Self {
-        DataShape {
+        Self {
             prefix,
             embedded: true,
             ..Default::default()
@@ -163,7 +163,7 @@ impl DataShape {
 impl FromMeta for DataShape {
     fn from_list(items: &[NestedMeta]) -> Result<Self> {
         let mut errors = Vec::new();
-        let mut new = DataShape::default();
+        let mut new = Self::default();
 
         for item in items {
             if let NestedMeta::Meta(Meta::Path(ref path)) = *item {

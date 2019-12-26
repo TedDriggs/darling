@@ -20,8 +20,8 @@ impl<V, F> Data<V, F> {
     /// Creates an empty body of the same shape as the passed-in body.
     pub fn empty_from(src: &syn::Data) -> Self {
         match *src {
-            syn::Data::Enum(_) => Data::Enum(vec![]),
-            syn::Data::Struct(ref vd) => Data::Struct(Fields::empty_from(&vd.fields)),
+            syn::Data::Enum(_) => Self::Enum(vec![]),
+            syn::Data::Struct(ref vd) => Self::Struct(Fields::empty_from(&vd.fields)),
             syn::Data::Union(_) => unreachable!(),
         }
     }
@@ -29,8 +29,8 @@ impl<V, F> Data<V, F> {
     /// Creates a new `Data<&V, &F>` instance from `Data<V, F>`.
     pub fn as_ref(&self) -> Data<&V, &F> {
         match *self {
-            Data::Enum(ref variants) => Data::Enum(variants.iter().collect()),
-            Data::Struct(ref data) => Data::Struct(data.as_ref()),
+            Self::Enum(ref variants) => Data::Enum(variants.iter().collect()),
+            Self::Struct(ref data) => Data::Struct(data.as_ref()),
         }
     }
 
@@ -40,8 +40,8 @@ impl<V, F> Data<V, F> {
         T: FnMut(V) -> U,
     {
         match self {
-            Data::Enum(v) => Data::Enum(v.into_iter().map(map).collect()),
-            Data::Struct(f) => Data::Struct(f),
+            Self::Enum(v) => Data::Enum(v.into_iter().map(map).collect()),
+            Self::Struct(f) => Data::Struct(f),
         }
     }
 
@@ -51,8 +51,8 @@ impl<V, F> Data<V, F> {
         T: FnMut(F) -> U,
     {
         match self {
-            Data::Enum(v) => Data::Enum(v),
-            Data::Struct(f) => Data::Struct(f.map(map)),
+            Self::Enum(v) => Data::Enum(v),
+            Self::Struct(f) => Data::Struct(f.map(map)),
         }
     }
 
@@ -62,32 +62,32 @@ impl<V, F> Data<V, F> {
         T: FnMut(Fields<F>) -> Fields<U>,
     {
         match self {
-            Data::Enum(v) => Data::Enum(v),
-            Data::Struct(f) => Data::Struct(map(f)),
+            Self::Enum(v) => Data::Enum(v),
+            Self::Struct(f) => Data::Struct(map(f)),
         }
     }
 
     /// Consumes the `Data`, returning `Fields<F>` if it was a struct.
     pub fn take_struct(self) -> Option<Fields<F>> {
         match self {
-            Data::Enum(_) => None,
-            Data::Struct(f) => Some(f),
+            Self::Enum(_) => None,
+            Self::Struct(f) => Some(f),
         }
     }
 
     /// Consumes the `Data`, returning `Vec<V>` if it was an enum.
     pub fn take_enum(self) -> Option<Vec<V>> {
         match self {
-            Data::Enum(v) => Some(v),
-            Data::Struct(_) => None,
+            Self::Enum(v) => Some(v),
+            Self::Struct(_) => None,
         }
     }
 
     /// Returns `true` if this instance is `Data::Enum`.
     pub fn is_enum(&self) -> bool {
         match *self {
-            Data::Enum(_) => true,
-            Data::Struct(_) => false,
+            Self::Enum(_) => true,
+            Self::Struct(_) => false,
         }
     }
 
@@ -114,10 +114,10 @@ impl<V: FromVariant, F: FromField> Data<V, F> {
                 if !errors.is_empty() {
                     Err(Error::multiple(errors))
                 } else {
-                    Ok(Data::Enum(items))
+                    Ok(Self::Enum(items))
                 }
             }
-            syn::Data::Struct(ref data) => Ok(Data::Struct(Fields::try_from(&data.fields)?)),
+            syn::Data::Struct(ref data) => Ok(Self::Struct(Fields::try_from(&data.fields)?)),
             syn::Data::Union(_) => unreachable!(),
         }
     }
@@ -130,8 +130,8 @@ impl<V: UsesTypeParams, F: UsesTypeParams> UsesTypeParams for Data<V, F> {
         type_set: &'a IdentSet,
     ) -> IdentRefSet<'a> {
         match *self {
-            Data::Struct(ref v) => v.uses_type_params(options, type_set),
-            Data::Enum(ref v) => v.uses_type_params(options, type_set),
+            Self::Struct(ref v) => v.uses_type_params(options, type_set),
+            Self::Enum(ref v) => v.uses_type_params(options, type_set),
         }
     }
 }
@@ -143,8 +143,8 @@ impl<V: UsesLifetimes, F: UsesLifetimes> UsesLifetimes for Data<V, F> {
         lifetimes: &'a LifetimeSet,
     ) -> LifetimeRefSet<'a> {
         match *self {
-            Data::Struct(ref v) => v.uses_lifetimes(options, lifetimes),
-            Data::Enum(ref v) => v.uses_lifetimes(options, lifetimes),
+            Self::Struct(ref v) => v.uses_lifetimes(options, lifetimes),
+            Self::Enum(ref v) => v.uses_lifetimes(options, lifetimes),
         }
     }
 }
@@ -158,7 +158,7 @@ pub struct Fields<T> {
 
 impl<T> Fields<T> {
     pub fn empty_from(vd: &syn::Fields) -> Self {
-        Fields {
+        Self {
             style: vd.into(),
             fields: Vec::new(),
         }
@@ -187,7 +187,7 @@ impl<T> Fields<T> {
         self.style.is_struct()
     }
 
-    pub fn as_ref<'a>(&'a self) -> Fields<&'a T> {
+    pub fn as_ref(&self) -> Fields<&T> {
         Fields {
             style: self.style,
             fields: self.fields.iter().collect(),
@@ -262,7 +262,7 @@ impl<F: FromField> Fields<F> {
         if !errors.is_empty() {
             Err(Error::multiple(errors))
         } else {
-            Ok(Fields {
+            Ok(Self {
                 style: fields.into(),
                 fields: items,
             })
@@ -281,7 +281,7 @@ impl<T> IntoIterator for Fields<T> {
 
 impl<T> From<Style> for Fields<T> {
     fn from(style: Style) -> Self {
-        Fields {
+        Self {
             style,
             fields: Vec::new(),
         }
@@ -323,15 +323,15 @@ pub enum Style {
 
 impl Style {
     pub fn is_unit(self) -> bool {
-        self == Style::Unit
+        self == Self::Unit
     }
 
     pub fn is_tuple(self) -> bool {
-        self == Style::Tuple
+        self == Self::Tuple
     }
 
     pub fn is_struct(self) -> bool {
-        self == Style::Struct
+        self == Self::Struct
     }
 
     /// Creates a new `Fields` of the specified style with the passed-in fields.
@@ -352,9 +352,9 @@ impl From<syn::Fields> for Style {
 impl<'a> From<&'a syn::Fields> for Style {
     fn from(vd: &syn::Fields) -> Self {
         match *vd {
-            syn::Fields::Named(_) => Style::Struct,
-            syn::Fields::Unnamed(_) => Style::Tuple,
-            syn::Fields::Unit => Style::Unit,
+            syn::Fields::Named(_) => Self::Struct,
+            syn::Fields::Unnamed(_) => Self::Tuple,
+            syn::Fields::Unit => Self::Unit,
         }
     }
 }
