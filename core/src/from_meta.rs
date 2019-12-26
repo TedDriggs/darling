@@ -363,12 +363,12 @@ impl<V: FromMeta, S: BuildHasher + Default> FromMeta for HashMap<String, V, S> {
                     .join("::");
                 match map.entry(name) {
                     Entry::Occupied(_) => {
-                        return Err(Error::duplicate_field_path(&path).with_span(inner));
+                        return Err(Error::duplicate_field_path(path).with_span(inner));
                     }
                     Entry::Vacant(entry) => {
                         // In the error case, extend the error's path, but assume the inner `from_meta`
                         // set the span, and that subsequently we don't have to.
-                        entry.insert(FromMeta::from_meta(inner).map_err(|e| e.at_path(&path))?);
+                        entry.insert(FromMeta::from_meta(inner).map_err(|e| e.at_path(path))?);
                     }
                 }
             }

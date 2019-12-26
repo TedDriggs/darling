@@ -379,7 +379,7 @@ impl Error {
 
 impl StdError for Error {
     fn description(&self) -> &str {
-        &self.kind.description()
+        self.kind.description()
     }
 
     fn cause(&self) -> Option<&dyn StdError> {
