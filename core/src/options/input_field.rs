@@ -130,7 +130,7 @@ impl ParseAttribute for InputField {
         } else if path.is_ident("multiple") {
             self.multiple = FromMeta::from_meta(mi)?;
         } else {
-            return Err(Error::unknown_field_path(path).with_span(mi))
+            return Err(Error::unknown_field_path(path).with_span(mi));
         }
 
         Ok(())

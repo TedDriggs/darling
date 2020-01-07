@@ -18,7 +18,7 @@ mod foo {
 #[derive(FromDeriveInput)]
 #[darling(attributes(speak))]
 pub struct SpeakerOpts {
-    #[darling(default="foo::bar::init")]
+    #[darling(default = "foo::bar::init")]
     first_word: String,
 }
 
@@ -26,7 +26,8 @@ pub struct SpeakerOpts {
 fn path_default() {
     let speaker: SpeakerOpts = FromDeriveInput::from_derive_input(&parse_quote! {
         struct Foo;
-    }).expect("Unit struct with no attrs should parse");
+    })
+    .expect("Unit struct with no attrs should parse");
 
     assert_eq!(speaker.first_word, "hello");
 }

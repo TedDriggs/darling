@@ -11,10 +11,13 @@ env:
   global:
     - RUST_BACKTRACE=1
 
+before_script:
+  - rustup component add rustfmt
+
 # Test with and without the suggestion feature enabled
 # See https://github.com/servo/rust-smallvec/blob/master/.travis.yml for guide
-script: |
-  cargo test --verbose
-
+script:
+  - cargo test --verbose
+  - cargo fmt -- --check
 # To enable version-specific feature tests, add `&&` to the script, followed by this line:
 # ([ $TRAVIS_RUST_VERSION = 1.18.0 ] || cargo test --verbose --features suggestions)

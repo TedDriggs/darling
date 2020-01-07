@@ -48,7 +48,7 @@ fn expand_some() {
             #[lorem(bar = "x")] U: Eq + ?Sized
         >(&'a T, U);
     "#)
-        .expect("Input is well-formed");
+    .expect("Input is well-formed");
     assert!(rec.generics.where_clause.is_none());
 
     // Make sure we've preserved the lifetime def, though we don't do anything with it.
@@ -92,7 +92,7 @@ fn passthrough() {
             #[lorem(bar = "x")] U: Eq + ?Sized
         >(&'a T, U);
     "#)
-        .expect("Input is well-formed");
+    .expect("Input is well-formed");
 
     let mut type_param_iter = rec.generics.type_params();
     assert!(type_param_iter.next().is_some());
@@ -110,7 +110,7 @@ fn where_clause() {
             #[lorem(bar = "x")] U: Eq + ?Sized
         >(&'a T, U) where T: Into<String>;
     "#)
-        .expect("Input is well-formed");
+    .expect("Input is well-formed");
 
     assert!(rec.generics.where_clause.is_some());
 }
@@ -130,7 +130,7 @@ fn with_original() {
             #[lorem(bar = "x")] U: Eq + ?Sized
         >(&'a T, U) where T: Into<String>;
     "#)
-        .expect("Input is well-formed");
+    .expect("Input is well-formed");
 
     // Make sure we haven't lost anything in the conversion
     assert_eq!(rec.generics.parsed.params.len(), 3);
@@ -180,7 +180,7 @@ fn ignored() {
             #[lorem(bar = "x")] U: Eq + ?Sized
         >(&'a T, U) where T: Into<String>;
     "#)
-        .expect("Input is well-formed");
+    .expect("Input is well-formed");
 
     assert_eq!(Ignored, rec.generics);
 }

@@ -53,7 +53,7 @@ impl ParseAttribute for OuterFrom {
             self.container.default = Some(DefaultExpression::Trait);
             self.from_ident = true;
         } else {
-            return self.container.parse_nested(mi)
+            return self.container.parse_nested(mi);
         }
         Ok(())
     }

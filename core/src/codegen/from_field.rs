@@ -35,7 +35,8 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
             self.base.fallback_decl()
         };
 
-        let passed_ident = self.ident
+        let passed_ident = self
+            .ident
             .as_ref()
             .map(|i| quote!(#i: #input.ident.clone(),));
         let passed_vis = self.vis.as_ref().map(|i| quote!(#i: #input.vis.clone(),));
@@ -47,7 +48,7 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
         let map = self.base.map_fn();
 
         self.wrap(
-            quote!{
+            quote! {
                 fn from_field(#input: &::syn::Field) -> ::darling::Result<Self> {
                     #error_declaration
 

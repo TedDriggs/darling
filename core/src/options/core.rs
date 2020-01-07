@@ -76,7 +76,7 @@ impl ParseAttribute for Core {
 
         if path.is_ident("default") {
             if self.default.is_some() {
-                return Err(Error::duplicate_field("default").with_span(mi))
+                return Err(Error::duplicate_field("default").with_span(mi));
             }
 
             self.default = FromMeta::from_meta(mi)?;
@@ -86,7 +86,7 @@ impl ParseAttribute for Core {
             self.rename_rule = FromMeta::from_meta(mi)?;
         } else if path.is_ident("map") {
             if self.map.is_some() {
-                return Err(Error::duplicate_field("map").with_span(mi))
+                return Err(Error::duplicate_field("map").with_span(mi));
             }
 
             self.map = FromMeta::from_meta(mi)?;
@@ -94,12 +94,12 @@ impl ParseAttribute for Core {
             self.bound = FromMeta::from_meta(mi)?;
         } else if path.is_ident("allow_unknown_fields") {
             if self.allow_unknown_fields.is_some() {
-                return Err(Error::duplicate_field("allow_unknown_fields").with_span(mi))
+                return Err(Error::duplicate_field("allow_unknown_fields").with_span(mi));
             }
 
             self.allow_unknown_fields = FromMeta::from_meta(mi)?;
         } else {
-            return Err(Error::unknown_field_path(&path).with_span(mi))
+            return Err(Error::unknown_field_path(&path).with_span(mi));
         }
 
         Ok(())
