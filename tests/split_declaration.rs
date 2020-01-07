@@ -47,10 +47,7 @@ fn duplicates_across_split_attrs_error() {
 
     let pr = Lorem::from_derive_input(&di).unwrap_err();
     assert!(pr.has_span());
-    assert_eq!(
-        pr.to_string(),
-        Error::duplicate_field("foo").to_string()
-    );
+    assert_eq!(pr.to_string(), Error::duplicate_field("foo").to_string());
 }
 
 #[test]

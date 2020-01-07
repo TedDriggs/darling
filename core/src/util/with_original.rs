@@ -1,7 +1,9 @@
 use syn;
 
-use {FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta, FromTypeParam,
-     FromVariant, Result};
+use {
+    FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta, FromTypeParam,
+    FromVariant, Result,
+};
 
 /// A container to parse some syntax and retain access to the original.
 #[derive(Debug, Clone, PartialEq, Eq)]

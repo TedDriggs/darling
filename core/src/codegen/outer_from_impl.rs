@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use quote::{TokenStreamExt, ToTokens};
+use quote::{ToTokens, TokenStreamExt};
 use syn::{GenericParam, Generics, Path, TraitBound, TraitBoundModifier, TypeParamBound};
 
 use codegen::TraitImpl;

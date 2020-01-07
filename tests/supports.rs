@@ -31,7 +31,7 @@ mod source {
     use syn::DeriveInput;
 
     pub fn newtype_enum() -> DeriveInput {
-        parse_quote!{
+        parse_quote! {
             enum Hello {
                 World(bool),
                 String(String),

@@ -67,8 +67,10 @@ extern crate darling_macro;
 pub use darling_macro::*;
 
 #[doc(inline)]
-pub use darling_core::{FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta,
-                       FromTypeParam, FromVariant};
+pub use darling_core::{
+    FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta, FromTypeParam,
+    FromVariant,
+};
 
 #[doc(inline)]
 pub use darling_core::{Error, Result};
@@ -90,8 +92,8 @@ pub mod export {
     pub use core::default::Default;
     pub use core::option::Option::{self, None, Some};
     pub use core::result::Result::{self, Err, Ok};
-    pub use std::vec::Vec;
     pub use std::string::ToString;
+    pub use std::vec::Vec;
 }
 
 #[macro_use]

@@ -355,12 +355,15 @@ impl<V: FromMeta, S: BuildHasher + Default> FromMeta for HashMap<String, V, S> {
         for item in nested {
             if let syn::NestedMeta::Meta(ref inner) = *item {
                 let path = inner.path();
-                let name = path.segments.iter().map(|s| s.ident.to_string()).collect::<Vec<String>>().join("::");
+                let name = path
+                    .segments
+                    .iter()
+                    .map(|s| s.ident.to_string())
+                    .collect::<Vec<String>>()
+                    .join("::");
                 match map.entry(name) {
                     Entry::Occupied(_) => {
-                        return Err(
-                            Error::duplicate_field_path(&path).with_span(inner)
-                        );
+                        return Err(Error::duplicate_field_path(&path).with_span(inner));
                     }
                     Entry::Vacant(entry) => {
                         // In the error case, extend the error's path, but assume the inner `from_meta`

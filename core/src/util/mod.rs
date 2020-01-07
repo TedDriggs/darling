@@ -9,8 +9,8 @@ mod ident_string;
 mod ignored;
 mod over_ride;
 mod path_list;
-mod with_original;
 mod spanned_value;
+mod with_original;
 
 pub use self::ident_string::IdentString;
 pub use self::ignored::Ignored;

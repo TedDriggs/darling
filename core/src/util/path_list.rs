@@ -27,7 +27,16 @@ impl PathList {
 
     /// Create a new `Vec` containing the string representation of each path.
     pub fn to_strings(&self) -> Vec<String> {
-        self.0.iter().map(|p| p.segments.iter().map(|s| s.ident.to_string()).collect::<Vec<String>>().join("::")).collect()
+        self.0
+            .iter()
+            .map(|p| {
+                p.segments
+                    .iter()
+                    .map(|s| s.ident.to_string())
+                    .collect::<Vec<String>>()
+                    .join("::")
+            })
+            .collect()
     }
 }
 
