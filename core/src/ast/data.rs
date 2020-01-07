@@ -1,6 +1,8 @@
 use std::{slice, vec};
 
-use syn;
+use proc_macro2::{Span, TokenStream};
+use quote::ToTokens;
+use syn::spanned::Spanned;
 
 use usage::{
     self, IdentRefSet, IdentSet, LifetimeRefSet, LifetimeSet, UsesLifetimes, UsesTypeParams,
@@ -150,18 +152,35 @@ impl<V: UsesLifetimes, F: UsesLifetimes> UsesLifetimes for Data<V, F> {
 }
 
 /// Equivalent to `syn::Fields`, but replaces the AST element with a generic.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub struct Fields<T> {
     pub style: Style,
     pub fields: Vec<T>,
+    span: Option<Span>,
+    __nonexhaustive: (),
 }
 
 impl<T> Fields<T> {
-    pub fn empty_from(vd: &syn::Fields) -> Self {
+    /// Creates a new [`Fields`] struct.
+    pub fn new(style: Style, fields: Vec<T>) -> Self {
         Self {
-            style: vd.into(),
-            fields: Vec::new(),
+            style,
+            fields,
+            span: None,
+            __nonexhaustive: (),
         }
+    }
+
+    /// Adds a [`Span`] to [`Fields`].
+    pub fn with_span(mut self, span: Span) -> Self {
+        if self.span.is_none() {
+            self.span = Some(span);
+        }
+        self
+    }
+
+    pub fn empty_from(vd: &syn::Fields) -> Self {
+        Self::new(vd.into(), Vec::new())
     }
 
     /// Splits the `Fields` into its style and fields for further processing.
@@ -191,6 +210,8 @@ impl<T> Fields<T> {
         Fields {
             style: self.style,
             fields: self.fields.iter().collect(),
+            span: self.span,
+            __nonexhaustive: (),
         }
     }
 
@@ -201,6 +222,8 @@ impl<T> Fields<T> {
         Fields {
             style: self.style,
             fields: self.fields.into_iter().map(map).collect(),
+            span: self.span,
+            __nonexhaustive: (),
         }
     }
 
@@ -221,54 +244,92 @@ impl<T> Fields<T> {
 
 impl<F: FromField> Fields<F> {
     pub fn try_from(fields: &syn::Fields) -> Result<Self> {
-        let (items, errors) = match *fields {
-            syn::Fields::Named(ref fields) => {
-                let mut items = Vec::with_capacity(fields.named.len());
-                let mut errors = Vec::new();
+        let (items, errors) = {
+            match &fields {
+                syn::Fields::Named(fields) => {
+                    let mut items = Vec::with_capacity(fields.named.len());
+                    let mut errors = Vec::new();
 
-                for field in &fields.named {
-                    match FromField::from_field(field) {
-                        Ok(val) => items.push(val),
-                        Err(err) => errors.push(if let Some(ref ident) = field.ident {
-                            err.at(ident)
-                        } else {
-                            err
-                        }),
+                    for field in &fields.named {
+                        match FromField::from_field(field) {
+                            Ok(val) => items.push(val),
+                            Err(err) => errors.push({
+                                if let Some(ident) = &field.ident {
+                                    err.at(ident)
+                                } else {
+                                    err
+                                }
+                            }),
+                        }
                     }
+
+                    (items, errors)
                 }
+                syn::Fields::Unnamed(fields) => {
+                    let mut items = Vec::with_capacity(fields.unnamed.len());
+                    let mut errors = Vec::new();
 
-                (items, errors)
-            }
-            syn::Fields::Unnamed(ref fields) => {
-                let mut items = Vec::with_capacity(fields.unnamed.len());
-                let mut errors = Vec::new();
-
-                for field in &fields.unnamed {
-                    match FromField::from_field(field) {
-                        Ok(val) => items.push(val),
-                        Err(err) => errors.push(if let Some(ref ident) = field.ident {
-                            err.at(ident)
-                        } else {
-                            err
-                        }),
+                    for field in &fields.unnamed {
+                        match FromField::from_field(field) {
+                            Ok(val) => items.push(val),
+                            Err(err) => errors.push({
+                                if let Some(ident) = &field.ident {
+                                    err.at(ident)
+                                } else {
+                                    err
+                                }
+                            }),
+                        }
                     }
-                }
 
-                (items, errors)
+                    (items, errors)
+                }
+                syn::Fields::Unit => (vec![], vec![]),
             }
-            syn::Fields::Unit => (vec![], vec![]),
         };
 
         if !errors.is_empty() {
             Err(Error::multiple(errors))
         } else {
-            Ok(Self {
-                style: fields.into(),
-                fields: items,
-            })
+            Ok(Self::new(fields.into(), items).with_span(fields.span()))
         }
     }
 }
+
+impl<T: ToTokens> ToTokens for Fields<T> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let fields = &self.fields;
+        // An unknown Span should be `Span::call_site()`;
+        // https://docs.rs/syn/1.0.12/syn/spanned/trait.Spanned.html#tymethod.span
+        let span = self.span.unwrap_or_else(Span::call_site);
+
+        match self.style {
+            Style::Struct => {
+                let trailing_comma = {
+                    if fields.is_empty() {
+                        quote!()
+                    } else {
+                        quote!(,)
+                    }
+                };
+
+                tokens.extend(quote_spanned![span => { #(#fields),* #trailing_comma }]);
+            }
+            Style::Tuple => {
+                tokens.extend(quote_spanned![span => ( #(#fields),* )]);
+            }
+            Style::Unit => {}
+        }
+    }
+}
+
+impl<T: PartialEq> PartialEq for Fields<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.style == other.style && self.fields == other.fields
+    }
+}
+
+impl<T: Eq> Eq for Fields<T> {}
 
 impl<T> IntoIterator for Fields<T> {
     type Item = T;
@@ -281,10 +342,7 @@ impl<T> IntoIterator for Fields<T> {
 
 impl<T> From<Style> for Fields<T> {
     fn from(style: Style) -> Self {
-        Self {
-            style,
-            fields: Vec::new(),
-        }
+        Self::new(style, Vec::new())
     }
 }
 
@@ -336,10 +394,7 @@ impl Style {
 
     /// Creates a new `Fields` of the specified style with the passed-in fields.
     fn with_fields<T, U: Into<Vec<T>>>(self, fields: U) -> Fields<T> {
-        Fields {
-            style: self,
-            fields: fields.into(),
-        }
+        Fields::new(self, fields.into())
     }
 }
 
@@ -356,5 +411,73 @@ impl<'a> From<&'a syn::Fields> for Style {
             syn::Fields::Unnamed(_) => Self::Tuple,
             syn::Fields::Unit => Self::Unit,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // it is not possible to directly convert a TokenStream into syn::Fields, so you have
+    // to convert the TokenStream into DeriveInput first and then pass the syn::Fields to
+    // Fields::try_from.
+    fn token_stream_to_fields(input: TokenStream) -> Fields<syn::Field> {
+        Fields::try_from(&{
+            if let syn::Data::Struct(s) =
+                syn::parse2::<syn::DeriveInput>(input.clone()).unwrap().data
+            {
+                s.fields
+            } else {
+                panic!();
+            }
+        })
+        .unwrap()
+    }
+
+    #[test]
+    fn test_style_eq() {
+        // `Fields` implements `Eq` manually, so it has to be ensured, that all fields of `Fields`
+        // implement `Eq`, this test would fail, if someone accidentally removed the Eq
+        // implementation from `Style`.
+        struct _AssertEq
+        where
+            Style: Eq;
+    }
+
+    #[test]
+    fn test_fields_to_tokens_struct() {
+        let reference = quote!(
+            {
+                executable: String,
+                args: Vec<String>,
+                env: Vec<String>,
+                index: usize,
+                optional: Option<String>,
+                current_dir: String,
+            }
+        );
+        let input = quote!(
+            struct ExampleTest #reference
+        );
+
+        let fields = token_stream_to_fields(input);
+
+        let mut result = quote!();
+        fields.to_tokens(&mut result);
+        assert_eq!(result.to_string(), reference.to_string());
+    }
+
+    #[test]
+    fn test_fields_to_tokens_tuple() {
+        let reference = quote!((u64, usize, &'a T));
+        let input = quote!(
+            struct ExampleTest #reference;
+        );
+
+        let fields = token_stream_to_fields(input);
+
+        let mut result = quote!();
+        fields.to_tokens(&mut result);
+        assert_eq!(result.to_string(), reference.to_string());
     }
 }
