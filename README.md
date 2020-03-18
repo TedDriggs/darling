@@ -82,7 +82,7 @@ fn your_attr(args: TokenStream, input: TokenStream) -> TokenStream {
 
     let _args = match MacroArgs::from_list(&attr_args) {
         Ok(v) => v,
-        Err(e) => { return e.write_errors(); }
+        Err(e) => { return TokenStream::from(e.write_errors()); }
     };
 
     // do things with `args`
