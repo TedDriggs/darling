@@ -101,7 +101,10 @@ impl ToTokens for MyInputReceiver {
                 let field_ident = f.ident
                     .as_ref()
                     .map(|v| quote!(#v))
-                    .unwrap_or_else(|| quote!(#i));
+                    .unwrap_or_else(|| {
+                        let i = syn::Index::from(i);
+                        quote!(#i)
+                    });
 
                 match field_volume {
                     Volume::Normal => quote!(self.#field_ident),
