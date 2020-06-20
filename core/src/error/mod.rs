@@ -383,7 +383,7 @@ impl StdError for Error {
         &self.kind.description()
     }
 
-    fn cause(&self) -> Option<&StdError> {
+    fn cause(&self) -> Option<&dyn StdError> {
         None
     }
 }
