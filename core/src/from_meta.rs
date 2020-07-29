@@ -231,6 +231,21 @@ impl FromMeta for syn::Ident {
     }
 }
 
+/// Parsing support for punctuated. This attempts to preserve span information
+/// when available, but also supports parsing strings with the call site as the
+/// emitted span.
+impl<T: syn::parse::Parse, P: syn::parse::Parse> FromMeta for syn::punctuated::Punctuated<T, P> {
+    fn from_value(value: &Lit) -> Result<Self> {
+        if let Lit::Str(ref ident) = *value {
+            ident
+                .parse_with(syn::punctuated::Punctuated::parse_terminated)
+                .map_err(|_| Error::unknown_lit_str_value(ident))
+        } else {
+            Err(Error::unexpected_lit_type(value))
+        }
+    }
+}
+
 /// Parsing support for paths. This attempts to preserve span information when available,
 /// but also supports parsing strings with the call site as the emitted span.
 impl FromMeta for syn::Path {
@@ -499,5 +514,14 @@ mod tests {
     fn darling_result_succeeds() {
         fm::<Result<()>>(quote!(ignore)).unwrap();
         fm::<Result<()>>(quote!(ignore(world))).unwrap_err();
+    }
+
+    /// Test punctuated
+    #[test]
+    fn test_punctuated() {
+        fm::<syn::punctuated::Punctuated<syn::FnArg, syn::token::Comma>>(quote!(
+            ignore = "a: u8, b: Type"
+        ));
+        fm::<syn::punctuated::Punctuated<syn::Expr, syn::token::Comma>>(quote!(ignore = "a, b, c"));
     }
 }
