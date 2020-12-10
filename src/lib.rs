@@ -55,6 +55,13 @@
 //! |`bounds`|`Vec<syn::TypeParamBound>`|The bounds applied to the type param|
 //! |`default`|`Option<syn::Type>`|The default type of the parameter, if one exists|
 //! |`attrs`|`Vec<syn::Attribute>`|The forwarded attributes from the passed in type param. These are controlled using the `forward_attrs` attribute.|
+//!
+//! ### `FromVariant`
+//! |---|---|---|
+//! |`ident`|`syn::Ident`|The identifier of the passed-in variant|
+//! |`discriminant`|`Option<syn::Expr>`|For a variant such as `Example = 2`, the `2`|
+//! |`fields`|`Option<darling::ast::Fields<__>>`|The fields associated with the variant|
+//! |`attrs`|`Vec<syn::Attribute>`|The forwarded attributes from the passed in variant. These are controlled using the `forward_attrs` attribute.|
 
 extern crate core;
 extern crate darling_core;

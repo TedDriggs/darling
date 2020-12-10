@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Add `discriminant` magic field when deriving `FromVariant` [#105](https://github.com/TedDriggs/darling/pull/105)
+
 ## v0.10.2 (October 30, 2019)
 - Bump syn dependency to 1.0.1 [#83](https://github.com/TedDriggs/darling/pull/83)
 
