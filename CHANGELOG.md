@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.11.0 (December 14, 2020)
+- Bump minor version due to unexpected breaking change [#107](https://github.com/TedDriggs/darling/issues/107)
+
 ## v0.10.3 (December 10, 2020)
 - Add `discriminant` magic field when deriving `FromVariant` [#105](https://github.com/TedDriggs/darling/pull/105)
 
