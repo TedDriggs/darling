@@ -43,7 +43,7 @@
 //! ### `FromField`
 //! |Field name|Type|Meaning|
 //! |---|---|---|
-//! |`ident`|`syn::Ident`|The identifier of the passed-in field|
+//! |`ident`|`Option<syn::Ident>`|The identifier of the passed-in field, or `None` for tuple fields|
 //! |`vis`|`syn::Visibility`|The visibility of the passed-in field|
 //! |`ty`|`syn::Type`|The type of the passed-in field|
 //! |`attrs`|`Vec<syn::Attribute>`|The forwarded attributes from the passed in field. These are controlled using the `forward_attrs` attribute.|
