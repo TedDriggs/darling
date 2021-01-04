@@ -62,6 +62,12 @@ impl<T> AsRef<T> for SpannedValue<T> {
     }
 }
 
+impl<T> Spanned for SpannedValue<T> {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
 macro_rules! spanned {
     ($trayt:ident, $method:ident, $syn:path) => {
         impl<T: $trayt> $trayt for SpannedValue<T> {

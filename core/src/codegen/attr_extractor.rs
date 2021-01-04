@@ -57,13 +57,23 @@ pub trait ExtractAttribute {
             let core_loop = self.core_loop();
             quote!(
                 #(#attr_names)|* => {
-                    if let ::darling::export::Ok(::syn::Meta::List(ref __data)) = __attr.parse_meta() {
-                        let __items = &__data.nested;
+                    match ::darling::util::parse_attribute_to_meta_list(__attr) {
+                        ::darling::export::Ok(__data) => {
+                            if __data.nested.is_empty() {
+                                continue;
+                            }
 
-                        #core_loop
-                    } else {
-                        // darling currently only supports list-style
-                        continue
+                            let __items = &__data.nested;
+
+                            #core_loop
+                        }
+                        // darling was asked to handle this attribute name, but the actual attribute
+                        // isn't one that darling can work with. This either indicates a typing error
+                        // or some misunderstanding of the meta attribute syntax; in either case, the
+                        // caller should get a useful error.
+                        ::darling::export::Err(__err) => {
+                            __errors.push(__err);
+                        }
                     }
                 }
             )
