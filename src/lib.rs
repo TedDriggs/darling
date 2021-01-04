@@ -57,6 +57,7 @@
 //! |`attrs`|`Vec<syn::Attribute>`|The forwarded attributes from the passed in type param. These are controlled using the `forward_attrs` attribute.|
 //!
 //! ### `FromVariant`
+//! |Field name|Type|Meaning|
 //! |---|---|---|
 //! |`ident`|`syn::Ident`|The identifier of the passed-in variant|
 //! |`discriminant`|`Option<syn::Expr>`|For a variant such as `Example = 2`, the `2`|
