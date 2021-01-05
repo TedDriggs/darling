@@ -26,6 +26,34 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 ///
 /// Given that most errors darling encounters represent code bugs in dependent crates,
 /// the internal structure of the error is deliberately opaque.
+///
+/// # Usage
+/// Proc-macro expansion happens very infrequently compared to runtime tasks such as
+/// deserialization, and it happens in the context of an expensive compilation taks.
+/// For that reason, darling prefers not to fail on the first error it encounters, instead
+/// doing as much work as it can, accumulating errors into a single report.
+///
+/// As a result, `darling::Error` is more of guaranteed-non-empty error collection
+/// than a single problem. These errors also have some notion of hierarchy, stemming from
+/// the hierarchical nature of darling's input.
+///
+/// These characteristics make for great experiences when using darling-powered crates,
+/// provided crates using darling adhere to some best practices:
+///
+/// 1. Do not attempt to simplify a `darling::Error` into some other error type, such as
+///    `syn::Error`. To surface compile errors, instead use `darling::Error::write_errors`.
+///    This preserves all span information, suggestions, etc. Wrapping a `darling::Error` in
+///    a custom error enum works as-expected and does not force any loss of fidelity.
+/// 2. Do not use early return (e.g. the `?` operator) for custom validations. Instead,
+///    create a local `Vec` to collect errors as they are encountered and then use
+///    `darling::Error::multiple` to create an error containing all those issues if the list
+///    is non-empty after validation. This can create very complex custom validation functions;
+///    in those cases, split independent "validation chains" out into their own functions to
+///    keep the main validator manageable.
+/// 3. Use `darling::Error::custom` to create additional errors as-needed, then call `with_span`
+///    to ensure those errors appear in the right place. Use `darling::util::SpannedValue` to keep
+///    span information around on parsed fields so that custom diagnostics can point to the correct
+///    parts of the input AST.
 #[derive(Debug)]
 #[cfg_attr(test, derive(Clone))]
 pub struct Error {
