@@ -399,6 +399,19 @@ impl fmt::Display for Error {
     }
 }
 
+impl From<syn::Error> for Error {
+    fn from(e: syn::Error) -> Self {
+        // This impl assumes there is nothing but the message and span that needs to be preserved
+        // from the passed-in error. If this changes at some point, a new ErrorKind should be made
+        // to hold the syn::Error, and this impl should preserve it unmodified while setting its own
+        // span to be a copy of the passed-in error.
+        Self {
+            span: Some(e.span()),
+            ..Self::custom(e)
+        }
+    }
+}
+
 // Don't want to publicly commit to Error supporting equality yet, but
 // not having it makes testing very difficult. Note that spans are not
 // considered for equality since that would break testing in most cases.

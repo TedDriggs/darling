@@ -5,6 +5,7 @@
   Any crates using `darling` that relied on those attributes being silently ignored could see new errors reported in their dependent crates. [#113](https://github.com/TedDriggs/darling/pull/113)
 - Impl `syn::spanned::Spanned` for `darling::util::SpannedValue` [#113](https://github.com/TedDriggs/darling/pull/113)
 - Add `darling::util::parse_attribute_to_meta_list` to provide useful errors during attribute parsing [#113](https://github.com/TedDriggs/darling/pull/113)
+- Add `impl From<syn::Error> for Error` to losslessly propagate `syn` errors [#116](https://github.com/TedDriggs/darling/pull/116)
 
 ## v0.11.0 (December 14, 2020)
 - Bump minor version due to unexpected breaking change [#107](https://github.com/TedDriggs/darling/issues/107)
