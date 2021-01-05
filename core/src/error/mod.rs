@@ -54,7 +54,6 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 ///    to ensure those errors appear in the right place. Use `darling::util::SpannedValue` to keep
 ///    span information around on parsed fields so that custom diagnostics can point to the correct
 ///    parts of the input AST.
-/// 4. Enable the `diagnostics` feature of `darling`.
 #[derive(Debug)]
 #[cfg_attr(test, derive(Clone))]
 pub struct Error {
