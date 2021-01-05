@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.12.0 (January 5, 2021)
 - POSSIBLY BREAKING: Derived impls of `FromDeriveInput`, `FromField`, `FromVariant`, and `FromTypeParam` will now error when encountering an attribute `darling` has been asked to parse that isn't a supported shape.
   Any crates using `darling` that relied on those attributes being silently ignored could see new errors reported in their dependent crates. [#113](https://github.com/TedDriggs/darling/pull/113)
 - Impl `syn::spanned::Spanned` for `darling::util::SpannedValue` [#113](https://github.com/TedDriggs/darling/pull/113)
