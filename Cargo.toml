@@ -13,7 +13,6 @@ readme = "README.md"
 exclude = ["/.travis.yml", "/publish.sh", "/.github/**"]
 
 [badges]
-travis-ci = { repository = "TedDriggs/darling" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]
