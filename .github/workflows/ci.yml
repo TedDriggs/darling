@@ -30,10 +30,11 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
+          override: true
       - uses: Swatinem/rust-cache@v1
       - name: Check Cargo availability
         run: cargo --version
-      - run: cargo test --verbose --workspace
+      - run: cargo test --verbose --all
       - run: cargo test --verbose --manifest-path core/Cargo.toml --no-default-features
 
   # Diagnostics are remaining a nightly-only feature for the foreseeable future, but
