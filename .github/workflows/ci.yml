@@ -36,6 +36,22 @@ jobs:
       - run: cargo test --verbose --workspace
       - run: cargo test --verbose --manifest-path core/Cargo.toml --no-default-features
 
+  # Diagnostics are remaining a nightly-only feature for the foreseeable future, but
+  # we don't want them to break without us realizing.
+  test_diagnostics:
+    name: Test nightly with diagnostics feature
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+      - uses: Swatinem/rust-cache@v1
+      - name: Check Cargo availability
+        run: cargo --version
+      - run: cargo test --verbose --workspace --features diagnostics
+
   rustfmt:
     name: Verify code formatting
     runs-on: ubuntu-latest
