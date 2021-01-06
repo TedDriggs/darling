@@ -30,6 +30,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
+          override: true
       - uses: Swatinem/rust-cache@v1
       - name: Check Cargo availability
         run: cargo --version
