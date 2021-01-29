@@ -267,6 +267,8 @@ macro_rules! from_number_array {
                     let expr_array = ident
                         .parse::<syn::ExprArray>()
                         .map_err(|_| Error::unknown_lit_str_value(ident))?;
+                    // To meet rust <1.36 borrow checker rules on expr_array.elems
+                    let v =
                     expr_array
                         .elems
                         .iter()
@@ -276,7 +278,8 @@ macro_rules! from_number_array {
                                 Err(Error::unexpected_type(&format!("{:?}", expr)).with_span(expr))
                             }
                         })
-                        .collect::<Result<Vec<_>>>()
+                        .collect::<Result<Vec<$ty>>>();
+                    v
                 } else {
                     Err(Error::unexpected_lit_type(value))
                 }
