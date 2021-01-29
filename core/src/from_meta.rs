@@ -268,8 +268,7 @@ macro_rules! from_number_array {
                         .parse::<syn::ExprArray>()
                         .map_err(|_| Error::unknown_lit_str_value(ident))?;
                     // To meet rust <1.36 borrow checker rules on expr_array.elems
-                    let v =
-                    expr_array
+                    let v = expr_array
                         .elems
                         .iter()
                         .map(|expr| match expr {
