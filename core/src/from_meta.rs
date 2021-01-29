@@ -259,25 +259,35 @@ impl FromMeta for syn::ExprArray {
     }
 }
 
-impl FromMeta for Vec<u8> {
-    fn from_value(value: &Lit) -> Result<Self> {
-        if let Lit::Str(ref ident) = *value {
-            let expr_array = ident
-                .parse::<syn::ExprArray>()
-                .map_err(|_| Error::unknown_lit_str_value(ident))?;
-            expr_array
-                .elems
-                .iter()
-                .map(|expr| match expr {
-                    Expr::Lit(lit) => u8::from_value(&lit.lit),
-                    _ => Err(Error::unexpected_type(&format!("{:?}", expr)).with_span(expr)),
-                })
-                .collect::<Result<Vec<_>>>()
-        } else {
-            Err(Error::unexpected_lit_type(value))
+macro_rules! from_number_array {
+    ($ty:ident) => {
+        impl FromMeta for Vec<$ty> {
+            fn from_value(value: &Lit) -> Result<Self> {
+                if let Lit::Str(ref ident) = *value {
+                    let expr_array = ident
+                        .parse::<syn::ExprArray>()
+                        .map_err(|_| Error::unknown_lit_str_value(ident))?;
+                    expr_array
+                        .elems
+                        .iter()
+                        .map(|expr| match expr {
+                            Expr::Lit(lit) => $ty::from_value(&lit.lit),
+                            _ => Err(Error::unexpected_type(&format!("{:?}", expr)).with_span(expr)),
+                        })
+                        .collect::<Result<Vec<_>>>()
+                } else {
+                    Err(Error::unexpected_lit_type(value))
+                }
+            }
         }
-    }
+    };
 }
+
+from_number_array!(u8);
+from_number_array!(u16);
+from_number_array!(u32);
+from_number_array!(u64);
+from_number_array!(usize);
 
 /// Parsing support for paths. This attempts to preserve span information when available,
 /// but also supports parsing strings with the call site as the emitted span.
@@ -567,8 +577,24 @@ mod tests {
     #[test]
     fn test_number_array() {
         assert_eq!(
-            fm::<Vec<u8>>(quote!(ignore = "[0x10, 0xff]")),
+            fm::<Vec<u8>>(quote!(ignore = "[16, 0xff]")),
             vec![0x10, 0xff]
+        );
+        assert_eq!(
+            fm::<Vec<u16>>(quote!(ignore = "[32, 0xffff]")),
+            vec![0x20, 0xffff]
+        );
+        assert_eq!(
+            fm::<Vec<u32>>(quote!(ignore = "[48, 0xffffffff]")),
+            vec![0x30, 0xffffffff]
+        );
+        assert_eq!(
+            fm::<Vec<u64>>(quote!(ignore = "[64, 0xffffffffffffffff]")),
+            vec![0x40, 0xffffffffffffffff]
+        );
+        assert_eq!(
+            fm::<Vec<usize>>(quote!(ignore = "[80, 0xffffffff]")),
+            vec![0x50, 0xffffffff]
         );
     }
 }
