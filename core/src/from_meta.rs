@@ -272,7 +272,9 @@ macro_rules! from_number_array {
                         .iter()
                         .map(|expr| match expr {
                             Expr::Lit(lit) => $ty::from_value(&lit.lit),
-                            _ => Err(Error::unexpected_type(&format!("{:?}", expr)).with_span(expr)),
+                            _ => {
+                                Err(Error::unexpected_type(&format!("{:?}", expr)).with_span(expr))
+                            }
                         })
                         .collect::<Result<Vec<_>>>()
                 } else {
