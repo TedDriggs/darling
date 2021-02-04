@@ -246,7 +246,7 @@ impl<T: syn::parse::Parse, P: syn::parse::Parse> FromMeta for syn::punctuated::P
     }
 }
 
-/// Parsing support for an array, i.e. "[1 + 2, 2 - 2, 3 * 4]".
+/// Parsing support for an array, i.e. "\[1 + 2, 2 - 2, 3 * 4\]".
 impl FromMeta for syn::ExprArray {
     fn from_value(value: &Lit) -> Result<Self> {
         if let Lit::Str(ref ident) = *value {
@@ -259,39 +259,33 @@ impl FromMeta for syn::ExprArray {
     }
 }
 
-macro_rules! from_number_array {
+macro_rules! from_numeric_array {
     ($ty:ident) => {
         impl FromMeta for Vec<$ty> {
             fn from_value(value: &Lit) -> Result<Self> {
-                if let Lit::Str(ref ident) = *value {
-                    let expr_array = ident
-                        .parse::<syn::ExprArray>()
-                        .map_err(|_| Error::unknown_lit_str_value(ident))?;
-                    // To meet rust <1.36 borrow checker rules on expr_array.elems
-                    let v = expr_array
+                let expr_array = syn::ExprArray::from_value(value)?;
+                // To meet rust <1.36 borrow checker rules on expr_array.elems
+                let v =
+                    expr_array
                         .elems
                         .iter()
                         .map(|expr| match expr {
                             Expr::Lit(lit) => $ty::from_value(&lit.lit),
-                            _ => {
-                                Err(Error::unexpected_type(&format!("{:?}", expr)).with_span(expr))
-                            }
+                            _ => Err(Error::custom("Expected array of unsigned integers")
+                                .with_span(expr)),
                         })
                         .collect::<Result<Vec<$ty>>>();
-                    v
-                } else {
-                    Err(Error::unexpected_lit_type(value))
-                }
+                v
             }
         }
     };
 }
 
-from_number_array!(u8);
-from_number_array!(u16);
-from_number_array!(u32);
-from_number_array!(u64);
-from_number_array!(usize);
+from_numeric_array!(u8);
+from_numeric_array!(u16);
+from_numeric_array!(u32);
+from_numeric_array!(u64);
+from_numeric_array!(usize);
 
 /// Parsing support for paths. This attempts to preserve span information when available,
 /// but also supports parsing strings with the call site as the emitted span.
