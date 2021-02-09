@@ -246,7 +246,7 @@ impl<T: syn::parse::Parse, P: syn::parse::Parse> FromMeta for syn::punctuated::P
     }
 }
 
-/// Parsing support for an array, i.e. `example = "\[1 + 2, 2 - 2, 3 * 4\]"`.
+/// Parsing support for an array, i.e. `example = "[1 + 2, 2 - 2, 3 * 4]"`.
 impl FromMeta for syn::ExprArray {
     fn from_value(value: &Lit) -> Result<Self> {
         if let Lit::Str(ref ident) = *value {
@@ -259,7 +259,7 @@ impl FromMeta for syn::ExprArray {
     }
 }
 
-/// Parsing support for an unsigned integer array, i.e. `example = "\[1, 2, 3, 4\]"`.
+/// Parsing support for an unsigned integer array, i.e. `example = "[1, 2, 3, 4]"`.
 macro_rules! from_numeric_array {
     ($ty:ident) => {
         impl FromMeta for Vec<$ty> {
