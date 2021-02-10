@@ -20,11 +20,14 @@ pub enum Data<V, F> {
 
 impl<V, F> Data<V, F> {
     /// Creates an empty body of the same shape as the passed-in body.
+    ///
+    /// # Panics
+    /// This function will panic if passed `syn::Data::Union`.
     pub fn empty_from(src: &syn::Data) -> Self {
         match *src {
             syn::Data::Enum(_) => Data::Enum(vec![]),
             syn::Data::Struct(ref vd) => Data::Struct(Fields::empty_from(&vd.fields)),
-            syn::Data::Union(_) => unreachable!(),
+            syn::Data::Union(_) => panic!("Unions are not supported"),
         }
     }
 
@@ -120,7 +123,10 @@ impl<V: FromVariant, F: FromField> Data<V, F> {
                 }
             }
             syn::Data::Struct(ref data) => Ok(Data::Struct(Fields::try_from(&data.fields)?)),
-            syn::Data::Union(_) => unreachable!(),
+            // This deliberately doesn't set a span on the error message, as the error is most useful if
+            // applied to the call site of the offending macro. Given that the message is very generic,
+            // putting it on the union keyword ends up being confusing.
+            syn::Data::Union(_) => Err(Error::custom("Unions are not supported")),
         }
     }
 }
