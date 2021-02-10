@@ -41,11 +41,11 @@ pub struct Core {
 
 impl Core {
     /// Partially initializes `Core` by reading the identity, generics, and body shape.
-    pub fn start(di: &syn::DeriveInput) -> Self {
-        Core {
+    pub fn start(di: &syn::DeriveInput) -> Result<Self> {
+        Ok(Core {
             ident: di.ident.clone(),
             generics: di.generics.clone(),
-            data: Data::empty_from(&di.data),
+            data: Data::try_empty_from(&di.data)?,
             default: Default::default(),
             // See https://github.com/TedDriggs/darling/issues/10: We default to snake_case
             // for enums to help authors produce more idiomatic APIs.
@@ -57,7 +57,7 @@ impl Core {
             map: Default::default(),
             bound: Default::default(),
             allow_unknown_fields: Default::default(),
-        }
+        })
     }
 
     fn as_codegen_default<'a>(&'a self) -> Option<codegen::DefaultExpression<'a>> {

@@ -31,6 +31,20 @@ impl<V, F> Data<V, F> {
         }
     }
 
+    /// Creates an empty body of the same shape as the passed-in body.
+    ///
+    /// `darling` does not support unions; calling this function with a union body will return an error.
+    pub fn try_empty_from(src: &syn::Data) -> Result<Self> {
+        match *src {
+            syn::Data::Enum(_) => Ok(Data::Enum(vec![])),
+            syn::Data::Struct(ref vd) => Ok(Data::Struct(Fields::empty_from(&vd.fields))),
+            // This deliberately doesn't set a span on the error message, as the error is most useful if
+            // applied to the call site of the offending macro. Given that the message is very generic,
+            // putting it on the union keyword ends up being confusing.
+            syn::Data::Union(_) => Err(Error::custom("Unions are not supported")),
+        }
+    }
+
     /// Creates a new `Data<&'a V, &'a F>` instance from `Data<V, F>`.
     pub fn as_ref<'a>(&'a self) -> Data<&'a V, &'a F> {
         match *self {

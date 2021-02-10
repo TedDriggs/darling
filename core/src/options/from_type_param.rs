@@ -16,7 +16,7 @@ pub struct FromTypeParamOptions {
 impl FromTypeParamOptions {
     pub fn new(di: &syn::DeriveInput) -> Result<Self> {
         (FromTypeParamOptions {
-            base: OuterFrom::start(di),
+            base: OuterFrom::start(di)?,
             bounds: None,
             default: None,
         })
