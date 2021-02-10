@@ -28,15 +28,15 @@ pub struct OuterFrom {
 }
 
 impl OuterFrom {
-    pub fn start(di: &syn::DeriveInput) -> Self {
-        OuterFrom {
-            container: Core::start(di),
+    pub fn start(di: &syn::DeriveInput) -> Result<Self> {
+        Ok(OuterFrom {
+            container: Core::start(di)?,
             attrs: Default::default(),
             ident: Default::default(),
             attr_names: Default::default(),
             forward_attrs: Default::default(),
             from_ident: Default::default(),
-        }
+        })
     }
 }
 

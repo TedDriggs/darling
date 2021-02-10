@@ -16,7 +16,7 @@ pub struct FromFieldOptions {
 impl FromFieldOptions {
     pub fn new(di: &syn::DeriveInput) -> Result<Self> {
         (FromFieldOptions {
-            base: OuterFrom::start(di),
+            base: OuterFrom::start(di)?,
             vis: Default::default(),
             ty: Default::default(),
         })
