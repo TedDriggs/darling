@@ -259,9 +259,9 @@ impl FromMeta for syn::ExprArray {
     }
 }
 
-/// Parsing support for an unsigned integer array, i.e. `example = "[1, 2, 3, 4]"`.
 macro_rules! from_numeric_array {
     ($ty:ident) => {
+        /// Parsing an unsigned integer array, i.e. `example = "[1, 2, 3, 4]"`.
         impl FromMeta for Vec<$ty> {
             fn from_value(value: &Lit) -> Result<Self> {
                 let expr_array = syn::ExprArray::from_value(value)?;
