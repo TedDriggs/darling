@@ -6,7 +6,7 @@ use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
 use ident_case;
-use syn::{self, Lit, Meta, NestedMeta};
+use syn::{self, Expr, Lit, Meta, NestedMeta};
 
 use {Error, Result};
 
@@ -245,6 +245,48 @@ impl<T: syn::parse::Parse, P: syn::parse::Parse> FromMeta for syn::punctuated::P
         }
     }
 }
+
+/// Parsing support for an array, i.e. `example = "[1 + 2, 2 - 2, 3 * 4]"`.
+impl FromMeta for syn::ExprArray {
+    fn from_value(value: &Lit) -> Result<Self> {
+        if let Lit::Str(ref ident) = *value {
+            ident
+                .parse::<syn::ExprArray>()
+                .map_err(|_| Error::unknown_lit_str_value(ident))
+        } else {
+            Err(Error::unexpected_lit_type(value))
+        }
+    }
+}
+
+macro_rules! from_numeric_array {
+    ($ty:ident) => {
+        /// Parsing an unsigned integer array, i.e. `example = "[1, 2, 3, 4]"`.
+        impl FromMeta for Vec<$ty> {
+            fn from_value(value: &Lit) -> Result<Self> {
+                let expr_array = syn::ExprArray::from_value(value)?;
+                // To meet rust <1.36 borrow checker rules on expr_array.elems
+                let v =
+                    expr_array
+                        .elems
+                        .iter()
+                        .map(|expr| match expr {
+                            Expr::Lit(lit) => $ty::from_value(&lit.lit),
+                            _ => Err(Error::custom("Expected array of unsigned integers")
+                                .with_span(expr)),
+                        })
+                        .collect::<Result<Vec<$ty>>>();
+                v
+            }
+        }
+    };
+}
+
+from_numeric_array!(u8);
+from_numeric_array!(u16);
+from_numeric_array!(u32);
+from_numeric_array!(u64);
+from_numeric_array!(usize);
 
 /// Parsing support for paths. This attempts to preserve span information when available,
 /// but also supports parsing strings with the call site as the emitted span.
@@ -523,5 +565,35 @@ mod tests {
             ignore = "a: u8, b: Type"
         ));
         fm::<syn::punctuated::Punctuated<syn::Expr, syn::token::Comma>>(quote!(ignore = "a, b, c"));
+    }
+
+    #[test]
+    fn test_expr_array() {
+        fm::<syn::ExprArray>(quote!(ignore = "[0x1, 0x2]"));
+        fm::<syn::ExprArray>(quote!(ignore = "[\"Hello World\", \"Test Array\"]"));
+    }
+
+    #[test]
+    fn test_number_array() {
+        assert_eq!(
+            fm::<Vec<u8>>(quote!(ignore = "[16, 0xff]")),
+            vec![0x10, 0xff]
+        );
+        assert_eq!(
+            fm::<Vec<u16>>(quote!(ignore = "[32, 0xffff]")),
+            vec![0x20, 0xffff]
+        );
+        assert_eq!(
+            fm::<Vec<u32>>(quote!(ignore = "[48, 0xffffffff]")),
+            vec![0x30, 0xffffffff]
+        );
+        assert_eq!(
+            fm::<Vec<u64>>(quote!(ignore = "[64, 0xffffffffffffffff]")),
+            vec![0x40, 0xffffffffffffffff]
+        );
+        assert_eq!(
+            fm::<Vec<usize>>(quote!(ignore = "[80, 0xffffffff]")),
+            vec![0x50, 0xffffffff]
+        );
     }
 }
