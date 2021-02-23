@@ -447,20 +447,25 @@ macro_rules! hash_map {
             fn from_list(nested: &[syn::NestedMeta]) -> Result<Self> {
                 let mut map = HashMap::with_capacity_and_hasher(nested.len(), Default::default());
                 for item in nested {
-                    if let syn::NestedMeta::Meta(ref inner) = *item {
-                        let path = inner.path();
-                        let name: $key = KeyFromPath::from_path(path)?;
-                        match map.entry(name) {
-                            Entry::Occupied(_) => {
-                                return Err(Error::duplicate_field_path(&path).with_span(inner));
+                    match *item {
+                        syn::NestedMeta::Meta(ref inner) => {
+                            let path = inner.path();
+                            let name: $key = KeyFromPath::from_path(path)?;
+                            match map.entry(name) {
+                                Entry::Occupied(_) => {
+                                    return Err(Error::duplicate_field_path(&path).with_span(inner));
+                                }
+                                Entry::Vacant(entry) => {
+                                    // In the error case, extend the error's path, but assume the inner `from_meta`
+                                    // set the span, and that subsequently we don't have to.
+                                    entry.insert(
+                                        FromMeta::from_meta(inner).map_err(|e| e.at_path(&path))?,
+                                    );
+                                }
                             }
-                            Entry::Vacant(entry) => {
-                                // In the error case, extend the error's path, but assume the inner `from_meta`
-                                // set the span, and that subsequently we don't have to.
-                                entry.insert(
-                                    FromMeta::from_meta(inner).map_err(|e| e.at_path(&path))?,
-                                );
-                            }
+                        }
+                        syn::NestedMeta::Lit(_) => {
+                            return Err(Error::unsupported_format("literal"));
                         }
                     }
                 }
