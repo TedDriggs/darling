@@ -435,6 +435,61 @@ impl<V: FromMeta, S: BuildHasher + Default> FromMeta for HashMap<String, V, S> {
     }
 }
 
+impl<V: FromMeta, S: BuildHasher + Default> FromMeta for HashMap<syn::Path, V, S> {
+    fn from_list(nested: &[syn::NestedMeta]) -> Result<Self> {
+        let mut map = HashMap::with_capacity_and_hasher(nested.len(), Default::default());
+        for item in nested {
+            if let syn::NestedMeta::Meta(ref inner) = *item {
+                let path = inner.path();
+                let name = path.clone();
+                match map.entry(name) {
+                    Entry::Occupied(_) => {
+                        return Err(Error::duplicate_field_path(&path).with_span(inner));
+                    }
+                    Entry::Vacant(entry) => {
+                        // In the error case, extend the error's path, but assume the inner `from_meta`
+                        // set the span, and that subsequently we don't have to.
+                        entry.insert(FromMeta::from_meta(inner).map_err(|e| e.at_path(&path))?);
+                    }
+                }
+            }
+        }
+
+        Ok(map)
+    }
+}
+
+impl<V: FromMeta, S: BuildHasher + Default> FromMeta for HashMap<syn::Ident, V, S> {
+    fn from_list(nested: &[syn::NestedMeta]) -> Result<Self> {
+        let mut map = HashMap::with_capacity_and_hasher(nested.len(), Default::default());
+        for item in nested {
+            if let syn::NestedMeta::Meta(ref inner) = *item {
+                let path = inner.path();
+                let name = if path.segments.len() == 1
+                    && path.leading_colon.is_none()
+                    && path.segments[0].arguments.is_empty()
+                {
+                    path.segments[0].ident.clone()
+                } else {
+                    return Err(Error::custom("Key must be an identifier").with_span(path));
+                };
+                match map.entry(name) {
+                    Entry::Occupied(_) => {
+                        return Err(Error::duplicate_field_path(&path).with_span(inner));
+                    }
+                    Entry::Vacant(entry) => {
+                        // In the error case, extend the error's path, but assume the inner `from_meta`
+                        // set the span, and that subsequently we don't have to.
+                        entry.insert(FromMeta::from_meta(inner).map_err(|e| e.at_path(&path))?);
+                    }
+                }
+            }
+        }
+
+        Ok(map)
+    }
+}
+
 /// Tests for `FromMeta` implementations. Wherever the word `ignore` appears in test input,
 /// it should not be considered by the parsing.
 #[cfg(test)]
@@ -548,6 +603,52 @@ mod tests {
 
         assert!(err.has_span());
         assert_eq!(err.to_string(), Error::duplicate_field("hello").to_string());
+    }
+
+    #[test]
+    fn hash_map_ident_succeeds() {
+        use std::collections::HashMap;
+        use syn::parse_quote;
+
+        let comparison = {
+            let mut c = HashMap::<syn::Ident, bool>::new();
+            c.insert(parse_quote!(first), true);
+            c.insert(parse_quote!(second), false);
+            c
+        };
+
+        assert_eq!(
+            fm::<HashMap<syn::Ident, bool>>(quote!(ignore(first, second = false))),
+            comparison
+        );
+    }
+
+    #[test]
+    fn hash_map_ident_rejects_non_idents() {
+        use std::collections::HashMap;
+
+        let err: Result<HashMap<syn::Ident, bool>> =
+            FromMeta::from_meta(&pm(quote!(ignore(first, the::second))).unwrap());
+
+        err.unwrap_err();
+    }
+
+    #[test]
+    fn hash_map_path_succeeds() {
+        use std::collections::HashMap;
+        use syn::parse_quote;
+
+        let comparison = {
+            let mut c = HashMap::<syn::Path, bool>::new();
+            c.insert(parse_quote!(first), true);
+            c.insert(parse_quote!(the::second), false);
+            c
+        };
+
+        assert_eq!(
+            fm::<HashMap<syn::Path, bool>>(quote!(ignore(first, the::second = false))),
+            comparison
+        );
     }
 
     /// Tests that fallible parsing will always produce an outer `Ok` (from `fm`),

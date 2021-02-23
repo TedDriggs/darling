@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Impl `FromMeta` for `HashMap<Ident, V>` and `HashMap<Path, V>`
+
 ## v0.12.1 (February 22, 2021)
 
 - Impl `FromMeta` for `syn::ExprArray` [#122](https://github.com/TedDriggs/darling/pull/122)
