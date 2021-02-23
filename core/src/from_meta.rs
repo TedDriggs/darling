@@ -406,89 +406,76 @@ impl<T: FromMeta> FromMeta for RefCell<T> {
     }
 }
 
-impl<V: FromMeta, S: BuildHasher + Default> FromMeta for HashMap<String, V, S> {
-    fn from_list(nested: &[syn::NestedMeta]) -> Result<Self> {
-        let mut map = HashMap::with_capacity_and_hasher(nested.len(), Default::default());
-        for item in nested {
-            if let syn::NestedMeta::Meta(ref inner) = *item {
-                let path = inner.path();
-                let name = path
-                    .segments
-                    .iter()
-                    .map(|s| s.ident.to_string())
-                    .collect::<Vec<String>>()
-                    .join("::");
-                match map.entry(name) {
-                    Entry::Occupied(_) => {
-                        return Err(Error::duplicate_field_path(&path).with_span(inner));
-                    }
-                    Entry::Vacant(entry) => {
-                        // In the error case, extend the error's path, but assume the inner `from_meta`
-                        // set the span, and that subsequently we don't have to.
-                        entry.insert(FromMeta::from_meta(inner).map_err(|e| e.at_path(&path))?);
-                    }
-                }
-            }
-        }
+/// Trait to convert from a path into an owned key for a map.
+trait KeyFromPath: Sized {
+    fn from_path(path: &syn::Path) -> Result<Self>;
+}
 
-        Ok(map)
+impl KeyFromPath for String {
+    fn from_path(path: &syn::Path) -> Result<Self> {
+        Ok(path
+            .segments
+            .iter()
+            .map(|s| s.ident.to_string())
+            .collect::<Vec<String>>()
+            .join("::"))
     }
 }
 
-impl<V: FromMeta, S: BuildHasher + Default> FromMeta for HashMap<syn::Path, V, S> {
-    fn from_list(nested: &[syn::NestedMeta]) -> Result<Self> {
-        let mut map = HashMap::with_capacity_and_hasher(nested.len(), Default::default());
-        for item in nested {
-            if let syn::NestedMeta::Meta(ref inner) = *item {
-                let path = inner.path();
-                let name = path.clone();
-                match map.entry(name) {
-                    Entry::Occupied(_) => {
-                        return Err(Error::duplicate_field_path(&path).with_span(inner));
-                    }
-                    Entry::Vacant(entry) => {
-                        // In the error case, extend the error's path, but assume the inner `from_meta`
-                        // set the span, and that subsequently we don't have to.
-                        entry.insert(FromMeta::from_meta(inner).map_err(|e| e.at_path(&path))?);
-                    }
-                }
-            }
-        }
-
-        Ok(map)
+impl KeyFromPath for syn::Path {
+    fn from_path(path: &syn::Path) -> Result<Self> {
+        Ok(path.clone())
     }
 }
 
-impl<V: FromMeta, S: BuildHasher + Default> FromMeta for HashMap<syn::Ident, V, S> {
-    fn from_list(nested: &[syn::NestedMeta]) -> Result<Self> {
-        let mut map = HashMap::with_capacity_and_hasher(nested.len(), Default::default());
-        for item in nested {
-            if let syn::NestedMeta::Meta(ref inner) = *item {
-                let path = inner.path();
-                let name = if path.segments.len() == 1
-                    && path.leading_colon.is_none()
-                    && path.segments[0].arguments.is_empty()
-                {
-                    path.segments[0].ident.clone()
-                } else {
-                    return Err(Error::custom("Key must be an identifier").with_span(path));
-                };
-                match map.entry(name) {
-                    Entry::Occupied(_) => {
-                        return Err(Error::duplicate_field_path(&path).with_span(inner));
-                    }
-                    Entry::Vacant(entry) => {
-                        // In the error case, extend the error's path, but assume the inner `from_meta`
-                        // set the span, and that subsequently we don't have to.
-                        entry.insert(FromMeta::from_meta(inner).map_err(|e| e.at_path(&path))?);
-                    }
-                }
-            }
+impl KeyFromPath for syn::Ident {
+    fn from_path(path: &syn::Path) -> Result<Self> {
+        if path.segments.len() == 1
+            && path.leading_colon.is_none()
+            && path.segments[0].arguments.is_empty()
+        {
+            Ok(path.segments[0].ident.clone())
+        } else {
+            Err(Error::custom("Key must be an identifier").with_span(path))
         }
-
-        Ok(map)
     }
 }
+
+macro_rules! hash_map {
+    ($key:ty) => {
+        impl<V: FromMeta, S: BuildHasher + Default> FromMeta for HashMap<$key, V, S> {
+            fn from_list(nested: &[syn::NestedMeta]) -> Result<Self> {
+                let mut map = HashMap::with_capacity_and_hasher(nested.len(), Default::default());
+                for item in nested {
+                    if let syn::NestedMeta::Meta(ref inner) = *item {
+                        let path = inner.path();
+                        let name: $key = KeyFromPath::from_path(path)?;
+                        match map.entry(name) {
+                            Entry::Occupied(_) => {
+                                return Err(Error::duplicate_field_path(&path).with_span(inner));
+                            }
+                            Entry::Vacant(entry) => {
+                                // In the error case, extend the error's path, but assume the inner `from_meta`
+                                // set the span, and that subsequently we don't have to.
+                                entry.insert(
+                                    FromMeta::from_meta(inner).map_err(|e| e.at_path(&path))?,
+                                );
+                            }
+                        }
+                    }
+                }
+
+                Ok(map)
+            }
+        }
+    };
+}
+
+// This is done as a macro rather than a blanket impl to avoid breaking backwards compatibility
+// with 0.12.x, while still sharing the same impl.
+hash_map!(String);
+hash_map!(syn::Ident);
+hash_map!(syn::Path);
 
 /// Tests for `FromMeta` implementations. Wherever the word `ignore` appears in test input,
 /// it should not be considered by the parsing.
