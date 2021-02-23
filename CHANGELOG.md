@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.12.2 (February 23, 2021)
 
 - Impl `FromMeta` for `HashMap<Ident, V>` and `HashMap<Path, V>`
 
