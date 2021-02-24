@@ -1,5 +1,7 @@
+use std::borrow::Cow;
 use std::cell::RefCell;
-use std::collections::hash_map::{Entry, HashMap};
+use std::collections::hash_map::HashMap;
+use std::collections::HashSet;
 use std::hash::BuildHasher;
 use std::rc::Rc;
 use std::sync::atomic::AtomicBool;
@@ -406,25 +408,37 @@ impl<T: FromMeta> FromMeta for RefCell<T> {
     }
 }
 
+fn path_to_string(path: &syn::Path) -> String {
+    path.segments
+        .iter()
+        .map(|s| s.ident.to_string())
+        .collect::<Vec<String>>()
+        .join("::")
+}
+
 /// Trait to convert from a path into an owned key for a map.
 trait KeyFromPath: Sized {
     fn from_path(path: &syn::Path) -> Result<Self>;
+    fn to_display<'a>(&'a self) -> Cow<'a, str>;
 }
 
 impl KeyFromPath for String {
     fn from_path(path: &syn::Path) -> Result<Self> {
-        Ok(path
-            .segments
-            .iter()
-            .map(|s| s.ident.to_string())
-            .collect::<Vec<String>>()
-            .join("::"))
+        Ok(path_to_string(path))
+    }
+
+    fn to_display<'a>(&'a self) -> Cow<'a, str> {
+        Cow::Borrowed(&self)
     }
 }
 
 impl KeyFromPath for syn::Path {
     fn from_path(path: &syn::Path) -> Result<Self> {
         Ok(path.clone())
+    }
+
+    fn to_display<'a>(&'a self) -> Cow<'a, str> {
+        Cow::Owned(path_to_string(self))
     }
 }
 
@@ -439,35 +453,95 @@ impl KeyFromPath for syn::Ident {
             Err(Error::custom("Key must be an identifier").with_span(path))
         }
     }
+
+    fn to_display<'a>(&'a self) -> Cow<'a, str> {
+        Cow::Owned(self.to_string())
+    }
 }
 
 macro_rules! hash_map {
     ($key:ty) => {
         impl<V: FromMeta, S: BuildHasher + Default> FromMeta for HashMap<$key, V, S> {
             fn from_list(nested: &[syn::NestedMeta]) -> Result<Self> {
+                // Convert the nested meta items into a sequence of (path, value result) result tuples.
+                // An outer Err means no (key, value) structured could be found, while an Err in the
+                // second position of the tuple means that value was rejected by FromMeta.
+                //
+                // We defer key conversion into $key so that we don't lose span information in the case
+                // of String keys; we'll need it for good duplicate key errors later.
+                let pairs = nested
+                    .iter()
+                    .map(|item| -> Result<(&syn::Path, Result<V>)> {
+                        match *item {
+                            syn::NestedMeta::Meta(ref inner) => {
+                                let path = inner.path();
+                                Ok((
+                                    path,
+                                    FromMeta::from_meta(inner).map_err(|e| e.at_path(&path)),
+                                ))
+                            }
+                            syn::NestedMeta::Lit(_) => Err(Error::unsupported_format("literal")),
+                        }
+                    });
+
+                let mut errors = vec![];
+                // We need to track seen keys separately from the final map, since a seen key with an
+                // Err value won't go into the final map but should trigger a duplicate field error.
+                //
+                // This is a set of $key rather than Path to avoid the possibility that a key type
+                // parses two paths of different values to the same key value.
+                let mut seen_keys = HashSet::with_capacity(nested.len());
+
+                // The map to return in the Ok case. Its size will always be exactly nested.len(),
+                // since otherwise ≥1 field had a problem and the entire map is dropped immediately
+                // when the function returns `Err`.
                 let mut map = HashMap::with_capacity_and_hasher(nested.len(), Default::default());
-                for item in nested {
-                    match *item {
-                        syn::NestedMeta::Meta(ref inner) => {
-                            let path = inner.path();
-                            let name: $key = KeyFromPath::from_path(path)?;
-                            match map.entry(name) {
-                                Entry::Occupied(_) => {
-                                    return Err(Error::duplicate_field_path(&path).with_span(inner));
+
+                for item in pairs {
+                    match item {
+                        Ok((path, value)) => {
+                            let key: $key = match KeyFromPath::from_path(path) {
+                                Ok(k) => k,
+                                Err(e) => {
+                                    errors.push(e);
+
+                                    // Surface value errors even under invalid keys
+                                    if let Err(val_err) = value {
+                                        errors.push(val_err);
+                                    }
+
+                                    continue;
                                 }
-                                Entry::Vacant(entry) => {
-                                    // In the error case, extend the error's path, but assume the inner `from_meta`
-                                    // set the span, and that subsequently we don't have to.
-                                    entry.insert(
-                                        FromMeta::from_meta(inner).map_err(|e| e.at_path(&path))?,
-                                    );
+                            };
+
+                            let already_seen = seen_keys.contains(&key);
+
+                            if already_seen {
+                                errors.push(
+                                    Error::duplicate_field(&key.to_display()).with_span(path),
+                                );
+                            }
+
+                            match value {
+                                Ok(_) if already_seen => {}
+                                Ok(val) => {
+                                    map.insert(key.clone(), val);
+                                }
+                                Err(e) => {
+                                    errors.push(e);
                                 }
                             }
+
+                            seen_keys.insert(key);
                         }
-                        syn::NestedMeta::Lit(_) => {
-                            return Err(Error::unsupported_format("literal"));
+                        Err(e) => {
+                            errors.push(e);
                         }
                     }
+                }
+
+                if !errors.is_empty() {
+                    return Err(Error::multiple(errors));
                 }
 
                 Ok(map)
@@ -595,6 +669,22 @@ mod tests {
 
         assert!(err.has_span());
         assert_eq!(err.to_string(), Error::duplicate_field("hello").to_string());
+    }
+
+    #[test]
+    fn hash_map_multiple_errors() {
+        use std::collections::HashMap;
+
+        let err = HashMap::<String, bool>::from_meta(
+            &pm(quote!(ignore(hello, hello = 3, hello = false))).unwrap(),
+        )
+        .expect_err("Duplicates and bad values should error");
+
+        assert_eq!(err.len(), 3);
+        let errors = err.into_iter().collect::<Vec<_>>();
+        assert!(errors[0].has_span());
+        assert!(errors[1].has_span());
+        assert!(errors[2].has_span());
     }
 
     #[test]
