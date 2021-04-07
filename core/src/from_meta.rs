@@ -163,8 +163,12 @@ impl FromMeta for char {
     }
 
     fn from_string(s: &str) -> Result<Self> {
-        if s.chars().count() == 1 {
-            Ok(s.chars().next().unwrap())
+        let mut chars = s.chars();
+        let char1 = chars.next();
+        let char2 = chars.next();
+
+        if let (Some(char), None) = (char1, char2) {
+            Ok(char)
         } else {
             Err(Error::unexpected_type("string"))
         }
