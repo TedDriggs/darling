@@ -25,6 +25,10 @@ use {Error, Result};
 /// * As a boolean literal, e.g. `foo = true`.
 /// * As a string literal, e.g. `foo = "true"`.
 ///
+/// ## char
+/// * As a char literal, e.g. `foo = '#'`.
+/// * As a string literal consisting of a single character, e.g. `foo = "#"`.
+///
 /// ## String
 /// * As a string literal, e.g. `foo = "hello"`.
 /// * As a raw string literal, e.g. `foo = r#"hello "world""#`.
@@ -98,6 +102,7 @@ pub trait FromMeta: Sized {
         (match *value {
             Lit::Bool(ref b) => Self::from_bool(b.value),
             Lit::Str(ref s) => Self::from_string(&s.value()),
+            Lit::Char(ref ch) => Self::from_char(ch.value()),
             _ => Err(Error::unexpected_lit_type(value)),
         })
         .map_err(|e| e.with_span(value))
@@ -149,6 +154,20 @@ impl FromMeta for AtomicBool {
         FromMeta::from_meta(mi)
             .map(AtomicBool::new)
             .map_err(|e| e.with_span(mi))
+    }
+}
+
+impl FromMeta for char {
+    fn from_char(value: char) -> Result<Self> {
+        Ok(value)
+    }
+
+    fn from_string(s: &str) -> Result<Self> {
+        if s.chars().count() == 1 {
+            Ok(s.chars().next().unwrap())
+        } else {
+            Err(Error::unexpected_type("string"))
+        }
     }
 }
 
@@ -593,6 +612,14 @@ mod tests {
         // string literals
         assert_eq!(fm::<bool>(quote!(ignore = "true")), true);
         assert_eq!(fm::<bool>(quote!(ignore = "false")), false);
+    }
+
+    #[test]
+    fn char_succeeds() {
+        // char literal
+
+        assert_eq!(fm::<char>(quote!(ignore = '😬')), '😬');
+        assert_eq!(fm::<char>(quote!(ignore = "😬")), '😬');
     }
 
     #[test]
