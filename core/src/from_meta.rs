@@ -617,8 +617,9 @@ mod tests {
     #[test]
     fn char_succeeds() {
         // char literal
-
         assert_eq!(fm::<char>(quote!(ignore = '😬')), '😬');
+
+        // string literal
         assert_eq!(fm::<char>(quote!(ignore = "😬")), '😬');
     }
 
