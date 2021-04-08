@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.12.3 (April 8, 2021)
+
+- Fix `FromMeta` impl for `char` not to panic [#126](https://github.com/TedDriggs/darling/pull/126)
+
 ## v0.12.2 (February 23, 2021)
 
 - Impl `FromMeta` for `HashMap<Ident, V>` and `HashMap<Path, V>`
