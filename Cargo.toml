@@ -21,9 +21,9 @@ darling_core = { version = "=0.12.4", path = "core" }
 darling_macro = { version = "=0.12.4", path = "macro" }
 
 [dev-dependencies]
-proc-macro2 = "1"
-quote = "1"
-syn = "1"
+proc-macro2 = "1.0.26"
+quote = "1.0.9"
+syn = "1.0.69"
 
 [features]
 default = ["suggestions"]
