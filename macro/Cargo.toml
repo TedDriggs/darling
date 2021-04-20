@@ -8,6 +8,7 @@ Internal support for a proc-macro library for reading attributes into structs wh
 implementing custom derives. Use https://crates.io/crates/darling in your code.
 """
 license = "MIT"
+edition = "2018"
 
 [dependencies]
 quote = "1"

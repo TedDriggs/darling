@@ -2,8 +2,7 @@
 
 use std::ops::{BitAnd, BitOr, Deref, Not};
 
-use syn;
-use {FromMeta, Result};
+use crate::{FromMeta, Result};
 
 mod ident_string;
 mod ignored;

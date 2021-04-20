@@ -1,10 +1,9 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use syn;
 
-use codegen::FromMetaImpl;
-use options::{Core, ParseAttribute, ParseData};
-use Result;
+use crate::codegen::FromMetaImpl;
+use crate::options::{Core, ParseAttribute, ParseData};
+use crate::Result;
 
 pub struct FromMetaOptions {
     base: Core,

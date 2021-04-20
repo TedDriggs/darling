@@ -1,7 +1,7 @@
 use syn::punctuated::Punctuated;
-use syn::{self, Ident, Type};
+use syn::{Ident, Type};
 
-use usage::{IdentRefSet, IdentSet, Options};
+use crate::usage::{IdentRefSet, IdentSet, Options};
 
 /// Searcher for finding type params in a syntax tree.
 /// This can be used to determine if a given type parameter needs to be bounded in a generated impl.
@@ -250,8 +250,8 @@ mod tests {
     use syn::{DeriveInput, Ident};
 
     use super::UsesTypeParams;
-    use usage::IdentSet;
-    use usage::Purpose::*;
+    use crate::usage::IdentSet;
+    use crate::usage::Purpose::*;
 
     fn ident_set(idents: Vec<&str>) -> IdentSet {
         idents

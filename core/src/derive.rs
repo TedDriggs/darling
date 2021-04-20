@@ -5,7 +5,7 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::DeriveInput;
 
-use options;
+use crate::options;
 
 /// Run an expression which returns a `darling::Result`, then either return the tokenized
 /// representation of the `Ok` value, or the tokens of the compiler errors in the `Err` case.

@@ -5,7 +5,7 @@ use proc_macro2::TokenStream;
 use quote::{ToTokens, TokenStreamExt};
 use syn::{Meta, NestedMeta};
 
-use {Error, FromMeta, Result};
+use crate::{Error, FromMeta, Result};
 
 /// Receiver struct for shape validation. Shape validation allows a deriving type
 /// to declare that it only accepts - for example - named structs, or newtype enum
@@ -228,10 +228,9 @@ fn match_arm(name: &'static str, is_supported: bool) -> TokenStream {
 #[cfg(test)]
 mod tests {
     use proc_macro2::TokenStream;
-    use syn;
 
     use super::Shape;
-    use FromMeta;
+    use crate::FromMeta;
 
     /// parse a string as a syn::Meta instance.
     fn pm(tokens: TokenStream) -> ::std::result::Result<syn::Meta, String> {

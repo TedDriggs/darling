@@ -4,10 +4,10 @@ use proc_macro2::TokenStream;
 use quote::{ToTokens, TokenStreamExt};
 use syn::Ident;
 
-use ast::Fields;
-use codegen::error::{ErrorCheck, ErrorDeclaration};
-use codegen::{Field, FieldsGen};
-use usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
+use crate::ast::Fields;
+use crate::codegen::error::{ErrorCheck, ErrorDeclaration};
+use crate::codegen::{Field, FieldsGen};
+use crate::usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
 
 /// A variant of the enum which is deriving `FromMeta`.
 #[derive(Debug, Clone, PartialEq, Eq)]

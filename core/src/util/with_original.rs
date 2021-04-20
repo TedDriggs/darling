@@ -1,6 +1,4 @@
-use syn;
-
-use {
+use crate::{
     FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta, FromTypeParam,
     FromVariant, Result,
 };

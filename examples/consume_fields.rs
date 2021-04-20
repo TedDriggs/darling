@@ -1,16 +1,8 @@
 //! This example shows how to do struct and field parsing using darling.
 
-#[macro_use]
-extern crate darling;
-extern crate proc_macro2;
-#[macro_use]
-extern crate quote;
-extern crate syn;
-
-use darling::ast;
-use darling::FromDeriveInput;
+use darling::{ast, FromDeriveInput, FromField, FromMeta};
 use proc_macro2::TokenStream;
-use quote::ToTokens;
+use quote::{quote, ToTokens};
 use syn::parse_str;
 
 /// A speaking volume. Deriving `FromMeta` will cause this to be usable

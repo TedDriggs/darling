@@ -1,10 +1,10 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use syn::{self, Ident};
+use syn::Ident;
 
-use codegen::{ExtractAttribute, OuterFromImpl, TraitImpl};
-use options::{DataShape, ForwardAttrs};
-use util::PathList;
+use crate::codegen::{ExtractAttribute, OuterFromImpl, TraitImpl};
+use crate::options::{DataShape, ForwardAttrs};
+use crate::util::PathList;
 
 pub struct FromVariantImpl<'a> {
     pub base: TraitImpl<'a>,

@@ -1,10 +1,8 @@
 use std::borrow::Cow;
 
-use syn;
-
-use codegen;
-use options::{Core, DefaultExpression, ParseAttribute};
-use {Error, FromMeta, Result};
+use crate::codegen;
+use crate::options::{Core, DefaultExpression, ParseAttribute};
+use crate::{Error, FromMeta, Result};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InputField {

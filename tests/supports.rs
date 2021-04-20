@@ -1,12 +1,4 @@
-#[macro_use]
-extern crate darling;
-#[macro_use]
-extern crate syn;
-#[macro_use]
-extern crate quote;
-
-use darling::ast;
-use darling::FromDeriveInput;
+use darling::{ast, FromDeriveInput, FromVariant};
 
 #[derive(Debug, FromDeriveInput)]
 #[darling(attributes(from_variants), supports(enum_any))]
@@ -28,7 +20,7 @@ pub struct StructContainer {
 }
 
 mod source {
-    use syn::DeriveInput;
+    use syn::{parse_quote, DeriveInput};
 
     pub fn newtype_enum() -> DeriveInput {
         parse_quote! {

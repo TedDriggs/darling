@@ -74,7 +74,7 @@ fn path_to_string(path: &syn::Path) -> String {
 
 /// Error creation functions
 impl Error {
-    pub(in error) fn new(kind: ErrorKind) -> Self {
+    pub(in crate::error) fn new(kind: ErrorKind) -> Self {
         Error {
             kind,
             locations: Vec::new(),

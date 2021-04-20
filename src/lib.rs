@@ -65,7 +65,6 @@
 //! |`attrs`|`Vec<syn::Attribute>`|The forwarded attributes from the passed in variant. These are controlled using the `forward_attrs` attribute.|
 
 extern crate core;
-extern crate darling_core;
 
 #[allow(unused_imports)]
 #[macro_use]

@@ -13,7 +13,7 @@ mod trait_impl;
 mod variant;
 mod variant_data;
 
-pub(in codegen) use self::attr_extractor::ExtractAttribute;
+pub(in crate::codegen) use self::attr_extractor::ExtractAttribute;
 pub use self::default_expr::DefaultExpression;
 pub use self::field::Field;
 pub use self::from_derive_impl::FromDeriveInputImpl;

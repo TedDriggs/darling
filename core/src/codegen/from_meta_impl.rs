@@ -1,9 +1,8 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use syn;
 
-use ast::{Data, Fields, Style};
-use codegen::{Field, OuterFromImpl, TraitImpl, Variant};
+use crate::ast::{Data, Fields, Style};
+use crate::codegen::{Field, OuterFromImpl, TraitImpl, Variant};
 
 pub struct FromMetaImpl<'a> {
     pub base: TraitImpl<'a>,

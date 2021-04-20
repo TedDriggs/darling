@@ -1,11 +1,5 @@
-#[macro_use]
-extern crate darling;
-#[macro_use]
-extern crate quote;
-#[macro_use]
-extern crate syn;
-
 use darling::FromDeriveInput;
+use syn::parse_quote;
 
 mod foo {
     pub mod bar {

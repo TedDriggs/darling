@@ -1,11 +1,9 @@
 use std::borrow::Cow;
 
-use syn;
-
-use ast::Fields;
-use codegen;
-use options::{Core, InputField, ParseAttribute};
-use {Error, FromMeta, Result};
+use crate::ast::Fields;
+use crate::codegen;
+use crate::options::{Core, InputField, ParseAttribute};
+use crate::{Error, FromMeta, Result};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InputVariant {

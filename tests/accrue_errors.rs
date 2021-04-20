@@ -1,15 +1,8 @@
 //! These tests verify that multiple errors will be collected up from throughout
 //! the parsing process and returned correctly to the caller.
 
-#[macro_use]
-extern crate darling;
-#[macro_use]
-extern crate syn;
-#[macro_use]
-extern crate quote;
-
-use darling::ast;
-use darling::FromDeriveInput;
+use darling::{ast, FromDeriveInput, FromField, FromMeta};
+use syn::parse_quote;
 
 #[derive(Debug, FromDeriveInput)]
 #[darling(attributes(accrue))]

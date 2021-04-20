@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 
-use options::ForwardAttrs;
-use util::PathList;
+use crate::options::ForwardAttrs;
+use crate::util::PathList;
 
 /// Infrastructure for generating an attribute extractor.
 pub trait ExtractAttribute {

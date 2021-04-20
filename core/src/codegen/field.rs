@@ -4,8 +4,8 @@ use proc_macro2::TokenStream;
 use quote::{ToTokens, TokenStreamExt};
 use syn::{Ident, Path, Type};
 
-use codegen::{DefaultExpression, PostfixTransform};
-use usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
+use crate::codegen::{DefaultExpression, PostfixTransform};
+use crate::usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
 
 /// Properties needed to generate code for a field in all the contexts
 /// where one may appear.

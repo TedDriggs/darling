@@ -1,10 +1,12 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use syn::{self, Ident};
+use syn::Ident;
 
-use codegen::{ExtractAttribute, OuterFromImpl, TraitImpl};
-use options::ForwardAttrs;
-use util::PathList;
+use crate::{
+    codegen::{ExtractAttribute, OuterFromImpl, TraitImpl},
+    options::ForwardAttrs,
+    util::PathList,
+};
 
 /// `impl FromField` generator. This is used for parsing an individual
 /// field and its attributes.

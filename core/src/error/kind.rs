@@ -1,6 +1,6 @@
 use std::fmt;
 
-use error::Error;
+use crate::error::Error;
 
 type DeriveInputShape = String;
 type FieldName = String;
@@ -10,7 +10,7 @@ type MetaFormat = String;
 // Don't want to publicly commit to ErrorKind supporting equality yet, but
 // not having it makes testing very difficult.
 #[cfg_attr(test, derive(Clone, PartialEq, Eq))]
-pub(in error) enum ErrorKind {
+pub(in crate::error) enum ErrorKind {
     /// An arbitrary error message.
     Custom(String),
     DuplicateField(FieldName),
@@ -108,7 +108,7 @@ impl From<ErrorUnknownField> for ErrorKind {
 // Don't want to publicly commit to ErrorKind supporting equality yet, but
 // not having it makes testing very difficult.
 #[cfg_attr(test, derive(Clone, PartialEq, Eq))]
-pub(in error) struct ErrorUnknownField {
+pub(in crate::error) struct ErrorUnknownField {
     name: String,
     did_you_mean: Option<String>,
 }
