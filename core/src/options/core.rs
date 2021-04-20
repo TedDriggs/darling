@@ -1,12 +1,11 @@
 use ident_case::RenameRule;
-use syn;
 
-use ast::{Data, Fields, Style};
-use codegen;
-use codegen::PostfixTransform;
-use options::{DefaultExpression, InputField, InputVariant, ParseAttribute, ParseData};
-use util::Flag;
-use {Error, FromMeta, Result};
+use crate::ast::{Data, Fields, Style};
+use crate::codegen;
+use crate::codegen::PostfixTransform;
+use crate::options::{DefaultExpression, InputField, InputVariant, ParseAttribute, ParseData};
+use crate::util::Flag;
+use crate::{Error, FromMeta, Result};
 
 /// A struct or enum which should have `FromMeta` or `FromDeriveInput` implementations
 /// generated.

@@ -4,10 +4,10 @@ use proc_macro2::{Span, TokenStream};
 use quote::ToTokens;
 use syn::spanned::Spanned;
 
-use usage::{
+use crate::usage::{
     self, IdentRefSet, IdentSet, LifetimeRefSet, LifetimeSet, UsesLifetimes, UsesTypeParams,
 };
-use {Error, FromField, FromVariant, Result};
+use crate::{Error, FromField, FromVariant, Result};
 
 /// A struct or enum body.
 ///

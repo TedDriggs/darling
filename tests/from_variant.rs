@@ -1,7 +1,3 @@
-#[macro_use]
-extern crate darling;
-extern crate syn;
-
 use darling::FromVariant;
 use syn::{spanned::Spanned, Expr, ExprLit, LitInt};
 

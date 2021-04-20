@@ -1,9 +1,4 @@
-#[macro_use]
-extern crate darling;
-
-extern crate syn;
-
-use darling::{ast, util, FromDeriveInput};
+use darling::{ast, util, FromDeriveInput, FromField};
 use syn::{Ident, Type};
 
 #[derive(Debug, FromField)]

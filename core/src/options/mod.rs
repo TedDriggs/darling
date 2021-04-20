@@ -1,6 +1,4 @@
-use syn;
-
-use {Error, FromMeta, Result};
+use crate::{Error, FromMeta, Result};
 
 mod core;
 mod forward_attrs;

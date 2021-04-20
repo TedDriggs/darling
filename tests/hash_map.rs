@@ -1,14 +1,7 @@
-#[macro_use]
-extern crate darling;
-#[macro_use]
-extern crate syn;
-#[macro_use]
-extern crate quote;
-
 use std::collections::HashMap;
 
 use darling::FromMeta;
-use syn::{Attribute, Path};
+use syn::{parse_quote, Attribute, Path};
 
 #[derive(Debug, FromMeta, PartialEq, Eq)]
 struct MapValue {

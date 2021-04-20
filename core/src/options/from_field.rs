@@ -1,10 +1,10 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use syn::{self, Ident};
+use syn::Ident;
 
-use codegen::FromFieldImpl;
-use options::{OuterFrom, ParseAttribute, ParseData};
-use Result;
+use crate::codegen::FromFieldImpl;
+use crate::options::{OuterFrom, ParseAttribute, ParseData};
+use crate::Result;
 
 #[derive(Debug)]
 pub struct FromFieldOptions {

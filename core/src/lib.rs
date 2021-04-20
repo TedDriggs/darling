@@ -33,14 +33,14 @@ pub(crate) mod options;
 pub mod usage;
 pub mod util;
 
-pub use error::{Error, Result};
-pub use from_derive_input::FromDeriveInput;
-pub use from_field::FromField;
-pub use from_generic_param::FromGenericParam;
-pub use from_generics::FromGenerics;
-pub use from_meta::FromMeta;
-pub use from_type_param::FromTypeParam;
-pub use from_variant::FromVariant;
+pub use self::error::{Error, Result};
+pub use self::from_derive_input::FromDeriveInput;
+pub use self::from_field::FromField;
+pub use self::from_generic_param::FromGenericParam;
+pub use self::from_generics::FromGenerics;
+pub use self::from_meta::FromMeta;
+pub use self::from_type_param::FromTypeParam;
+pub use self::from_variant::FromVariant;
 
 // Re-export tokenizer
 #[doc(hidden)]

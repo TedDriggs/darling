@@ -5,10 +5,6 @@
 //! 1. Using `Result<T, syn::Meta>` to attempt a recovery in imperative code
 //! 1. Using the `map` darling meta-item to post-process a field before returning
 //! 1. Using the `and_then` darling meta-item to post-process the receiver before returning
-#[macro_use]
-extern crate darling;
-
-extern crate syn;
 
 use darling::{FromDeriveInput, FromMeta};
 use syn::parse_str;

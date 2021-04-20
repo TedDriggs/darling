@@ -7,10 +7,9 @@ use std::rc::Rc;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
-use ident_case;
-use syn::{self, Expr, Lit, Meta, NestedMeta};
+use syn::{Expr, Lit, Meta, NestedMeta};
 
-use {Error, Result};
+use crate::{Error, Result};
 
 /// Create an instance from an item in an attribute declaration.
 ///
@@ -584,9 +583,8 @@ hash_map!(syn::Path);
 #[cfg(test)]
 mod tests {
     use proc_macro2::TokenStream;
-    use syn;
 
-    use {Error, FromMeta, Result};
+    use crate::{Error, FromMeta, Result};
 
     /// parse a string as a syn::Meta instance.
     fn pm(tokens: TokenStream) -> ::std::result::Result<syn::Meta, String> {

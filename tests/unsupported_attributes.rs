@@ -1,10 +1,5 @@
-#[macro_use]
-extern crate darling;
-#[macro_use]
-extern crate syn;
-
 use darling::FromDeriveInput;
-use syn::{Ident, LitStr, Path};
+use syn::{parse_quote, Ident, LitStr, Path};
 
 #[derive(Debug, FromDeriveInput)]
 #[darling(supports(struct_unit), attributes(bar))]

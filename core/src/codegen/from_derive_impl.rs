@@ -1,11 +1,13 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use syn::{self, Ident};
+use syn::Ident;
 
-use ast::Data;
-use codegen::{ExtractAttribute, OuterFromImpl, TraitImpl};
-use options::{ForwardAttrs, Shape};
-use util::PathList;
+use crate::{
+    ast::Data,
+    codegen::{ExtractAttribute, OuterFromImpl, TraitImpl},
+    options::{ForwardAttrs, Shape},
+    util::PathList,
+};
 
 pub struct FromDeriveInputImpl<'a> {
     pub ident: Option<&'a Ident>,

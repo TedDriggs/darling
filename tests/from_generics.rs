@@ -2,13 +2,11 @@
 //! These tests assume `FromTypeParam` is working and only look at whether the wrappers for magic
 //! fields are working as expected.
 
-#[macro_use]
-extern crate darling;
-extern crate syn;
-
-use darling::ast::{self, GenericParamExt};
-use darling::util::{Ignored, WithOriginal};
-use darling::{FromDeriveInput, Result};
+use darling::{
+    ast::{self, GenericParamExt},
+    util::{Ignored, WithOriginal},
+    FromDeriveInput, FromTypeParam, Result,
+};
 
 #[derive(FromDeriveInput)]
 #[darling(attributes(lorem))]

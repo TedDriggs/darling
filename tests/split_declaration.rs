@@ -1,16 +1,8 @@
 //! When input is split across multiple attributes on one element,
 //! darling should collapse that into one struct.
 
-#[macro_use]
-extern crate darling;
-#[macro_use]
-extern crate syn;
-#[macro_use]
-extern crate quote;
-
-use std::string::ToString;
-
 use darling::{Error, FromDeriveInput};
+use syn::parse_quote;
 
 #[derive(Debug, FromDeriveInput, PartialEq, Eq)]
 #[darling(attributes(split))]

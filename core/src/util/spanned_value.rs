@@ -1,8 +1,8 @@
 use proc_macro2::Span;
 use std::ops::{Deref, DerefMut};
-use syn;
 use syn::spanned::Spanned;
-use {
+
+use crate::{
     FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta, FromTypeParam,
     FromVariant, Result,
 };

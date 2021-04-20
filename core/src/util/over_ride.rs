@@ -2,7 +2,7 @@ use std::fmt;
 
 use syn::{Lit, NestedMeta};
 
-use {FromMeta, Result};
+use crate::{FromMeta, Result};
 
 use self::Override::*;
 
@@ -17,10 +17,7 @@ use self::Override::*;
 /// In a struct collecting input for this attribute, that would be written as:
 ///
 /// ```rust,ignore
-/// # #[macro_use]
-/// # extern crate darling;
-/// # extern crate syn;
-/// use darling::util::Override;
+/// use darling::{util::Override, FromField};
 /// #[derive(FromField)]
 /// #[darling(attributes(darling))]
 /// pub struct Options {

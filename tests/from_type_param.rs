@@ -1,12 +1,5 @@
-#[macro_use]
-extern crate darling;
-#[macro_use]
-extern crate syn;
-#[macro_use]
-extern crate quote;
-
 use darling::FromTypeParam;
-use syn::{DeriveInput, GenericParam, Ident, TypeParam};
+use syn::{parse_quote, DeriveInput, GenericParam, Ident, TypeParam};
 
 #[darling(attributes(lorem), from_ident)]
 #[derive(FromTypeParam)]
