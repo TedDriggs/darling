@@ -14,9 +14,9 @@ pub struct InputField {
 
     /// If `true`, generated code will not look for this field in the input meta item,
     /// instead always falling back to either `InputField::default` or `Default::default`.
-    pub skip: bool,
+    pub skip: Option<bool>,
     pub post_transform: Option<codegen::PostfixTransform>,
-    pub multiple: bool,
+    pub multiple: Option<bool>,
 }
 
 impl InputField {
@@ -34,9 +34,9 @@ impl InputField {
                 || Cow::Owned(parse_quote!(::darling::FromMeta::from_meta)),
                 Cow::Borrowed,
             ),
-            skip: self.skip,
+            skip: self.skip.unwrap_or_default(),
             post_transform: self.post_transform.as_ref(),
-            multiple: self.multiple,
+            multiple: self.multiple.unwrap_or_default(),
         }
     }
 
@@ -57,9 +57,9 @@ impl InputField {
             attr_name: None,
             default: None,
             with: None,
-            skip: false,
+            skip: None,
             post_transform: Default::default(),
-            multiple: false,
+            multiple: None,
         }
     }
 
@@ -91,7 +91,11 @@ impl InputField {
         // 1. Will we look for this field in the attribute?
         // 1. Is there a locally-defined default?
         // 1. Did the parent define a default?
-        self.default = match (self.skip, self.default.is_some(), parent.default.is_some()) {
+        self.default = match (
+            self.skip.unwrap_or_default(),
+            self.default.is_some(),
+            parent.default.is_some(),
+        ) {
             // If we have a default, use it.
             (_, true, _) => self.default,
 
@@ -116,18 +120,33 @@ impl ParseAttribute for InputField {
         let path = mi.path();
 
         if path.is_ident("rename") {
+            if self.attr_name.is_some() {
+                return Err(Error::duplicate_field_path(path).with_span(mi));
+            }
+
             self.attr_name = FromMeta::from_meta(mi)?;
         } else if path.is_ident("default") {
+            if self.default.is_some() {
+                return Err(Error::duplicate_field_path(path).with_span(mi));
+            }
             self.default = FromMeta::from_meta(mi)?;
         } else if path.is_ident("with") {
+            if self.with.is_some() {
+                return Err(Error::duplicate_field_path(path).with_span(mi));
+            }
+
             self.with = Some(FromMeta::from_meta(mi)?);
         } else if path.is_ident("skip") {
+            if self.skip.is_some() {
+                return Err(Error::duplicate_field_path(path).with_span(mi));
+            }
+
             self.skip = FromMeta::from_meta(mi)?;
         } else if path.is_ident("map") || path.is_ident("and_then") {
             let transformer = path.get_ident().unwrap().clone();
             if let Some(post_transform) = &self.post_transform {
                 if transformer == post_transform.transformer {
-                    return Err(Error::duplicate_field(&transformer.to_string()).with_span(mi));
+                    return Err(Error::duplicate_field_path(path).with_span(mi));
                 } else {
                     return Err(Error::custom(format!(
                         "Options `{}` and `{}` are mutually exclusive",
@@ -142,6 +161,10 @@ impl ParseAttribute for InputField {
                 FromMeta::from_meta(mi)?,
             ));
         } else if path.is_ident("multiple") {
+            if self.multiple.is_some() {
+                return Err(Error::duplicate_field_path(path).with_span(mi));
+            }
+
             self.multiple = FromMeta::from_meta(mi)?;
         } else {
             return Err(Error::unknown_field_path(path).with_span(mi));

@@ -10,7 +10,7 @@ pub struct InputVariant {
     ident: syn::Ident,
     attr_name: Option<String>,
     data: Fields<InputField>,
-    skip: bool,
+    skip: Option<bool>,
     /// Whether or not unknown fields are acceptable in this
     allow_unknown_fields: Option<bool>,
 }
@@ -25,7 +25,7 @@ impl InputVariant {
                 .as_ref()
                 .map_or_else(|| Cow::Owned(self.ident.to_string()), Cow::Borrowed),
             data: self.data.as_ref().map(InputField::as_codegen_field),
-            skip: self.skip,
+            skip: self.skip.unwrap_or_default(),
             allow_unknown_fields: self.allow_unknown_fields.unwrap_or_default(),
         }
     }
@@ -84,13 +84,21 @@ impl ParseAttribute for InputVariant {
     fn parse_nested(&mut self, mi: &syn::Meta) -> Result<()> {
         let path = mi.path();
         if path.is_ident("rename") {
+            if self.attr_name.is_some() {
+                return Err(Error::duplicate_field_path(path).with_span(mi));
+            }
+
             self.attr_name = FromMeta::from_meta(mi)?;
-            Ok(())
         } else if path.is_ident("skip") {
+            if self.skip.is_some() {
+                return Err(Error::duplicate_field_path(path).with_span(mi));
+            }
+
             self.skip = FromMeta::from_meta(mi)?;
-            Ok(())
         } else {
-            Err(Error::unknown_field_path(&path).with_span(mi))
+            return Err(Error::unknown_field_path(&path).with_span(mi));
         }
+
+        Ok(())
     }
 }
