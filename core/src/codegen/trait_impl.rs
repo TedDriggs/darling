@@ -1,10 +1,10 @@
 use proc_macro2::TokenStream;
-use syn::{Generics, Ident, Path, WherePredicate};
+use syn::{Generics, Ident, WherePredicate};
 
 use ast::{Data, Fields};
 use codegen::error::{ErrorCheck, ErrorDeclaration};
 use codegen::field;
-use codegen::{DefaultExpression, Field, FieldsGen, Variant};
+use codegen::{DefaultExpression, Field, FieldsGen, PostfixTransform, Variant};
 use usage::{CollectTypeParams, IdentSet, Purpose};
 
 #[derive(Debug)]
@@ -13,7 +13,7 @@ pub struct TraitImpl<'a> {
     pub generics: &'a Generics,
     pub data: Data<Variant<'a>, Field<'a>>,
     pub default: Option<DefaultExpression<'a>>,
-    pub map: Option<&'a Path>,
+    pub post_transform: Option<&'a PostfixTransform>,
     pub bound: Option<&'a [WherePredicate]>,
     pub allow_unknown_fields: bool,
 }
@@ -107,8 +107,8 @@ impl<'a> TraitImpl<'a> {
         }
     }
 
-    pub(in codegen) fn map_fn(&self) -> Option<TokenStream> {
-        self.map.as_ref().map(|path| quote!(.map(#path)))
+    pub(in codegen) fn post_transform_call(&self) -> Option<TokenStream> {
+        self.post_transform.map(|pt| quote!(#pt))
     }
 
     /// Generate local variable declaration and initialization for instance from which missing fields will be taken.

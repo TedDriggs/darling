@@ -47,7 +47,7 @@ impl<'a> ToTokens for FromTypeParamImpl<'a> {
             .map(|i| quote!(#i: #input.default.clone(),));
         let initializers = self.base.initializers();
 
-        let map = self.base.map_fn();
+        let post_transform = self.base.post_transform_call();
 
         self.wrap(
             quote! {
@@ -68,7 +68,7 @@ impl<'a> ToTokens for FromTypeParamImpl<'a> {
                         #passed_default
                         #passed_attrs
                         #initializers
-                    }) #map
+                    }) #post_transform
                 }
             },
             tokens,

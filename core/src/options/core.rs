@@ -3,6 +3,7 @@ use syn;
 
 use ast::{Data, Fields, Style};
 use codegen;
+use codegen::PostfixTransform;
 use options::{DefaultExpression, InputField, InputVariant, ParseAttribute, ParseData};
 use util::Flag;
 use {Error, FromMeta, Result};
@@ -25,9 +26,13 @@ pub struct Core {
     /// The rule that should be used to rename all fields/variants in the container.
     pub rename_rule: RenameRule,
 
-    /// An infallible function with the signature `FnOnce(T) -> T` which will be called after the
-    /// target instance is successfully constructed.
-    pub map: Option<syn::Path>,
+    /// A transform which will be called on `darling::Result<Self>`. It must either be
+    /// an `FnOnce(T) -> T` when `map` is used, or `FnOnce(T) -> darling::Result<T>` when
+    /// `and_then` is used.
+    ///
+    /// `map` and `and_then` are mutually-exclusive to avoid confusion about the order in
+    /// which the two are applied.
+    pub post_transform: Option<codegen::PostfixTransform>,
 
     /// The body of the _deriving_ type.
     pub data: Data<InputVariant, InputField>,
@@ -54,7 +59,7 @@ impl Core {
             } else {
                 Default::default()
             },
-            map: Default::default(),
+            post_transform: Default::default(),
             bound: Default::default(),
             allow_unknown_fields: Default::default(),
         })
@@ -84,12 +89,24 @@ impl ParseAttribute for Core {
             // WARNING: This may have been set based on body shape previously,
             // so an overwrite may be permissible.
             self.rename_rule = FromMeta::from_meta(mi)?;
-        } else if path.is_ident("map") {
-            if self.map.is_some() {
-                return Err(Error::duplicate_field("map").with_span(mi));
+        } else if path.is_ident("map") || path.is_ident("and_then") {
+            // This unwrap is safe because we just called is_ident above
+            let transformer = path.get_ident().unwrap().clone();
+
+            if let Some(post_transform) = &self.post_transform {
+                if transformer == post_transform.transformer {
+                    return Err(Error::duplicate_field(&transformer.to_string()).with_span(mi));
+                } else {
+                    return Err(Error::custom(format!(
+                        "Options `{}` and `{}` are mutually exclusive",
+                        transformer, post_transform.transformer
+                    ))
+                    .with_span(mi));
+                }
             }
 
-            self.map = FromMeta::from_meta(mi)?;
+            self.post_transform =
+                Some(PostfixTransform::new(transformer, FromMeta::from_meta(mi)?));
         } else if path.is_ident("bound") {
             self.bound = FromMeta::from_meta(mi)?;
         } else if path.is_ident("allow_unknown_fields") {
@@ -146,7 +163,7 @@ impl<'a> From<&'a Core> for codegen::TraitImpl<'a> {
                 .map_struct_fields(InputField::as_codegen_field)
                 .map_enum_variants(|variant| variant.as_codegen_variant(&v.ident)),
             default: v.as_codegen_default(),
-            map: v.map.as_ref(),
+            post_transform: v.post_transform.as_ref(),
             bound: v.bound.as_ref().map(|i| i.as_slice()),
             allow_unknown_fields: v.allow_unknown_fields.into(),
         }

@@ -55,7 +55,7 @@ impl<'a> ToTokens for FromVariantImpl<'a> {
             .map(|i| quote!(#i: ::darling::ast::Fields::try_from(&#input.fields)?,));
 
         let inits = self.base.initializers();
-        let map = self.base.map_fn();
+        let post_transform = self.base.post_transform_call();
 
         let default = if self.from_ident {
             quote!(let __default: Self = ::darling::export::From::from(#input.ident.clone());)
@@ -95,7 +95,7 @@ impl<'a> ToTokens for FromVariantImpl<'a> {
                         #passed_attrs
                         #passed_fields
                         #inits
-                    }) #map
+                    }) #post_transform
                 }
             ),
             tokens,

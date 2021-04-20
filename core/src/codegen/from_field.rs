@@ -45,7 +45,7 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
 
         // Determine which attributes to forward (if any).
         let grab_attrs = self.extractor();
-        let map = self.base.map_fn();
+        let post_transform = self.base.post_transform_call();
 
         self.wrap(
             quote! {
@@ -66,7 +66,7 @@ impl<'a> ToTokens for FromFieldImpl<'a> {
                         #passed_vis
                         #passed_attrs
                         #initializers
-                    }) #map
+                    }) #post_transform
 
                 }
             },

@@ -24,7 +24,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let ty_ident = self.base.ident;
         let input = self.param_name();
-        let map = self.base.map_fn();
+        let post_transform = self.base.post_transform_call();
 
         if let Data::Struct(ref data) = self.base.data {
             if data.is_newtype() {
@@ -33,7 +33,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
                         fn from_derive_input(#input: &::syn::DeriveInput) -> ::darling::Result<Self> {
                             ::darling::export::Ok(
                                 #ty_ident(::darling::FromDeriveInput::from_derive_input(#input)?)
-                            ) #map
+                            ) #post_transform
                         }
                     },
                     tokens,
@@ -100,7 +100,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
                         #passed_attrs
                         #passed_body
                         #inits
-                    }) #map
+                    }) #post_transform
                 }
             },
             tokens,

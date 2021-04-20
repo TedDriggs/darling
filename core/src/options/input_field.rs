@@ -17,7 +17,7 @@ pub struct InputField {
     /// If `true`, generated code will not look for this field in the input meta item,
     /// instead always falling back to either `InputField::default` or `Default::default`.
     pub skip: bool,
-    pub map: Option<syn::Path>,
+    pub post_transform: Option<codegen::PostfixTransform>,
     pub multiple: bool,
 }
 
@@ -37,7 +37,7 @@ impl InputField {
                 Cow::Borrowed,
             ),
             skip: self.skip,
-            map: self.map.as_ref(),
+            post_transform: self.post_transform.as_ref(),
             multiple: self.multiple,
         }
     }
@@ -60,7 +60,7 @@ impl InputField {
             default: None,
             with: None,
             skip: false,
-            map: Default::default(),
+            post_transform: Default::default(),
             multiple: false,
         }
     }
@@ -125,8 +125,24 @@ impl ParseAttribute for InputField {
             self.with = Some(FromMeta::from_meta(mi)?);
         } else if path.is_ident("skip") {
             self.skip = FromMeta::from_meta(mi)?;
-        } else if path.is_ident("map") {
-            self.map = Some(FromMeta::from_meta(mi)?);
+        } else if path.is_ident("map") || path.is_ident("and_then") {
+            let transformer = path.get_ident().unwrap().clone();
+            if let Some(post_transform) = &self.post_transform {
+                if transformer == post_transform.transformer {
+                    return Err(Error::duplicate_field(&transformer.to_string()).with_span(mi));
+                } else {
+                    return Err(Error::custom(format!(
+                        "Options `{}` and `{}` are mutually exclusive",
+                        transformer, post_transform.transformer
+                    ))
+                    .with_span(mi));
+                }
+            }
+
+            self.post_transform = Some(codegen::PostfixTransform::new(
+                transformer,
+                FromMeta::from_meta(mi)?,
+            ));
         } else if path.is_ident("multiple") {
             self.multiple = FromMeta::from_meta(mi)?;
         } else {
