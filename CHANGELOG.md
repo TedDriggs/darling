@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.13.0-beta (April 20, 2021)
+
+- Update darling to 2018 edition [#129](https://github.com/TedDriggs/darling/pull/129)
+- Error on duplicate fields in `#[darling(...)]` attributes [#130](https://github.com/TedDriggs/darling/pull/130)
+
 ## v0.12.4 (April 20, 2021)
 
 - Add `and_then` to derive macros for `darling`
