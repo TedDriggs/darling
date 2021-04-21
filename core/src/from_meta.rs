@@ -441,7 +441,7 @@ fn path_to_string(path: &syn::Path) -> String {
 /// Trait to convert from a path into an owned key for a map.
 trait KeyFromPath: Sized {
     fn from_path(path: &syn::Path) -> Result<Self>;
-    fn to_display<'a>(&'a self) -> Cow<'a, str>;
+    fn to_display(&self) -> Cow<'_, str>;
 }
 
 impl KeyFromPath for String {
@@ -449,7 +449,7 @@ impl KeyFromPath for String {
         Ok(path_to_string(path))
     }
 
-    fn to_display<'a>(&'a self) -> Cow<'a, str> {
+    fn to_display(&self) -> Cow<'_, str> {
         Cow::Borrowed(&self)
     }
 }
@@ -459,7 +459,7 @@ impl KeyFromPath for syn::Path {
         Ok(path.clone())
     }
 
-    fn to_display<'a>(&'a self) -> Cow<'a, str> {
+    fn to_display(&self) -> Cow<'_, str> {
         Cow::Owned(path_to_string(self))
     }
 }
@@ -476,7 +476,7 @@ impl KeyFromPath for syn::Ident {
         }
     }
 
-    fn to_display<'a>(&'a self) -> Cow<'a, str> {
+    fn to_display(&self) -> Cow<'_, str> {
         Cow::Owned(self.to_string())
     }
 }
@@ -599,7 +599,7 @@ mod tests {
 
     #[test]
     fn unit_succeeds() {
-        assert_eq!(fm::<()>(quote!(ignore)), ());
+        let () = fm::<()>(quote!(ignore));
     }
 
     #[test]
@@ -635,6 +635,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::float_cmp)] // we want exact equality
     fn number_succeeds() {
         assert_eq!(fm::<u8>(quote!(ignore = "2")), 2u8);
         assert_eq!(fm::<i16>(quote!(ignore = "-25")), -25i16);
@@ -652,6 +653,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::float_cmp)] // we want exact equality
     fn float_without_quotes() {
         assert_eq!(fm::<f32>(quote!(ignore = 2.)), 2.0f32);
         assert_eq!(fm::<f32>(quote!(ignore = 2.0)), 2.0f32);

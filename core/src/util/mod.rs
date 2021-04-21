@@ -100,6 +100,7 @@ impl BitAnd for Flag {
     type Output = Self;
 
     fn bitand(self, rhs: Self) -> Self {
+        #[allow(clippy::suspicious_arithmetic_impl)]
         (self.into() && rhs.into()).into()
     }
 }
@@ -108,6 +109,7 @@ impl BitOr for Flag {
     type Output = Self;
 
     fn bitor(self, rhs: Self) -> Self {
+        #[allow(clippy::suspicious_arithmetic_impl)]
         (self.into() || rhs.into()).into()
     }
 }
