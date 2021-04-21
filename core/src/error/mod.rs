@@ -204,14 +204,12 @@ impl Error {
     /// # Panics
     /// This function will panic if `errors.is_empty() == true`.
     pub fn multiple(mut errors: Vec<Error>) -> Self {
-        if errors.len() > 1 {
-            Error::new(ErrorKind::Multiple(errors))
-        } else if errors.len() == 1 {
-            errors
+        match errors.len() {
+            1 => errors
                 .pop()
-                .expect("Error array of length 1 has a first item")
-        } else {
-            panic!("Can't deal with 0 errors")
+                .expect("Error array of length 1 has a first item"),
+            0 => panic!("Can't deal with 0 errors"),
+            _ => Error::new(ErrorKind::Multiple(errors)),
         }
     }
 }
@@ -287,6 +285,7 @@ impl Error {
     ///
     /// This function never returns `0`, as it's impossible to construct
     /// a multi-error from an empty `Vec`.
+    #[allow(clippy::len_without_is_empty)] // Error can never be empty
     pub fn len(&self) -> usize {
         self.kind.len()
     }

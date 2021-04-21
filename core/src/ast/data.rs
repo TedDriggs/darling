@@ -46,7 +46,7 @@ impl<V, F> Data<V, F> {
     }
 
     /// Creates a new `Data<&'a V, &'a F>` instance from `Data<V, F>`.
-    pub fn as_ref<'a>(&'a self) -> Data<&'a V, &'a F> {
+    pub fn as_ref(&self) -> Data<&V, &F> {
         match *self {
             Data::Enum(ref variants) => Data::Enum(variants.iter().collect()),
             Data::Struct(ref data) => Data::Struct(data.as_ref()),
@@ -226,7 +226,7 @@ impl<T> Fields<T> {
         self.style.is_struct()
     }
 
-    pub fn as_ref<'a>(&'a self) -> Fields<&'a T> {
+    pub fn as_ref(&self) -> Fields<&T> {
         Fields {
             style: self.style,
             fields: self.fields.iter().collect(),
@@ -443,9 +443,7 @@ mod tests {
     // Fields::try_from.
     fn token_stream_to_fields(input: TokenStream) -> Fields<syn::Field> {
         Fields::try_from(&{
-            if let syn::Data::Struct(s) =
-                syn::parse2::<syn::DeriveInput>(input.clone()).unwrap().data
-            {
+            if let syn::Data::Struct(s) = syn::parse2::<syn::DeriveInput>(input).unwrap().data {
                 s.fields
             } else {
                 panic!();
