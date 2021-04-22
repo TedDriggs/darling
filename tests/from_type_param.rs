@@ -1,8 +1,8 @@
 use darling::FromTypeParam;
 use syn::{parse_quote, DeriveInput, GenericParam, Ident, TypeParam};
 
-#[darling(attributes(lorem), from_ident)]
 #[derive(FromTypeParam)]
+#[darling(attributes(lorem), from_ident)]
 struct Lorem {
     ident: Ident,
     bounds: Vec<syn::TypeParamBound>,

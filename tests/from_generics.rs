@@ -132,15 +132,7 @@ fn with_original() {
 
     // Make sure we haven't lost anything in the conversion
     assert_eq!(rec.generics.parsed.params.len(), 3);
-    assert_eq!(
-        rec.generics
-            .original
-            .params
-            .iter()
-            .collect::<Vec<_>>()
-            .len(),
-        3
-    );
+    assert_eq!(rec.generics.original.params.len(), 3);
 
     let parsed_t: &MyTypeParam = rec.generics.parsed.params[1]
         .as_type_param()

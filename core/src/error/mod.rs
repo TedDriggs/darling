@@ -358,7 +358,7 @@ impl Error {
         // If span information is available, don't include the error property path
         // since it's redundant and not consistent with native compiler diagnostics.
         match self.kind {
-            ErrorKind::UnknownField(euf) => euf.to_diagnostic(self.span),
+            ErrorKind::UnknownField(euf) => euf.into_diagnostic(self.span),
             _ => match self.span {
                 Some(span) => span.unwrap().error(self.kind.to_string()),
                 None => Diagnostic::new(Level::Error, self.to_string()),
