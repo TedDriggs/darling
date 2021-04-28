@@ -64,12 +64,12 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          toolchain: stable
           override: true
           components: clippy
       - uses: Swatinem/rust-cache@v1
-      - name: Run clippy --workspace --all-features --tests
-        run: cargo clippy --workspace --all-features --tests
+      - name: Run clippy --workspace --tests
+        run: cargo clippy --workspace --tests
 
   rustfmt:
     name: Verify code formatting
