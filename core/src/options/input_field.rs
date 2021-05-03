@@ -71,16 +71,16 @@ impl InputField {
         let ty = f.ty.clone();
         let base = Self::new(ident, ty).parse_attributes(&f.attrs)?;
 
-        if let Some(container) = parent {
+        Ok(if let Some(container) = parent {
             base.with_inherited(container)
         } else {
-            Ok(base)
-        }
+            base
+        })
     }
 
     /// Apply inherited settings from the container. This is done _after_ parsing
     /// to ensure deference to explicit field-level settings.
-    fn with_inherited(mut self, parent: &Core) -> Result<Self> {
+    fn with_inherited(mut self, parent: &Core) -> Self {
         // explicit renamings take precedence over rename rules on the container,
         // but in the absence of an explicit name we apply the rule.
         if self.attr_name.is_none() {
@@ -111,7 +111,7 @@ impl InputField {
             (false, false, false) => None,
         };
 
-        Ok(self)
+        self
     }
 }
 

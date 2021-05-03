@@ -224,6 +224,7 @@ impl Error {
 }
 
 /// Error instance methods
+#[allow(clippy::len_without_is_empty)] // Error can never be empty
 impl Error {
     /// Check if this error is associated with a span in the token stream.
     pub fn has_span(&self) -> bool {
@@ -285,7 +286,6 @@ impl Error {
     ///
     /// This function never returns `0`, as it's impossible to construct
     /// a multi-error from an empty `Vec`.
-    #[allow(clippy::len_without_is_empty)] // Error can never be empty
     pub fn len(&self) -> usize {
         self.kind.len()
     }
@@ -358,7 +358,7 @@ impl Error {
         // If span information is available, don't include the error property path
         // since it's redundant and not consistent with native compiler diagnostics.
         match self.kind {
-            ErrorKind::UnknownField(euf) => euf.to_diagnostic(self.span),
+            ErrorKind::UnknownField(euf) => euf.into_diagnostic(self.span),
             _ => match self.span {
                 Some(span) => span.unwrap().error(self.kind.to_string()),
                 None => Diagnostic::new(Level::Error, self.to_string()),

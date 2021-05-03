@@ -139,6 +139,7 @@ impl FromMeta for bool {
         Ok(true)
     }
 
+    #[allow(clippy::wrong_self_convention)] // false positive
     fn from_bool(value: bool) -> Result<Self> {
         Ok(value)
     }
@@ -157,6 +158,7 @@ impl FromMeta for AtomicBool {
 }
 
 impl FromMeta for char {
+    #[allow(clippy::wrong_self_convention)] // false positive
     fn from_char(value: char) -> Result<Self> {
         Ok(value)
     }

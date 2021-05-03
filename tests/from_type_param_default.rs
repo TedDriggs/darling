@@ -1,8 +1,8 @@
 use darling::FromTypeParam;
 use syn::{parse_quote, DeriveInput, GenericParam, TypeParam};
 
-#[darling(attributes(lorem), default)]
 #[derive(Default, FromTypeParam)]
+#[darling(attributes(lorem), default)]
 struct Lorem {
     foo: bool,
     bar: Option<String>,

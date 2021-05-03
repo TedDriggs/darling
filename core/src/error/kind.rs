@@ -130,7 +130,7 @@ impl ErrorUnknownField {
     }
 
     #[cfg(feature = "diagnostics")]
-    pub fn to_diagnostic(self, span: Option<::proc_macro2::Span>) -> ::proc_macro::Diagnostic {
+    pub fn into_diagnostic(self, span: Option<::proc_macro2::Span>) -> ::proc_macro::Diagnostic {
         let base = span
             .unwrap_or_else(::proc_macro2::Span::call_site)
             .unwrap()
