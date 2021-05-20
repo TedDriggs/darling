@@ -19,7 +19,7 @@ use crate::{
 /// but the user may not always explicitly set those options in their source code.
 /// In this case, using `Default::default()` will create an instance which points
 /// to `Span::call_site()`.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct SpannedValue<T> {
     value: T,
     span: Span,
@@ -33,6 +33,11 @@ impl<T> SpannedValue<T> {
     /// Get the source code location referenced by this struct.
     pub fn span(&self) -> Span {
         self.span
+    }
+
+    /// Apply a mapping function to a reference to the spanned value.
+    pub fn map_ref<U>(&self, map_fn: impl FnOnce(&T) -> U) -> SpannedValue<U> {
+        SpannedValue::new(map_fn(&self.value), self.span)
     }
 }
 

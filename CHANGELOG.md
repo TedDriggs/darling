@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.13.0 (May 20, 2021)
+
+- Update darling to 2018 edition [#129](https://github.com/TedDriggs/darling/pull/129)
+- Error on duplicate fields in `#[darling(...)]` attributes [#130](https://github.com/TedDriggs/darling/pull/130)
+- Impl `Copy` for `SpannedValue<T: Copy>`
+- Add `SpannedValue::map_ref`
+
 ## v0.13.0-beta (April 20, 2021)
 
 - Update darling to 2018 edition [#129](https://github.com/TedDriggs/darling/pull/129)
