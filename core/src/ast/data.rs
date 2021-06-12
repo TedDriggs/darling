@@ -308,10 +308,10 @@ impl<F: FromField> Fields<F> {
             }
         };
 
-        if !errors.is_empty() {
-            Err(Error::multiple(errors))
-        } else {
+        if errors.is_empty() {
             Ok(Self::new(fields.into(), items).with_span(fields.span()))
+        } else {
+            Err(Error::multiple(errors))
         }
     }
 }
