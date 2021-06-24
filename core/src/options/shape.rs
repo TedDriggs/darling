@@ -246,22 +246,22 @@ mod tests {
     #[test]
     fn supports_any() {
         let decl = fm::<Shape>(quote!(ignore(any)));
-        assert_eq!(decl.any, true);
+        assert!(decl.any);
     }
 
     #[test]
     fn supports_struct() {
         let decl = fm::<Shape>(quote!(ignore(struct_any, struct_newtype)));
-        assert_eq!(decl.struct_values.any, true);
-        assert_eq!(decl.struct_values.newtype, true);
+        assert!(decl.struct_values.any);
+        assert!(decl.struct_values.newtype);
     }
 
     #[test]
     fn supports_mixed() {
         let decl = fm::<Shape>(quote!(ignore(struct_newtype, enum_newtype, enum_tuple)));
-        assert_eq!(decl.struct_values.newtype, true);
-        assert_eq!(decl.enum_values.newtype, true);
-        assert_eq!(decl.enum_values.tuple, true);
-        assert_eq!(decl.struct_values.any, false);
+        assert!(decl.struct_values.newtype);
+        assert!(decl.enum_values.newtype);
+        assert!(decl.enum_values.tuple);
+        assert!(!decl.struct_values.any);
     }
 }

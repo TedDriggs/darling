@@ -605,6 +605,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::bool_assert_comparison)]
     fn bool_succeeds() {
         // word format
         assert_eq!(fm::<bool>(quote!(ignore)), true);
