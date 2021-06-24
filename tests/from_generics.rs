@@ -38,6 +38,7 @@ fn no_generics() {
 }
 
 #[test]
+#[allow(clippy::bool_assert_comparison)]
 fn expand_some() {
     let rec: MyReceiver = fdi(r#"
         struct Baz<

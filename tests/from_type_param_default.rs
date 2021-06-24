@@ -17,6 +17,7 @@ fn extract_type(param: &GenericParam) -> &TypeParam {
 }
 
 #[test]
+#[allow(clippy::bool_assert_comparison)]
 fn expand_many() {
     let di: DeriveInput = parse_quote! {
         struct Baz<
