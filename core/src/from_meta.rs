@@ -452,7 +452,7 @@ impl KeyFromPath for String {
     }
 
     fn to_display(&self) -> Cow<'_, str> {
-        Cow::Borrowed(&self)
+        Cow::Borrowed(self)
     }
 }
 

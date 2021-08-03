@@ -96,7 +96,7 @@ impl ParseAttribute for InputVariant {
 
             self.skip = FromMeta::from_meta(mi)?;
         } else {
-            return Err(Error::unknown_field_path(&path).with_span(mi));
+            return Err(Error::unknown_field_path(path).with_span(mi));
         }
 
         Ok(())
