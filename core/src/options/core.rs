@@ -115,7 +115,7 @@ impl ParseAttribute for Core {
 
             self.allow_unknown_fields = FromMeta::from_meta(mi)?;
         } else {
-            return Err(Error::unknown_field_path(&path).with_span(mi));
+            return Err(Error::unknown_field_path(path).with_span(mi));
         }
 
         Ok(())
@@ -124,7 +124,7 @@ impl ParseAttribute for Core {
 
 impl ParseData for Core {
     fn parse_variant(&mut self, variant: &syn::Variant) -> Result<()> {
-        let v = InputVariant::from_variant(variant, Some(&self))?;
+        let v = InputVariant::from_variant(variant, Some(self))?;
 
         match self.data {
             Data::Enum(ref mut variants) => {
@@ -136,7 +136,7 @@ impl ParseData for Core {
     }
 
     fn parse_field(&mut self, field: &syn::Field) -> Result<()> {
-        let f = InputField::from_field(field, Some(&self))?;
+        let f = InputField::from_field(field, Some(self))?;
 
         match self.data {
             Data::Struct(Fields {

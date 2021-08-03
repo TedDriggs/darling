@@ -11,7 +11,6 @@ use darling::{
 #[derive(FromDeriveInput)]
 #[darling(attributes(lorem))]
 struct MyReceiver {
-    pub ident: syn::Ident,
     pub generics: ast::Generics<ast::GenericParam<MyTypeParam>>,
 }
 
