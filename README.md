@@ -40,7 +40,7 @@ pub struct Lorem {
 }
 
 #[derive(FromDeriveInput)]
-#[darling(from_ident, attributes(my_crate), forward_attrs(allow, doc, cfg))]
+#[darling(attributes(my_crate), forward_attrs(allow, doc, cfg))]
 pub struct MyTraitOpts {
     ident: syn::Ident,
     attrs: Vec<syn::Attribute>,
@@ -53,7 +53,7 @@ The above code will then be able to parse this input:
 ```rust,ignore
 /// A doc comment which will be available in `MyTraitOpts::attrs`.
 #[derive(MyTrait)]
-#[my_crate(lorem(dolor = "Hello", ipsum))]
+#[my_crate(lorem(dolor = "Hello", sit))]
 pub struct ConsumingType;
 ```
 
