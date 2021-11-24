@@ -78,7 +78,7 @@ impl<'a> ExtractAttribute for FromAttributesImpl<'a> {
     }
 
     fn attr_names(&self) -> &PathList {
-        &self.attr_names
+        self.attr_names
     }
 
     fn forwarded_attrs(&self) -> Option<&ForwardAttrs> {
