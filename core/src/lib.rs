@@ -22,6 +22,7 @@ pub mod ast;
 pub(crate) mod codegen;
 pub mod derive;
 pub mod error;
+mod from_attributes;
 mod from_derive_input;
 mod from_field;
 mod from_generic_param;
@@ -34,6 +35,7 @@ pub mod usage;
 pub mod util;
 
 pub use self::error::{Error, Result};
+pub use self::from_attributes::FromAttributes;
 pub use self::from_derive_input::FromDeriveInput;
 pub use self::from_field::FromField;
 pub use self::from_generic_param::FromGenericParam;

@@ -21,6 +21,14 @@ pub trait ExtractAttribute {
     /// Gets the name used by the generated impl to return to the `syn` item passed as input.
     fn param_name(&self) -> TokenStream;
 
+    /// Get the tokens to access a borrowed list of attributes where extraction will take place.
+    ///
+    /// By default, this will be `&#input.attrs` where `#input` is `self.param_name()`.
+    fn attrs_accessor(&self) -> TokenStream {
+        let input = self.param_name();
+        quote!(&#input.attrs)
+    }
+
     /// Gets the core from-meta-item loop that should be used on matching attributes.
     fn core_loop(&self) -> TokenStream;
 
@@ -48,7 +56,7 @@ pub trait ExtractAttribute {
             };
         }
 
-        let input = self.param_name();
+        let attrs_accessor = self.attrs_accessor();
 
         // The block for parsing attributes whose names have been claimed by the target
         // struct. If no attributes were claimed, this is a pass-through.
@@ -94,7 +102,7 @@ pub trait ExtractAttribute {
             use ::darling::ToTokens;
             let mut __fwd_attrs: ::darling::export::Vec<::syn::Attribute> = vec![];
 
-            for __attr in &#input.attrs {
+            for __attr in #attrs_accessor {
                 // Filter attributes based on name
                 match  ::darling::export::ToString::to_string(&__attr.path.clone().into_token_stream()).as_str() {
                     #parse_handled

@@ -25,6 +25,13 @@ pub fn from_meta(input: &DeriveInput) -> TokenStream {
     emit_impl_or_error!(options::FromMetaOptions::new(input))
 }
 
+/// Create tokens for a `darling::FromAttributes` impl from a `DeriveInput`. If
+/// the input cannot produce a valid impl, the returned tokens will contain
+/// compile errors instead.
+pub fn from_attributes(input: &DeriveInput) -> TokenStream {
+    emit_impl_or_error!(options::FromAttributesOptions::new(input))
+}
+
 /// Create tokens for a `darling::FromDeriveInput` impl from a `DeriveInput`. If
 /// the input cannot produce a valid impl, the returned tokens will contain
 /// compile errors instead.
