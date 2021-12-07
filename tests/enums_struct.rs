@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 //! Test expansion of enums which have struct variants.
 
 use darling::FromMeta;

@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use darling::{FromDeriveInput, FromMeta};
 use syn::parse_quote;
 

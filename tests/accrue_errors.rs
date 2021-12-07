@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 //! These tests verify that multiple errors will be collected up from throughout
 //! the parsing process and returned correctly to the caller.
 

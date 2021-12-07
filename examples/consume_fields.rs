@@ -1,3 +1,7 @@
+// The use of fields in debug print commands does not count as "used",
+// which causes the fields to trigger an unwanted dead code warning.
+#![allow(dead_code)]
+
 //! This example shows how to do struct and field parsing using darling.
 
 use darling::{ast, FromDeriveInput, FromField, FromMeta};

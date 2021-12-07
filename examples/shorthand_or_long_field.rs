@@ -2,6 +2,10 @@
 //!
 //! Based on https://stackoverflow.com/q/68046070/86381 by https://github.com/peterjoel
 
+// The use of fields in debug print commands does not count as "used",
+// which causes the fields to trigger an unwanted dead code warning.
+#![allow(dead_code)]
+
 use std::borrow::Cow;
 
 use darling::{util::Override, FromDeriveInput, FromMeta};
