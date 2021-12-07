@@ -18,6 +18,7 @@ Darling
 2. `FromDeriveInput` is implemented or derived by each proc-macro crate which depends on `darling`. This is the root for input parsing; it gets access to the identity, generics, and visibility of the target type, and can specify which attribute names should be parsed or forwarded from the input AST.
 3. `FromField` is implemented or derived by each proc-macro crate which depends on `darling`. Structs deriving this trait will get access to the identity (if it exists), type, and visibility of the field.
 4. `FromVariant` is implemented or derived by each proc-macro crate which depends on `darling`. Structs deriving this trait will get access to the identity and contents of the variant, which can be transformed the same as any other `darling` input.
+5. `FromAttributes` is a lower-level version of the more-specific `FromDeriveInput`, `FromField`, and `FromVariant` traits. Structs deriving this trait get a meta-item extractor and error collection which works for any syntax element, including traits, trait items, and functions. This is useful for non-derive proc macros.
 
 ## Additional Modules
 * `darling::ast` provides generic types for representing the AST.

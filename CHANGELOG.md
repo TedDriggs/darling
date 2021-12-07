@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.13.1 (December 7, 2021)
+
+- Add `FromAttributes` trait and macro [#151](https://github.com/TedDriggs/darling/issues/151)
+
 ## v0.13.0 (May 20, 2021)
 
 - Update darling to 2018 edition [#129](https://github.com/TedDriggs/darling/pull/129)
