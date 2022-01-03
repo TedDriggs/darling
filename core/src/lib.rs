@@ -31,6 +31,7 @@ mod from_meta;
 mod from_type_param;
 mod from_variant;
 pub(crate) mod options;
+mod parses_attribute;
 pub mod usage;
 pub mod util;
 
@@ -43,6 +44,7 @@ pub use self::from_generics::FromGenerics;
 pub use self::from_meta::FromMeta;
 pub use self::from_type_param::FromTypeParam;
 pub use self::from_variant::FromVariant;
+pub use self::parses_attribute::ParsesAttribute;
 
 // Re-export tokenizer
 #[doc(hidden)]

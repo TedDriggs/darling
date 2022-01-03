@@ -72,10 +72,16 @@ impl Core {
             }
         })
     }
-}
 
-impl ParseAttribute for Core {
-    fn parse_nested(&mut self, mi: &syn::Meta) -> Result<()> {
+    /// Parse a meta item and update `self` based on its contents. If the meta's path
+    /// is not recognized by `Self`, return `Ok(false)` rather than an error, so that
+    /// the caller can decide whether or not to propagate the error.
+    ///
+    /// `darling::ParsesAttribute` exists alongside other derive-attributes, such as
+    /// `FromDeriveInput`. In that situation, `ParsesAttribute` wants the functionality
+    /// of `Core` but doesn't want to create errors for meta items that are likely known
+    /// to _other_ darling macros.
+    pub fn parse_nested_ignore_unknown(&mut self, mi: &syn::Meta) -> Result<bool> {
         let path = mi.path();
 
         if path.is_ident("default") {
@@ -115,10 +121,20 @@ impl ParseAttribute for Core {
 
             self.allow_unknown_fields = FromMeta::from_meta(mi)?;
         } else {
-            return Err(Error::unknown_field_path(path).with_span(mi));
+            return Ok(false);
         }
 
-        Ok(())
+        Ok(true)
+    }
+}
+
+impl ParseAttribute for Core {
+    fn parse_nested(&mut self, mi: &syn::Meta) -> Result<()> {
+        if self.parse_nested_ignore_unknown(mi)? {
+            Ok(())
+        } else {
+            Err(Error::unknown_field_path(mi.path()).with_span(mi))
+        }
     }
 }
 

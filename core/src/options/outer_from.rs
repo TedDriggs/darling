@@ -2,7 +2,7 @@ use syn::{Field, Ident, Meta};
 
 use crate::options::{Core, DefaultExpression, ForwardAttrs, ParseAttribute, ParseData};
 use crate::util::PathList;
-use crate::{FromMeta, Result};
+use crate::{Error, FromMeta, Result};
 
 /// Reusable base for `FromDeriveInput`, `FromVariant`, `FromField`, and other top-level
 /// `From*` traits.
@@ -38,10 +38,10 @@ impl OuterFrom {
             from_ident: Default::default(),
         })
     }
-}
 
-impl ParseAttribute for OuterFrom {
-    fn parse_nested(&mut self, mi: &Meta) -> Result<()> {
+    /// Attempt to parse a meta, returning `Ok(false)` instead of an error if
+    /// the path is not recognized by `Self`.
+    pub fn parse_nested_ignore_unknown(&mut self, mi: &Meta) -> Result<bool> {
         let path = mi.path();
         if path.is_ident("attributes") {
             self.attr_names = FromMeta::from_meta(mi)?;
@@ -53,9 +53,20 @@ impl ParseAttribute for OuterFrom {
             self.container.default = Some(DefaultExpression::Trait);
             self.from_ident = true;
         } else {
-            return self.container.parse_nested(mi);
+            return self.container.parse_nested_ignore_unknown(mi);
         }
-        Ok(())
+
+        Ok(true)
+    }
+}
+
+impl ParseAttribute for OuterFrom {
+    fn parse_nested(&mut self, mi: &Meta) -> Result<()> {
+        if self.parse_nested_ignore_unknown(mi)? {
+            Ok(())
+        } else {
+            Err(Error::unknown_field_path(mi.path()).with_span(mi))
+        }
     }
 }
 

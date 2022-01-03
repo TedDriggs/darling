@@ -11,6 +11,7 @@ mod from_variant;
 mod input_field;
 mod input_variant;
 mod outer_from;
+mod parses_attribute;
 mod shape;
 
 pub use self::core::Core;
@@ -24,6 +25,7 @@ pub use self::from_variant::FromVariantOptions;
 pub use self::input_field::InputField;
 pub use self::input_variant::InputVariant;
 pub use self::outer_from::OuterFrom;
+pub use self::parses_attribute::ParsesAttributeOptions;
 pub use self::shape::{DataShape, Shape};
 
 /// A default/fallback expression encountered in attributes during parsing.
@@ -59,7 +61,7 @@ macro_rules! collect_error {
 /// Middleware for extracting attribute values. Implementers are expected to override
 /// `parse_nested` so they can apply individual items to themselves, while `parse_attributes`
 /// is responsible for looping through distinct outer attributes and collecting errors.
-pub trait ParseAttribute: Sized {
+pub(self) trait ParseAttribute: Sized {
     fn parse_attributes(mut self, attrs: &[syn::Attribute]) -> Result<Self> {
         let mut errors = Vec::new();
         for attr in attrs {

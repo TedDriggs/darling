@@ -41,3 +41,8 @@ pub fn derive_type_param(input: TokenStream) -> TokenStream {
 pub fn derive_variant(input: TokenStream) -> TokenStream {
     derive::from_variant(&parse_macro_input!(input)).into()
 }
+
+#[proc_macro_derive(ParsesAttribute, attributes(darling))]
+pub fn derive_parses_attribute(input: TokenStream) -> TokenStream {
+    derive::parses_attribute(&parse_macro_input!(input)).into()
+}

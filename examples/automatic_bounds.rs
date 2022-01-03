@@ -1,4 +1,4 @@
-use darling::{FromDeriveInput, FromMeta};
+use darling::{FromDeriveInput, FromMeta, ParsesAttribute};
 
 #[derive(FromMeta, PartialEq, Eq, Debug)]
 enum Volume {
@@ -25,7 +25,7 @@ enum Emphasis<T> {
     },
 }
 
-#[derive(FromDeriveInput)]
+#[derive(FromDeriveInput, ParsesAttribute)]
 #[darling(attributes(speak))]
 struct SpeakingOptions<T, U> {
     max_volume: U,

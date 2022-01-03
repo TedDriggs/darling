@@ -59,3 +59,10 @@ pub fn from_type_param(input: &DeriveInput) -> TokenStream {
 pub fn from_variant(input: &DeriveInput) -> TokenStream {
     emit_impl_or_error!(options::FromVariantOptions::new(input))
 }
+
+/// Create tokens for a `darling::ParsesAttribute` impl from a `DeriveInput`. If
+/// the input cannot produce a valid impl, the returned tokens will contain
+/// compile errors instead.
+pub fn parses_attribute(input: &DeriveInput) -> TokenStream {
+    emit_impl_or_error!(options::ParsesAttributeOptions::new(input))
+}
