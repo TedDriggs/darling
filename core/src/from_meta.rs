@@ -9,7 +9,7 @@ use std::sync::Arc;
 
 use syn::{Expr, Lit, Meta, NestedMeta};
 
-use crate::{Error, Result};
+use crate::{util::path_to_string, Error, Result};
 
 /// Create an instance from an item in an attribute declaration.
 ///
@@ -430,14 +430,6 @@ impl<T: FromMeta> FromMeta for RefCell<T> {
     fn from_meta(item: &Meta) -> Result<Self> {
         FromMeta::from_meta(item).map(RefCell::new)
     }
-}
-
-fn path_to_string(path: &syn::Path) -> String {
-    path.segments
-        .iter()
-        .map(|s| s.ident.to_string())
-        .collect::<Vec<String>>()
-        .join("::")
 }
 
 /// Trait to convert from a path into an owned key for a map.

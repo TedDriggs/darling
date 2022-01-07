@@ -17,6 +17,8 @@ use syn::{Lit, LitStr, Path};
 
 mod kind;
 
+use crate::util::path_to_string;
+
 use self::kind::{ErrorKind, ErrorUnknownField};
 
 /// An alias of `Result` specific to attribute parsing.
@@ -61,15 +63,6 @@ pub struct Error {
     locations: Vec<String>,
     /// The span to highlight in the emitted diagnostic.
     span: Option<Span>,
-}
-
-/// Transform a syn::Path to a readable String
-fn path_to_string(path: &syn::Path) -> String {
-    path.segments
-        .iter()
-        .map(|s| s.ident.to_string())
-        .collect::<Vec<String>>()
-        .join("::")
 }
 
 /// Error creation functions
