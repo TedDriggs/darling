@@ -1,5 +1,5 @@
 use syn::punctuated::Punctuated;
-use syn::{Ident, Type};
+use syn::{FnArg, Ident, TraitItem, Type};
 
 use crate::usage::{IdentRefSet, IdentSet, Options};
 
@@ -128,6 +128,16 @@ impl UsesTypeParams for syn::Fields {
     }
 }
 
+impl UsesTypeParams for FnArg {
+    fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+        if let FnArg::Typed(syn::PatType { ty, .. }) = self {
+            ty.uses_type_params(options, type_set)
+        } else {
+            Default::default()
+        }
+    }
+}
+
 /// Check if an Ident exactly matches one of the sought-after type parameters.
 impl UsesTypeParams for Ident {
     fn uses_type_params<'a>(&self, _options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
@@ -141,6 +151,32 @@ impl UsesTypeParams for syn::ReturnType {
             ty.uses_type_params(options, type_set)
         } else {
             Default::default()
+        }
+    }
+}
+
+impl UsesTypeParams for syn::Signature {
+    fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+        let type_params = union_in_place(
+            self.inputs.uses_type_params(options, type_set),
+            self.output.uses_type_params(options, type_set),
+        );
+
+        if let Some(syn::WhereClause { predicates, .. }) = &self.generics.where_clause {
+            union_in_place(type_params, predicates.uses_type_params(options, type_set))
+        } else {
+            type_params
+        }
+    }
+}
+
+impl UsesTypeParams for TraitItem {
+    fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
+        match self {
+            TraitItem::Const(v) => v.ty.uses_type_params(options, type_set),
+            TraitItem::Method(v) => v.sig.uses_type_params(options, type_set),
+            TraitItem::Type(v) => v.bounds.uses_type_params(options, type_set),
+            TraitItem::Verbatim(_) | TraitItem::Macro(_) | _ => Default::default(),
         }
     }
 }
@@ -247,7 +283,7 @@ impl UsesTypeParams for syn::TypeParamBound {
 #[cfg(test)]
 mod tests {
     use proc_macro2::Span;
-    use syn::{DeriveInput, Ident};
+    use syn::{DeriveInput, Ident, ItemTrait};
 
     use super::UsesTypeParams;
     use crate::usage::IdentSet;
@@ -353,5 +389,19 @@ mod tests {
         let declare_matches = input.data.uses_type_params(&Declare.into(), &generics);
         assert_eq!(declare_matches.len(), 1);
         assert!(declare_matches.contains::<Ident>(&parse_quote!(T)));
+    }
+
+    #[test]
+    fn trait_item() {
+        let input: ItemTrait = parse_quote! {
+            trait Example<T, U> {
+                const VAL: T;
+                fn thing(&self, (x, y): (U, T)) -> Vec<T> where T: Display;
+            }
+        };
+
+        let generics = ident_set(vec!["T", "U", "V"]);
+        let bound_matches = input.items.uses_type_params(&BoundImpl.into(), &generics);
+        assert_eq!(bound_matches.len(), 2);
     }
 }
