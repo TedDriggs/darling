@@ -214,6 +214,33 @@ impl Error {
     pub(crate) fn unknown_lit_str_value(value: &LitStr) -> Self {
         Error::unknown_value(&value.value()).with_span(value)
     }
+
+    /// Check that a list of errors is empty, or produce a single error representing
+    /// all the passed-in errors.
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let mut errors = vec![];
+    /// let mut processed_fields = vec![];
+    ///
+    /// for field in fields {
+    ///     match fallible_operation(field) {
+    ///         Ok(v) => processed_fields.push(v),
+    ///         Err(e) => errors.push(e)
+    ///     }
+    /// }
+    ///
+    /// darling::Error::ok_if_empty(errors)?;
+    /// ```
+    pub fn ok_if_empty(mut errors: Vec<Error>) -> Result<()> {
+        match errors.len() {
+            0 => Ok(()),
+            1 => Err(errors
+                .pop()
+                .expect("Error array of length 1 has a first item")),
+            _ => Err(Error::new(ErrorKind::Multiple(errors))),
+        }
+    }
 }
 
 /// Error instance methods

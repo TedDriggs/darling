@@ -556,9 +556,7 @@ macro_rules! hash_map {
                     }
                 }
 
-                if !errors.is_empty() {
-                    return Err(Error::multiple(errors));
-                }
+                Error::ok_if_empty(errors)?;
 
                 Ok(map)
             }

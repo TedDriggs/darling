@@ -68,11 +68,8 @@ pub trait ParseAttribute: Sized {
             }
         }
 
-        if !errors.is_empty() {
-            Err(Error::multiple(errors))
-        } else {
-            Ok(self)
-        }
+        Error::ok_if_empty(errors)?;
+        Ok(self)
     }
 
     /// Read a meta-item, and apply its values to the current instance.
@@ -91,11 +88,7 @@ fn parse_attr<T: ParseAttribute>(attr: &syn::Attribute, target: &mut T) -> Resul
                 }
             }
 
-            if !errors.is_empty() {
-                Err(Error::multiple(errors))
-            } else {
-                Ok(())
-            }
+            Error::ok_if_empty(errors)
         }
         Some(ref item) => panic!("Wasn't able to parse: `{:?}`", item),
         None => panic!("Unable to parse {:?}", attr),
@@ -133,11 +126,8 @@ pub trait ParseData: Sized {
             Data::Union(_) => unreachable!(),
         };
 
-        if !errors.is_empty() {
-            Err(Error::multiple(errors))
-        } else {
-            Ok(self)
-        }
+        Error::ok_if_empty(errors)?;
+        Ok(self)
     }
 
     /// Apply the next found variant to the object, returning an error

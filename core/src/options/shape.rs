@@ -175,11 +175,8 @@ impl FromMeta for DataShape {
             }
         }
 
-        if !errors.is_empty() {
-            Err(Error::multiple(errors))
-        } else {
-            Ok(new)
-        }
+        Error::ok_if_empty(errors)?;
+        Ok(new)
     }
 }
 

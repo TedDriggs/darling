@@ -130,11 +130,9 @@ impl<V: FromVariant, F: FromField> Data<V, F> {
                     }
                 }
 
-                if !errors.is_empty() {
-                    Err(Error::multiple(errors))
-                } else {
-                    Ok(Data::Enum(items))
-                }
+                Error::ok_if_empty(errors)?;
+
+                Ok(Data::Enum(items))
             }
             syn::Data::Struct(ref data) => Ok(Data::Struct(Fields::try_from(&data.fields)?)),
             // This deliberately doesn't set a span on the error message, as the error is most useful if
@@ -308,11 +306,9 @@ impl<F: FromField> Fields<F> {
             }
         };
 
-        if !errors.is_empty() {
-            Err(Error::multiple(errors))
-        } else {
-            Ok(Self::new(fields.into(), items).with_span(fields.span()))
-        }
+        Error::ok_if_empty(errors)?;
+
+        Ok(Self::new(fields.into(), items).with_span(fields.span()))
     }
 }
 
