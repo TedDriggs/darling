@@ -371,12 +371,32 @@ impl FromMeta for syn::WhereClause {
     fn from_string(value: &str) -> Result<Self> {
         syn::parse_str(value).map_err(|_| Error::unknown_value(value))
     }
+
+    fn from_value(value: &Lit) -> Result<Self> {
+        if let syn::Lit::Str(s) = value {
+            s.parse().map_err(|_| Error::unknown_lit_str_value(s))
+        } else {
+            Err(Error::unexpected_lit_type(value))
+        }
+    }
 }
 
 impl FromMeta for Vec<syn::WherePredicate> {
     fn from_string(value: &str) -> Result<Self> {
         syn::WhereClause::from_string(&format!("where {}", value))
             .map(|c| c.predicates.into_iter().collect())
+    }
+
+    fn from_value(value: &Lit) -> Result<Self> {
+        if let syn::Lit::Str(s) = value {
+            syn::WhereClause::from_value(&syn::Lit::Str(syn::LitStr::new(
+                &format!("where {}", s.value()),
+                value.span(),
+            )))
+            .map(|c| c.predicates.into_iter().collect())
+        } else {
+            Err(Error::unexpected_lit_type(value))
+        }
     }
 }
 
