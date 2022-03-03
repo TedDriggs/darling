@@ -243,7 +243,7 @@ from_meta_float!(f64);
 /// emitted span.
 impl FromMeta for syn::Ident {
     fn from_string(value: &str) -> Result<Self> {
-        Ok(syn::Ident::new(value, ::proc_macro2::Span::call_site()))
+        syn::parse_str(value).map_err(|_| Error::unknown_value(value))
     }
 
     fn from_value(value: &Lit) -> Result<Self> {
