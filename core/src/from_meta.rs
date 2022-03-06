@@ -272,6 +272,19 @@ impl<T: syn::parse::Parse, P: syn::parse::Parse> FromMeta for syn::punctuated::P
     }
 }
 
+/// Parsing support for an expression, i.e. `example = "1 + 2"`.
+impl FromMeta for syn::Expr {
+    fn from_value(value: &Lit) -> Result<Self> {
+        if let Lit::Str(ref ident) = *value {
+            ident
+                .parse::<syn::Expr>()
+                .map_err(|_| Error::unknown_lit_str_value(ident))
+        } else {
+            Err(Error::unexpected_lit_type(value))
+        }
+    }
+}
+
 /// Parsing support for an array, i.e. `example = "[1 + 2, 2 - 2, 3 * 4]"`.
 impl FromMeta for syn::ExprArray {
     fn from_value(value: &Lit) -> Result<Self> {
