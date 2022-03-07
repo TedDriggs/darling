@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add `FromMeta` impl for `Expr`
+
 ## v0.13.1 (December 7, 2021)
 
 - Add `FromAttributes` trait and macro [#151](https://github.com/TedDriggs/darling/issues/151)

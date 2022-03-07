@@ -285,6 +285,16 @@ impl FromMeta for syn::ExprArray {
     }
 }
 
+impl FromMeta for syn::Expr {
+    fn from_value(value: &Lit) -> Result<Self> {
+        if let Lit::Str(v) = value {
+            v.parse().map_err(|_| Error::unknown_lit_str_value(v))
+        } else {
+            Err(Error::unexpected_lit_type(value))
+        }
+    }
+}
+
 macro_rules! from_numeric_array {
     ($ty:ident) => {
         /// Parsing an unsigned integer array, i.e. `example = "[1, 2, 3, 4]"`.
@@ -801,6 +811,13 @@ mod tests {
     fn test_expr_array() {
         fm::<syn::ExprArray>(quote!(ignore = "[0x1, 0x2]"));
         fm::<syn::ExprArray>(quote!(ignore = "[\"Hello World\", \"Test Array\"]"));
+    }
+
+    #[test]
+    fn test_expr() {
+        fm::<syn::Expr>(quote!(ignore = "x + y"));
+        fm::<syn::Expr>(quote!(ignore = "an_object.method_call()"));
+        fm::<syn::Expr>(quote!(ignore = "{ a_statement(); in_a_block }"));
     }
 
     #[test]
