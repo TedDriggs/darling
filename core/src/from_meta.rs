@@ -815,7 +815,7 @@ mod tests {
         fm::<syn::ExprArray>(quote!(ignore = "[0x1, 0x2]"));
         fm::<syn::ExprArray>(quote!(ignore = "[\"Hello World\", \"Test Array\"]"));
     }
-    
+
     #[test]
     fn test_expr() {
         fm::<syn::Expr>(quote!(ignore = "x + y"));
