@@ -815,6 +815,13 @@ mod tests {
         fm::<syn::ExprArray>(quote!(ignore = "[0x1, 0x2]"));
         fm::<syn::ExprArray>(quote!(ignore = "[\"Hello World\", \"Test Array\"]"));
     }
+    
+    #[test]
+    fn test_expr() {
+        fm::<syn::Expr>(quote!(ignore = "x + y"));
+        fm::<syn::Expr>(quote!(ignore = "an_object.method_call()"));
+        fm::<syn::Expr>(quote!(ignore = "{ a_statement(); in_a_block }"));
+    }
 
     #[test]
     fn test_number_array() {
