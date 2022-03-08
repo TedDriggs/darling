@@ -2,10 +2,31 @@ use std::borrow::Cow;
 
 use proc_macro2::TokenStream;
 use quote::{ToTokens, TokenStreamExt};
-use syn::{Ident, Path, Type};
+use syn::{Ident, Path, PathArguments, Type};
 
 use crate::codegen::{DefaultExpression, PostfixTransform};
 use crate::usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
+
+/// Guess if a type is `core::option::Option<T>`.
+///
+/// There are three requirements:
+///
+/// 1. The type must be a path
+/// 2. The last segment must be `Option`
+/// 3. There must be exactly one type argument.
+fn is_option(ty: &Type) -> bool {
+    if let Type::Path(path) = ty {
+        if let Some(last_seg) = path.path.segments.last() {
+            if last_seg.ident == "Option" {
+                if let PathArguments::AngleBracketed(args) = &last_seg.arguments {
+                    return args.args.len() == 1;
+                }
+            }
+        }
+    }
+
+    false
+}
 
 /// Properties needed to generate code for a field in all the contexts
 /// where one may appear.
@@ -47,6 +68,26 @@ impl<'a> Field<'a> {
 
     pub fn as_presence_check(&'a self) -> CheckMissing<'a> {
         CheckMissing(self)
+    }
+
+    /// Get the behavior of this field if no value is specified, taking into account the field type.
+    ///
+    /// The struct field `default_expression` is what was explicitly passed in to the `darling` macro.
+    /// However, if nothing was passed in _and_ the field's type implies it is meant to be optional,
+    /// `darling` will automatically initialize the field to `None` rather than raise an error.
+    ///
+    /// This transform is done during codegen because passing `Some(DefaultExpression::Trait)` to
+    /// the field would be indistinguishable from a field-level `#[darling(default)]`. An explicit
+    /// annotation should override container-assigned default values for the field, but one inferred
+    /// from type annotations should not.
+    fn option_aware_default(&self) -> Option<Cow<'a, DefaultExpression>> {
+        if let Some(explicit_default) = self.default_expression.as_ref() {
+            Some(Cow::Borrowed(explicit_default))
+        } else if is_option(self.ty) {
+            Some(Cow::Owned(DefaultExpression::Trait))
+        } else {
+            None
+        }
     }
 }
 
@@ -173,7 +214,7 @@ impl<'a> ToTokens for Initializer<'a> {
             } else {
                 quote!(#ident: #ident)
             }
-        } else if let Some(ref expr) = field.default_expression {
+        } else if let Some(ref expr) = self.0.option_aware_default() {
             quote!(#ident: match #ident.1 {
                 ::darling::export::Some(__val) => __val,
                 ::darling::export::None => #expr,
@@ -189,9 +230,11 @@ pub struct CheckMissing<'a>(&'a Field<'a>);
 
 impl<'a> ToTokens for CheckMissing<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        if !self.0.multiple && self.0.default_expression.is_none() {
-            let ident = self.0.ident;
-            let name_in_attr = &self.0.name_in_attr;
+        let field = self.0;
+
+        if !field.multiple && field.option_aware_default().is_none() {
+            let ident = field.ident;
+            let name_in_attr = &field.name_in_attr;
 
             tokens.append_all(quote! {
                 if !#ident.0 {
@@ -199,5 +242,27 @@ impl<'a> ToTokens for CheckMissing<'a> {
                 }
             })
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_option;
+    use syn::parse_quote;
+
+    #[test]
+    fn is_option_simple() {
+        assert!(is_option(&parse_quote!(Option<Foo>)));
+    }
+
+    #[test]
+    fn is_option_path() {
+        assert!(is_option(&parse_quote!(::std::option::Option<(i32, i64)>)));
+        assert!(is_option(&parse_quote!(::core::option::Option<[i32; 4]>)));
+    }
+
+    #[test]
+    fn is_option_result() {
+        assert!(!is_option(&parse_quote!(Result<Example, Error>)));
     }
 }
