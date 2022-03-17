@@ -47,9 +47,9 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 ///    This preserves all span information, suggestions, etc. Wrapping a `darling::Error` in
 ///    a custom error enum works as-expected and does not force any loss of fidelity.
 /// 2. Do not use early return (e.g. the `?` operator) for custom validations. Instead,
-///    create a local `Vec` to collect errors as they are encountered and then use
-///    `darling::Error::multiple` to create an error containing all those issues if the list
-///    is non-empty after validation. This can create very complex custom validation functions;
+///    create an [`error::Collector`](Collector) to collect errors as they are encountered.  Then use
+///    [`Collector::conclude`] to return your validated result; it will give `Ok` iff
+///    no errors were encountered.  This can create very complex custom validation functions;
 ///    in those cases, split independent "validation chains" out into their own functions to
 ///    keep the main validator manageable.
 /// 3. Use `darling::Error::custom` to create additional errors as-needed, then call `with_span`
@@ -193,6 +193,8 @@ impl Error {
     }
 
     /// Bundle a set of multiple errors into a single `Error` instance.
+    ///
+    /// Usually it will be more convenient to use an [`error::Collector`](Collector).
     ///
     /// # Panics
     /// This function will panic if `errors.is_empty() == true`.
@@ -491,7 +493,9 @@ impl Iterator for IntoIter {
     }
 }
 
-/// Collector for errors, for helping call [`Error::multiple`]
+/// Collector for errors, for helping call [`Error::multiple`].
+///
+/// See the docs for [`darling::error::Error`](Error) for more discussion of error handling with darling.
 ///
 /// ```
 /// # extern crate darling_core as darling;
