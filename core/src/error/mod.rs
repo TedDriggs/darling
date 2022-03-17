@@ -1,4 +1,4 @@
-//! The `darling::Error` type and its internals.
+//! The `darling::Error` type, the multiple error `Collector`, and their internals.
 //!
 //! Error handling is one of the core values of `darling`; creating great errors is hard and
 //! never the reason that a proc-macro author started writing their crate. As a result, the
@@ -490,6 +490,102 @@ impl Iterator for IntoIter {
         self.inner.next()
     }
 }
+
+/// Collector for errors, for helping call [`Error::multiple`]
+///
+/// ```
+/// # extern crate darling_core as darling;
+/// # struct Thing;
+/// # struct Output;
+/// # impl Thing { fn validate(self) -> darling::Result<Output> { Ok(Output) } }
+/// fn validate_things(inputs: Vec<Thing>) -> darling::Result<Vec<Output>> {
+///     let mut errors = darling::error::Collector::new();
+///     let mut outputs = vec![];
+///
+///     for thing in inputs {
+///         let _: Option<()> = errors.run(||{
+///             let validateed = thing.validate()?;
+///             outputs.push(validateed);
+///             Ok(())
+///         });
+///     }
+///
+///     errors.conclude(outputs)
+/// }
+/// ```
+#[derive(Default, Debug)]
+pub struct Collector {
+    errors: Vec<Error>,
+}
+
+impl Collector {
+    /// Creates a new empty error collector
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    /// Runs a closure, returning the successful value as `Some`, or collecting the error
+    ///
+    /// The closure is one which return `Result`, so inside it one can use `?`.
+    pub fn run<T, F: FnOnce() -> Result<T>>(&mut self, f: F) -> Option<T> {
+        self.ok_of(f())
+    }
+
+    /// Returns a successful value as `Some`, or collects the error and returns `None`
+    ///
+    /// If you need an actual value `T` for further processing even in error cases,
+    /// rather than a `None`,
+    /// use
+    /// [`Option::unwrap_or_default`],
+    /// [`unwrap_or_else`](Option::unwrap_or_else) or
+    /// [`unwrap_or`](Option::unwrap_or)
+    /// on the return value from `ok_of` or `run`.
+    pub fn ok_of<T>(&mut self, result: Result<T>) -> Option<T> {
+        match result {
+            Ok(y) => {
+                Some(y)
+            }
+            Err(e) => {
+                self.errors.push(e);
+                None
+            }
+        }
+    }
+
+    /// Bundles the collected errors if there were any, or returns the success value
+    ///
+    /// Call this at the end of your input processing.
+    ///
+    /// If there were no errors recorded, returns `Ok(success)`.
+    /// Otherwise calls [`Error::multiple`] and returns the result as an `Err`.
+    pub fn conclude<T>(self, success: T) -> Result<T> {
+        if self.errors.is_empty() {
+            Ok(success)
+        } else {
+            Err(Error::multiple(self.errors))
+        }
+    }
+
+    /// Bundles the collected errors if there were any, or returns the success value
+    pub fn into_inner(self) -> Vec<Error> {
+        self.errors
+    }
+
+    /// Add one error
+    pub fn push(&mut self, item: Error) {
+        self.errors.push(item)
+    }
+}
+
+impl Extend<Error> for Collector {
+    fn extend<I>(&mut self, iter: I)
+    where
+        I: IntoIterator<Item = Error>
+    {
+        self.errors.extend(iter)
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
