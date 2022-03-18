@@ -207,6 +207,13 @@ impl Error {
             _ => Error::new(ErrorKind::Multiple(errors)),
         }
     }
+
+    /// Creates an error collector, for aggregating multiple errors
+    ///
+    /// See [`Collector`] for details.
+    pub fn collector() -> Collector {
+        Default::default()
+    }
 }
 
 impl Error {
@@ -503,7 +510,7 @@ impl Iterator for IntoIter {
 /// # struct Output;
 /// # impl Thing { fn validate(self) -> darling::Result<Output> { Ok(Output) } }
 /// fn validate_things(inputs: Vec<Thing>) -> darling::Result<Vec<Output>> {
-///     let mut errors = darling::error::Collector::new();
+///     let mut errors = darling::error::Error::collector();
 ///     let mut outputs = vec![];
 ///
 ///     for thing in inputs {
@@ -523,11 +530,6 @@ pub struct Collector {
 }
 
 impl Collector {
-    /// Creates a new empty error collector
-    pub fn new() -> Self {
-        Default::default()
-    }
-
     /// Runs a closure, returning the successful value as `Some`, or collecting the error
     ///
     /// The closure is one which return `Result`, so inside it one can use `?`.
