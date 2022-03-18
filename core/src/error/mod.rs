@@ -581,6 +581,11 @@ impl Collector {
     pub fn push(&mut self, item: Error) {
         self.errors.push(item)
     }
+
+    /// Check if we have collected errors, and if so produce an aggregate error right away
+    pub fn checkpoint(&mut self) -> Result<()> {
+        std::mem::take(self).conclude(())
+    }
 }
 
 impl Extend<Error> for Collector {
