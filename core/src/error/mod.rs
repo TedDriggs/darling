@@ -48,7 +48,7 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 ///    a custom error enum works as-expected and does not force any loss of fidelity.
 /// 2. Do not use early return (e.g. the `?` operator) for custom validations. Instead,
 ///    create an [`error::Accumulator`](Accumulator) to collect errors as they are encountered.  Then use
-///    [`Accumulator::conclude`] to return your validated result; it will give `Ok` iff
+///    [`Accumulator::finish`] to return your validated result; it will give `Ok` iff
 ///    no errors were encountered.  This can create very complex custom validation functions;
 ///    in those cases, split independent "validation chains" out into their own functions to
 ///    keep the main validator manageable.
@@ -521,7 +521,7 @@ impl Iterator for IntoIter {
 ///         });
 ///     }
 ///
-///     errors.conclude(outputs)
+///     errors.finish(outputs)
 /// }
 /// ```
 #[derive(Default, Debug)]
@@ -564,7 +564,7 @@ impl Accumulator {
     ///
     /// If there were no errors recorded, returns `Ok(success)`.
     /// Otherwise calls [`Error::multiple`] and returns the result as an `Err`.
-    pub fn conclude<T>(self, success: T) -> Result<T> {
+    pub fn finish<T>(self, success: T) -> Result<T> {
         if self.errors.is_empty() {
             Ok(success)
         } else {
@@ -584,7 +584,7 @@ impl Accumulator {
 
     /// Check if we have collected errors, and if so produce an aggregate error right away
     pub fn checkpoint(&mut self) -> Result<()> {
-        std::mem::take(self).conclude(())
+        std::mem::take(self).finish(())
     }
 }
 
