@@ -525,6 +525,7 @@ impl Iterator for IntoIter {
 /// }
 /// ```
 #[derive(Default, Debug)]
+#[must_use = "you must properly finish() an Accumulator"]
 pub struct Accumulator {
     errors: Vec<Error>,
 }
@@ -575,6 +576,7 @@ impl Accumulator {
     }
 
     /// Returns the collected errors as a plain `Vec`
+    #[must_use = "the accumulated errors should not simply be dropped"]
     pub fn into_inner(self) -> Vec<Error> {
         self.errors
     }
