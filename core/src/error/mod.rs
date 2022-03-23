@@ -1,4 +1,4 @@
-//! The `darling::Error` type, the multiple error `Collector`, and their internals.
+//! The `darling::Error` type, the multiple error `Accumulator`, and their internals.
 //!
 //! Error handling is one of the core values of `darling`; creating great errors is hard and
 //! never the reason that a proc-macro author started writing their crate. As a result, the
@@ -47,8 +47,8 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 ///    This preserves all span information, suggestions, etc. Wrapping a `darling::Error` in
 ///    a custom error enum works as-expected and does not force any loss of fidelity.
 /// 2. Do not use early return (e.g. the `?` operator) for custom validations. Instead,
-///    create an [`error::Collector`](Collector) to collect errors as they are encountered.  Then use
-///    [`Collector::conclude`] to return your validated result; it will give `Ok` iff
+///    create an [`error::Accumulator`](Accumulator) to collect errors as they are encountered.  Then use
+///    [`Accumulator::conclude`] to return your validated result; it will give `Ok` iff
 ///    no errors were encountered.  This can create very complex custom validation functions;
 ///    in those cases, split independent "validation chains" out into their own functions to
 ///    keep the main validator manageable.
@@ -194,7 +194,7 @@ impl Error {
 
     /// Bundle a set of multiple errors into a single `Error` instance.
     ///
-    /// Usually it will be more convenient to use an [`error::Collector`](Collector).
+    /// Usually it will be more convenient to use an [`error::Accumulator`](Accumulator).
     ///
     /// # Panics
     /// This function will panic if `errors.is_empty() == true`.
@@ -210,8 +210,8 @@ impl Error {
 
     /// Creates an error collector, for aggregating multiple errors
     ///
-    /// See [`Collector`] for details.
-    pub fn collector() -> Collector {
+    /// See [`Accumulator`] for details.
+    pub fn accumulator() -> Accumulator {
         Default::default()
     }
 }
@@ -500,7 +500,7 @@ impl Iterator for IntoIter {
     }
 }
 
-/// Collector for errors, for helping call [`Error::multiple`].
+/// Accumulator for errors, for helping call [`Error::multiple`].
 ///
 /// See the docs for [`darling::error::Error`](Error) for more discussion of error handling with darling.
 ///
@@ -510,7 +510,7 @@ impl Iterator for IntoIter {
 /// # struct Output;
 /// # impl Thing { fn validate(self) -> darling::Result<Output> { Ok(Output) } }
 /// fn validate_things(inputs: Vec<Thing>) -> darling::Result<Vec<Output>> {
-///     let mut errors = darling::error::Error::collector();
+///     let mut errors = darling::error::Error::accumulator();
 ///     let mut outputs = vec![];
 ///
 ///     for thing in inputs {
@@ -525,11 +525,11 @@ impl Iterator for IntoIter {
 /// }
 /// ```
 #[derive(Default, Debug)]
-pub struct Collector {
+pub struct Accumulator {
     errors: Vec<Error>,
 }
 
-impl Collector {
+impl Accumulator {
     /// Runs a closure, returning the successful value as `Some`, or collecting the error
     ///
     /// The closure is one which return `Result`, so inside it one can use `?`.
@@ -588,7 +588,7 @@ impl Collector {
     }
 }
 
-impl Extend<Error> for Collector {
+impl Extend<Error> for Accumulator {
     fn extend<I>(&mut self, iter: I)
     where
         I: IntoIterator<Item = Error>
