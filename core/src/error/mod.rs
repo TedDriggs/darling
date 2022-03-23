@@ -534,10 +534,12 @@ impl Accumulator {
     ///
     /// The closure is one which return `Result`, so inside it one can use `?`.
     pub fn run<T, F: FnOnce() -> Result<T>>(&mut self, f: F) -> Option<T> {
-        self.ok_of(f())
+        self.handle(f())
     }
 
-    /// Returns a successful value as `Some`, or collects the error and returns `None`
+    /// Handles a possible error
+    ///
+    /// Returns a successful value as `Some`, or collects the error and returns `None`.
     ///
     /// If you need an actual value `T` for further processing even in error cases,
     /// rather than a `None`,
@@ -545,8 +547,8 @@ impl Accumulator {
     /// [`Option::unwrap_or_default`],
     /// [`unwrap_or_else`](Option::unwrap_or_else) or
     /// [`unwrap_or`](Option::unwrap_or)
-    /// on the return value from `ok_of` or `run`.
-    pub fn ok_of<T>(&mut self, result: Result<T>) -> Option<T> {
+    /// on the return value from `handle` or `run`.
+    pub fn handle<T>(&mut self, result: Result<T>) -> Option<T> {
         match result {
             Ok(y) => {
                 Some(y)
