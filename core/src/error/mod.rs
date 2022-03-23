@@ -647,7 +647,7 @@ impl Accumulator {
 
 impl Default for Accumulator {
     fn default() -> Self {
-        Self(Some(vec![]))
+        Accumulator(Some(vec![]))
     }
 }
 
