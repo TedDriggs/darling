@@ -620,8 +620,58 @@ impl Accumulator {
     }
 
     /// Check if we have collected errors, and if so produce an aggregate error right away
-    pub fn checkpoint(&mut self) -> Result<()> {
-        std::mem::take(self).finish(())
+    ///
+    /// If there were errors, consumes the `Accumulator` and returns an `Error`.
+    /// If there were no errors, returns the `Accumulator` for further use.
+    ///
+    /// # Panics
+    ///
+    /// If there were no errors, and `checkpoint` therefore returns `Ok`,
+    /// the returned `Accumulator` must be later [`finish`](Accumulator::finish)ed.
+    /// If a returned `Ok(Accumulator)` is dropped, it will panic,
+    /// even if it hasn't accumulated any errors since the checkpoint.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate darling_core as darling;
+    /// # struct Thing;
+    /// # struct Output;
+    /// # impl Thing { fn validate(&self) -> darling::Result<Output> { Ok(Output) } }
+    /// fn validate(lorem_inputs: &[Thing], ipsum_inputs: &[Thing])
+    ///             -> darling::Result<(Vec<Output>, Vec<Output>)> {
+    ///     let mut errors = darling::Error::accumulator();
+    ///
+    ///     let lorems = lorem_inputs.iter().filter_map(|l| {
+    ///         errors.handle(l.validate())
+    ///     }).collect();
+    ///
+    ///     errors = errors.checkpoint()?;
+    ///
+    ///     let ipsums = ipsum_inputs.iter().filter_map(|l| {
+    ///         errors.handle(l.validate())
+    ///     }).collect();
+    ///
+    ///     errors.finish((lorems, ipsums))
+    /// }
+    /// # validate(&[], &[]).unwrap();
+    /// ```
+    //
+    // `checkpoint` consumes the Accumulator, and maybe returns a fresh one, so that it is
+    // not possible for the user to accidentally end up with Accumulator which has been
+    // checkpointed and defused.  Ie, this elminates a possible kind of bug whoich would
+    // otherwise have to cause panics on some paths.
+    //
+    // Accumulator is #[must_use] which means that simply writing
+    //     errors.checkpoint()?; // discards any Ok(Accumulator)
+    // produces a compiler warning about an unused Accumulator.
+    // OTOH writing `#[must_use]` here is pointless, since the return value is a
+    // Result which is already #[must_use].
+    pub fn checkpoint(self) -> Result<Accumulator> {
+        // The doc comment says on success we "return the Accumulator for future use".
+        // Actually, we have consumed it by feeding it to finish so we make a fresh one.
+        // This is OK since by definition of the success path, it was empty on entry.
+        self.finish(()).map(|()| Error::accumulator())
     }
 }
 
@@ -734,5 +784,20 @@ mod tests {
     #[should_panic(expected = "Accumulator dropped (with 0 errors)")]
     fn accum_drop_panic() {
         let _errs = Error::accumulator();
+    }
+
+    #[test]
+    fn accum_checkpoint_error() {
+        let mut errs = Error::accumulator();
+        errs.push(Error::custom("foo!"));
+        let _: Error = errs.checkpoint().unwrap_err();
+    }
+
+    #[test]
+    #[should_panic(expected = "Accumulator dropped (with 0 errors)")]
+    fn accum_checkpoint_drop_panic() {
+        let mut errs = Error::accumulator();
+        errs = errs.checkpoint().unwrap();
+        let _ = errs;
     }
 }
