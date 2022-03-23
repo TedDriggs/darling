@@ -572,7 +572,7 @@ impl Accumulator {
         }
     }
 
-    /// Bundles the collected errors if there were any, or returns the success value
+    /// Returns the collected errors as a plain `Vec`
     pub fn into_inner(self) -> Vec<Error> {
         self.errors
     }
