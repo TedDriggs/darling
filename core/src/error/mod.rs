@@ -504,6 +504,19 @@ impl Iterator for IntoIter {
 ///
 /// See the docs for [`darling::error::Error`](Error) for more discussion of error handling with darling.
 ///
+/// # Panics
+///
+/// `Accumulator` has a *drop bomb*: it panics if it is dropped.
+/// You must call [`finish()`](Accumulator::finish)
+/// (or [`into_inner`](Accumulator::into_inner)).
+///
+/// You must properly `finish` the `Accumulator`,
+/// *even if it has never been used* and does not contain any errors.
+/// If you want to discard an `Accumulator` that you know to be empty,
+/// write something like `accumulator.finish(()).unwrap()`.
+///
+/// # Example
+///
 /// ```
 /// # extern crate darling_core as darling;
 /// # struct Thing;
@@ -526,8 +539,17 @@ impl Iterator for IntoIter {
 /// ```
 #[derive(Default, Debug)]
 #[must_use = "you must properly finish() an Accumulator"]
-pub struct Accumulator {
-    errors: Vec<Error>,
+pub struct Accumulator(AccumulatorInner);
+
+/// Because Drop::drop takes `&mut self`, rather than `self`, etc.
+#[derive(Debug)]
+enum AccumulatorInner {
+    Live(Vec<Error>), // Drop bomb is live
+    Defused, // Exists only after passing into a public method taking owned `self`.
+}
+
+impl Default for AccumulatorInner {
+    fn default() -> Self { AccumulatorInner::Live(vec![]) }
 }
 
 impl Accumulator {
@@ -555,7 +577,7 @@ impl Accumulator {
                 Some(y)
             }
             Err(e) => {
-                self.errors.push(e);
+                self.push(e);
                 None
             }
         }
@@ -568,22 +590,33 @@ impl Accumulator {
     /// If there were no errors recorded, returns `Ok(success)`.
     /// Otherwise calls [`Error::multiple`] and returns the result as an `Err`.
     pub fn finish<T>(self, success: T) -> Result<T> {
-        if self.errors.is_empty() {
+        let errors = self.into_inner();
+        if errors.is_empty() {
             Ok(success)
         } else {
-            Err(Error::multiple(self.errors))
+            Err(Error::multiple(errors))
+        }
+    }
+
+    fn errors(&mut self) -> &mut Vec<Error> {
+        match &mut self.0 {
+            AccumulatorInner::Live(errors) => errors,
+            AccumulatorInner::Defused => panic!("darling internal error"),
         }
     }
 
     /// Returns the collected errors as a plain `Vec`
     #[must_use = "the accumulated errors should not simply be dropped"]
-    pub fn into_inner(self) -> Vec<Error> {
-        self.errors
+    pub fn into_inner(mut self) -> Vec<Error> {
+        match std::mem::replace(&mut self.0, AccumulatorInner::Defused) {
+            AccumulatorInner::Live(errors) => errors,
+            AccumulatorInner::Defused => panic!("darling internal error"),
+        }
     }
 
     /// Add one error
-    pub fn push(&mut self, item: Error) {
-        self.errors.push(item)
+    pub fn push(&mut self, error: Error) {
+        self.errors().push(error)
     }
 
     /// Check if we have collected errors, and if so produce an aggregate error right away
@@ -597,10 +630,20 @@ impl Extend<Error> for Accumulator {
     where
         I: IntoIterator<Item = Error>
     {
-        self.errors.extend(iter)
+        self.errors().extend(iter)
     }
 }
 
+impl Drop for Accumulator {
+    fn drop(&mut self) {
+        match &self.0 {
+            AccumulatorInner::Defused => {}
+            AccumulatorInner::Live(errors) => {
+                panic!("bug in macro using darling: darling::error::Accumulator dropped (with {} errors), rather than passed to finish()", errors.len())
+            }
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -664,5 +707,32 @@ mod tests {
         ]);
 
         assert_eq!(4, err.len());
+    }
+
+    #[test]
+    fn accum_ok() {
+        let errs = Error::accumulator();
+        let () = errs.finish(()).unwrap();
+    }
+
+    #[test]
+    fn accum_errr() {
+        let mut errs = Error::accumulator();
+        errs.push(Error::custom("foo!"));
+        let _: Error = errs.finish(()).unwrap_err();
+    }
+
+    #[test]
+    fn accum_into_inner() {
+        let mut errs = Error::accumulator();
+        errs.push(Error::custom("foo!"));
+        let errs: Vec<_> = errs.into_inner();
+        assert_eq!(errs.len(), 1);
+    }
+
+    #[test]
+    #[should_panic(expected = "Accumulator dropped (with 0 errors)")]
+    fn accum_drop_panic() {
+        let _errs = Error::accumulator();
     }
 }
