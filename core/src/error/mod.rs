@@ -545,11 +545,13 @@ pub struct Accumulator(AccumulatorInner);
 #[derive(Debug)]
 enum AccumulatorInner {
     Live(Vec<Error>), // Drop bomb is live
-    Defused, // Exists only after passing into a public method taking owned `self`.
+    Defused,          // Exists only after passing into a public method taking owned `self`.
 }
 
 impl Default for AccumulatorInner {
-    fn default() -> Self { AccumulatorInner::Live(vec![]) }
+    fn default() -> Self {
+        AccumulatorInner::Live(vec![])
+    }
 }
 
 impl Accumulator {
@@ -573,9 +575,7 @@ impl Accumulator {
     /// on the return value from `handle` or `run`.
     pub fn handle<T>(&mut self, result: Result<T>) -> Option<T> {
         match result {
-            Ok(y) => {
-                Some(y)
-            }
+            Ok(y) => Some(y),
             Err(e) => {
                 self.push(e);
                 None
@@ -628,7 +628,7 @@ impl Accumulator {
 impl Extend<Error> for Accumulator {
     fn extend<I>(&mut self, iter: I)
     where
-        I: IntoIterator<Item = Error>
+        I: IntoIterator<Item = Error>,
     {
         self.errors().extend(iter)
     }
