@@ -48,7 +48,7 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 ///    a custom error enum works as-expected and does not force any loss of fidelity.
 /// 2. Do not use early return (e.g. the `?` operator) for custom validations. Instead,
 ///    create an [`error::Accumulator`](Accumulator) to collect errors as they are encountered.  Then use
-///    [`Accumulator::finish`] to return your validated result; it will give `Ok` iff
+///    [`Accumulator::finish`] to return your validated result; it will give `Ok` if and only if
 ///    no errors were encountered.  This can create very complex custom validation functions;
 ///    in those cases, split independent "validation chains" out into their own functions to
 ///    keep the main validator manageable.
@@ -502,18 +502,13 @@ impl Iterator for IntoIter {
 
 /// Accumulator for errors, for helping call [`Error::multiple`].
 ///
-/// See the docs for [`darling::error::Error`](Error) for more discussion of error handling with darling.
+/// See the docs for [`darling::Error`](Error) for more discussion of error handling with darling.
 ///
 /// # Panics
 ///
-/// `Accumulator` has a *drop bomb*: it panics if it is dropped.
-/// You must call [`finish()`](Accumulator::finish)
-/// (or [`into_inner`](Accumulator::into_inner)).
-///
-/// You must properly `finish` the `Accumulator`,
-/// *even if it has never been used* and does not contain any errors.
-/// If you want to discard an `Accumulator` that you know to be empty,
-/// write something like `accumulator.finish(()).unwrap()`.
+/// `Accumulator` panics on drop unless [`finish`](Self::finish), [`finish_with`](Self::finish_with),
+/// or [`into_inner`](Self::into_inner) has been called, **even if it contains no errors**.
+/// If you want to discard an `Accumulator` that you know to be empty, use `accumulator.finish().unwrap()`.
 ///
 /// # Example
 ///
@@ -523,56 +518,32 @@ impl Iterator for IntoIter {
 /// # struct Output;
 /// # impl Thing { fn validate(self) -> darling::Result<Output> { Ok(Output) } }
 /// fn validate_things(inputs: Vec<Thing>) -> darling::Result<Vec<Output>> {
-///     let mut errors = darling::error::Error::accumulator();
-///     let mut outputs = vec![];
+///     let mut errors = darling::Error::accumulator();
 ///
-///     for thing in inputs {
-///         let _: Option<()> = errors.run(||{
-///             let validated = thing.validate()?;
-///             outputs.push(validated);
-///             Ok(())
-///         });
-///     }
+///     let outputs = inputs
+///         .into_iter()
+///         .filter_map(|thing| errors.run(|| thing.validate()))
+///         .collect::<Vec<_>>();
 ///
-///     errors.finish(outputs)
+///     errors.finish()?;
+///     Ok(outputs)
 /// }
 /// ```
-#[derive(Default, Debug)]
-#[must_use = "you must properly finish() an Accumulator"]
-pub struct Accumulator(AccumulatorInner);
-
-/// Because Drop::drop takes `&mut self`, rather than `self`, etc.
 #[derive(Debug)]
-enum AccumulatorInner {
-    Live(Vec<Error>), // Drop bomb is live
-    Defused,          // Exists only after passing into a public method taking owned `self`.
-}
-
-impl Default for AccumulatorInner {
-    fn default() -> Self {
-        AccumulatorInner::Live(vec![])
-    }
-}
+#[must_use = "Accumulator will panic on drop if not defused."]
+pub struct Accumulator(Option<Vec<Error>>);
 
 impl Accumulator {
     /// Runs a closure, returning the successful value as `Some`, or collecting the error
     ///
-    /// The closure is one which return `Result`, so inside it one can use `?`.
+    /// The closure's return type is `darling::Result`, so inside it one can use `?`.
     pub fn run<T, F: FnOnce() -> Result<T>>(&mut self, f: F) -> Option<T> {
         self.handle(f())
     }
 
-    /// Handles a possible error
+    /// Handles a possible error.
     ///
     /// Returns a successful value as `Some`, or collects the error and returns `None`.
-    ///
-    /// If you need an actual value `T` for further processing even in error cases,
-    /// rather than a `None`,
-    /// use
-    /// [`Option::unwrap_or_default`],
-    /// [`unwrap_or_else`](Option::unwrap_or_else) or
-    /// [`unwrap_or`](Option::unwrap_or)
-    /// on the return value from `handle` or `run`.
     pub fn handle<T>(&mut self, result: Result<T>) -> Option<T> {
         match result {
             Ok(y) => Some(y),
@@ -583,13 +554,19 @@ impl Accumulator {
         }
     }
 
+    /// Stop accumulating errors, producing `Ok` if there are no errors or producing
+    /// an error with all those encountered by the accumulator.
+    pub fn finish(self) -> Result<()> {
+        self.finish_with(())
+    }
+
     /// Bundles the collected errors if there were any, or returns the success value
     ///
     /// Call this at the end of your input processing.
     ///
     /// If there were no errors recorded, returns `Ok(success)`.
     /// Otherwise calls [`Error::multiple`] and returns the result as an `Err`.
-    pub fn finish<T>(self, success: T) -> Result<T> {
+    pub fn finish_with<T>(self, success: T) -> Result<T> {
         let errors = self.into_inner();
         if errors.is_empty() {
             Ok(success)
@@ -600,36 +577,39 @@ impl Accumulator {
 
     fn errors(&mut self) -> &mut Vec<Error> {
         match &mut self.0 {
-            AccumulatorInner::Live(errors) => errors,
-            AccumulatorInner::Defused => panic!("darling internal error"),
+            Some(errors) => errors,
+            None => panic!("darling internal error"),
         }
     }
 
-    /// Returns the collected errors as a plain `Vec`
-    #[must_use = "the accumulated errors should not simply be dropped"]
+    /// Returns the accumulated errors as a `Vec`.
+    ///
+    /// This function defuses the drop bomb.
+    #[must_use = "Accumulated errors should be handled or propagated to the caller"]
     pub fn into_inner(mut self) -> Vec<Error> {
-        match std::mem::replace(&mut self.0, AccumulatorInner::Defused) {
-            AccumulatorInner::Live(errors) => errors,
-            AccumulatorInner::Defused => panic!("darling internal error"),
+        match std::mem::replace(&mut self.0, None) {
+            Some(errors) => errors,
+            None => panic!("darling internal error"),
         }
     }
 
-    /// Add one error
+    /// Add one error to the collection.
     pub fn push(&mut self, error: Error) {
         self.errors().push(error)
     }
 
-    /// Check if we have collected errors, and if so produce an aggregate error right away
+    /// Finish the current accumulation, and if there are no errors create a new `Self` so processing may continue.
     ///
-    /// If there were errors, consumes the `Accumulator` and returns an `Error`.
-    /// If there were no errors, returns the `Accumulator` for further use.
+    /// This is shorthand for:
     ///
-    /// # Panics
+    /// ```rust,ignore
+    /// errors.finish()?;
+    /// errors = Error::accumulator();
+    /// ```
     ///
-    /// If there were no errors, and `checkpoint` therefore returns `Ok`,
-    /// the returned `Accumulator` must be later [`finish`](Accumulator::finish)ed.
-    /// If a returned `Ok(Accumulator)` is dropped, it will panic,
-    /// even if it hasn't accumulated any errors since the checkpoint.
+    /// # Drop Behavior
+    /// This function returns a new [`Accumulator`] in the success case.
+    /// This new accumulator is "armed" and will detonate if dropped without being finished.
     ///
     /// # Example
     ///
@@ -652,26 +632,22 @@ impl Accumulator {
     ///         errors.handle(l.validate())
     ///     }).collect();
     ///
-    ///     errors.finish((lorems, ipsums))
+    ///     errors.finish_with((lorems, ipsums))
     /// }
     /// # validate(&[], &[]).unwrap();
     /// ```
-    //
-    // `checkpoint` consumes the Accumulator, and maybe returns a fresh one, so that it is
-    // not possible for the user to accidentally end up with Accumulator which has been
-    // checkpointed and defused.  Ie, this elminates a possible kind of bug whoich would
-    // otherwise have to cause panics on some paths.
-    //
-    // Accumulator is #[must_use] which means that simply writing
-    //     errors.checkpoint()?; // discards any Ok(Accumulator)
-    // produces a compiler warning about an unused Accumulator.
-    // OTOH writing `#[must_use]` here is pointless, since the return value is a
-    // Result which is already #[must_use].
     pub fn checkpoint(self) -> Result<Accumulator> {
         // The doc comment says on success we "return the Accumulator for future use".
         // Actually, we have consumed it by feeding it to finish so we make a fresh one.
         // This is OK since by definition of the success path, it was empty on entry.
-        self.finish(()).map(|()| Error::accumulator())
+        self.finish()?;
+        Ok(Self::default())
+    }
+}
+
+impl Default for Accumulator {
+    fn default() -> Self {
+        Self(Some(vec![]))
     }
 }
 
@@ -686,10 +662,10 @@ impl Extend<Error> for Accumulator {
 
 impl Drop for Accumulator {
     fn drop(&mut self) {
-        match &self.0 {
-            AccumulatorInner::Defused => {}
-            AccumulatorInner::Live(errors) => {
-                panic!("bug in macro using darling: darling::error::Accumulator dropped (with {} errors), rather than passed to finish()", errors.len())
+        if let Some(errors) = &mut self.0 {
+            match errors.len() {
+                0 => panic!("darling::error::Accumulator dropped without being finished"),
+                error_count => panic!("darling::error::Accumulator dropped without being finished. {} errors were lost.", error_count)
             }
         }
     }
@@ -762,14 +738,14 @@ mod tests {
     #[test]
     fn accum_ok() {
         let errs = Error::accumulator();
-        let () = errs.finish(()).unwrap();
+        assert_eq!("test", errs.finish_with("test").unwrap());
     }
 
     #[test]
     fn accum_errr() {
         let mut errs = Error::accumulator();
         errs.push(Error::custom("foo!"));
-        let _: Error = errs.finish(()).unwrap_err();
+        errs.finish().unwrap_err();
     }
 
     #[test]
@@ -781,20 +757,28 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Accumulator dropped (with 0 errors)")]
+    #[should_panic(expected = "Accumulator dropped")]
     fn accum_drop_panic() {
         let _errs = Error::accumulator();
+    }
+
+    #[test]
+    #[should_panic(expected = "2 errors")]
+    fn accum_drop_panic_with_error_count() {
+        let mut errors = Error::accumulator();
+        errors.push(Error::custom("first"));
+        errors.push(Error::custom("second"));
     }
 
     #[test]
     fn accum_checkpoint_error() {
         let mut errs = Error::accumulator();
         errs.push(Error::custom("foo!"));
-        let _: Error = errs.checkpoint().unwrap_err();
+        errs.checkpoint().unwrap_err();
     }
 
     #[test]
-    #[should_panic(expected = "Accumulator dropped (with 0 errors)")]
+    #[should_panic(expected = "Accumulator dropped")]
     fn accum_checkpoint_drop_panic() {
         let mut errs = Error::accumulator();
         errs = errs.checkpoint().unwrap();
