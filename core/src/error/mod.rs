@@ -515,8 +515,8 @@ impl Iterator for IntoIter {
 ///
 ///     for thing in inputs {
 ///         let _: Option<()> = errors.run(||{
-///             let validateed = thing.validate()?;
-///             outputs.push(validateed);
+///             let validated = thing.validate()?;
+///             outputs.push(validated);
 ///             Ok(())
 ///         });
 ///     }
