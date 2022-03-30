@@ -238,25 +238,6 @@ macro_rules! from_meta_float {
 from_meta_float!(f32);
 from_meta_float!(f64);
 
-/// Parsing support for identifiers. This attempts to preserve span information
-/// when available, but also supports parsing strings with the call site as the
-/// emitted span.
-impl FromMeta for syn::Ident {
-    fn from_string(value: &str) -> Result<Self> {
-        syn::parse_str(value).map_err(|_| Error::unknown_value(value))
-    }
-
-    fn from_value(value: &Lit) -> Result<Self> {
-        if let Lit::Str(ref ident) = *value {
-            ident
-                .parse()
-                .map_err(|_| Error::unknown_lit_str_value(ident))
-        } else {
-            Err(Error::unexpected_lit_type(value))
-        }
-    }
-}
-
 /// Parsing support for punctuated. This attempts to preserve span information
 /// when available, but also supports parsing strings with the call site as the
 /// emitted span.
@@ -272,31 +253,30 @@ impl<T: syn::parse::Parse, P: syn::parse::Parse> FromMeta for syn::punctuated::P
     }
 }
 
-/// Parsing support for an expression, i.e. `example = "1 + 2"`.
-impl FromMeta for syn::Expr {
-    fn from_value(value: &Lit) -> Result<Self> {
-        if let Lit::Str(ref ident) = *value {
-            ident
-                .parse::<syn::Expr>()
-                .map_err(|_| Error::unknown_lit_str_value(ident))
-        } else {
-            Err(Error::unexpected_lit_type(value))
+macro_rules! from_syn_parse {
+    ($ty:path) => {
+        impl FromMeta for $ty {
+            fn from_string(value: &str) -> Result<Self> {
+                syn::parse_str(value).map_err(|_| Error::unknown_value(value))
+            }
+
+            fn from_value(value: &::syn::Lit) -> Result<Self> {
+                if let ::syn::Lit::Str(ref v) = *value {
+                    v.parse::<$ty>()
+                        .map_err(|_| Error::unknown_lit_str_value(v))
+                } else {
+                    Err(Error::unexpected_lit_type(value))
+                }
+            }
         }
-    }
+    };
 }
 
-/// Parsing support for an array, i.e. `example = "[1 + 2, 2 - 2, 3 * 4]"`.
-impl FromMeta for syn::ExprArray {
-    fn from_value(value: &Lit) -> Result<Self> {
-        if let Lit::Str(ref ident) = *value {
-            ident
-                .parse::<syn::ExprArray>()
-                .map_err(|_| Error::unknown_lit_str_value(ident))
-        } else {
-            Err(Error::unexpected_lit_type(value))
-        }
-    }
-}
+from_syn_parse!(syn::Ident);
+from_syn_parse!(syn::Expr);
+from_syn_parse!(syn::ExprArray);
+from_syn_parse!(syn::Path);
+from_syn_parse!(syn::WhereClause);
 
 macro_rules! from_numeric_array {
     ($ty:ident) => {
@@ -326,24 +306,6 @@ from_numeric_array!(u16);
 from_numeric_array!(u32);
 from_numeric_array!(u64);
 from_numeric_array!(usize);
-
-/// Parsing support for paths. This attempts to preserve span information when available,
-/// but also supports parsing strings with the call site as the emitted span.
-impl FromMeta for syn::Path {
-    fn from_string(value: &str) -> Result<Self> {
-        syn::parse_str(value).map_err(|_| Error::unknown_value(value))
-    }
-
-    fn from_value(value: &Lit) -> Result<Self> {
-        if let Lit::Str(ref path_str) = *value {
-            path_str
-                .parse()
-                .map_err(|_| Error::unknown_lit_str_value(path_str))
-        } else {
-            Err(Error::unexpected_lit_type(value))
-        }
-    }
-}
 
 impl FromMeta for syn::Lit {
     fn from_value(value: &Lit) -> Result<Self> {
@@ -377,20 +339,6 @@ from_meta_lit!(proc_macro2::Literal, Lit::Verbatim);
 impl FromMeta for syn::Meta {
     fn from_meta(value: &syn::Meta) -> Result<Self> {
         Ok(value.clone())
-    }
-}
-
-impl FromMeta for syn::WhereClause {
-    fn from_string(value: &str) -> Result<Self> {
-        syn::parse_str(value).map_err(|_| Error::unknown_value(value))
-    }
-
-    fn from_value(value: &Lit) -> Result<Self> {
-        if let syn::Lit::Str(s) = value {
-            s.parse().map_err(|_| Error::unknown_lit_str_value(s))
-        } else {
-            Err(Error::unexpected_lit_type(value))
-        }
     }
 }
 
