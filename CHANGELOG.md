@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.13.2 (March 30, 2022)
+
+- Impl `FromMeta` for `syn::ExprPath` [#169](https://github.com/TedDriggs/darling/issues/169)
+
 ## v0.13.1 (December 7, 2021)
 
 - Add `FromAttributes` trait and macro [#151](https://github.com/TedDriggs/darling/issues/151)
