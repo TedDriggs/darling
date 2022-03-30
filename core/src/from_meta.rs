@@ -275,6 +275,7 @@ macro_rules! from_syn_parse {
 from_syn_parse!(syn::Ident);
 from_syn_parse!(syn::Expr);
 from_syn_parse!(syn::ExprArray);
+from_syn_parse!(syn::ExprPath);
 from_syn_parse!(syn::Path);
 from_syn_parse!(syn::WhereClause);
 
@@ -769,6 +770,13 @@ mod tests {
         fm::<syn::Expr>(quote!(ignore = "x + y"));
         fm::<syn::Expr>(quote!(ignore = "an_object.method_call()"));
         fm::<syn::Expr>(quote!(ignore = "{ a_statement(); in_a_block }"));
+    }
+
+    #[test]
+    fn test_expr_path() {
+        fm::<syn::ExprPath>(quote!(ignore = "std::mem::replace"));
+        fm::<syn::ExprPath>(quote!(ignore = "x"));
+        fm::<syn::ExprPath>(quote!(ignore = "example::<Test>"));
     }
 
     #[test]
