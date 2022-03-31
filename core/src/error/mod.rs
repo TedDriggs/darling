@@ -578,7 +578,7 @@ impl Accumulator {
     fn errors(&mut self) -> &mut Vec<Error> {
         match &mut self.0 {
             Some(errors) => errors,
-            None => panic!("darling internal error"),
+            None => panic!("darling internal error: Accumulator accessed after defuse"),
         }
     }
 
@@ -589,7 +589,7 @@ impl Accumulator {
     pub fn into_inner(mut self) -> Vec<Error> {
         match std::mem::replace(&mut self.0, None) {
             Some(errors) => errors,
-            None => panic!("darling internal error"),
+            None => panic!("darling internal error: Accumulator accessed after defuse"),
         }
     }
 
