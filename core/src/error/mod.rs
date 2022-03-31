@@ -522,7 +522,7 @@ impl Iterator for IntoIter {
 ///
 ///     let outputs = inputs
 ///         .into_iter()
-///         .filter_map(|thing| errors.run(|| thing.validate()))
+///         .filter_map(|thing| errors.handle_in(|| thing.validate()))
 ///         .collect::<Vec<_>>();
 ///
 ///     errors.finish()?;
@@ -537,7 +537,7 @@ impl Accumulator {
     /// Runs a closure, returning the successful value as `Some`, or collecting the error
     ///
     /// The closure's return type is `darling::Result`, so inside it one can use `?`.
-    pub fn run<T, F: FnOnce() -> Result<T>>(&mut self, f: F) -> Option<T> {
+    pub fn handle_in<T, F: FnOnce() -> Result<T>>(&mut self, f: F) -> Option<T> {
         self.handle(f())
     }
 
