@@ -482,7 +482,7 @@ macro_rules! hash_map {
                         }
                     });
 
-                let mut errors = vec![];
+                let mut errors = Error::accumulator();
                 // We need to track seen keys separately from the final map, since a seen key with an
                 // Err value won't go into the final map but should trigger a duplicate field error.
                 //
@@ -496,53 +496,40 @@ macro_rules! hash_map {
                 let mut map = HashMap::with_capacity_and_hasher(nested.len(), Default::default());
 
                 for item in pairs {
-                    match item {
-                        Ok((path, value)) => {
-                            let key: $key = match KeyFromPath::from_path(path) {
-                                Ok(k) => k,
-                                Err(e) => {
-                                    errors.push(e);
+                    if let Some((path, value)) = errors.handle(item) {
+                        let key: $key = match KeyFromPath::from_path(path) {
+                            Ok(k) => k,
+                            Err(e) => {
+                                errors.push(e);
 
-                                    // Surface value errors even under invalid keys
-                                    if let Err(val_err) = value {
-                                        errors.push(val_err);
-                                    }
+                                // Surface value errors even under invalid keys
+                                errors.handle(value);
 
-                                    continue;
-                                }
-                            };
-
-                            let already_seen = seen_keys.contains(&key);
-
-                            if already_seen {
-                                errors.push(
-                                    Error::duplicate_field(&key.to_display()).with_span(path),
-                                );
+                                continue;
                             }
+                        };
 
-                            match value {
-                                Ok(_) if already_seen => {}
-                                Ok(val) => {
-                                    map.insert(key.clone(), val);
-                                }
-                                Err(e) => {
-                                    errors.push(e);
-                                }
+                        let already_seen = seen_keys.contains(&key);
+
+                        if already_seen {
+                            errors.push(Error::duplicate_field(&key.to_display()).with_span(path));
+                        }
+
+                        match value {
+                            Ok(_) if already_seen => {}
+                            Ok(val) => {
+                                map.insert(key.clone(), val);
                             }
+                            Err(e) => {
+                                errors.push(e);
+                            }
+                        }
 
-                            seen_keys.insert(key);
-                        }
-                        Err(e) => {
-                            errors.push(e);
-                        }
+                        seen_keys.insert(key);
                     }
                 }
 
-                if !errors.is_empty() {
-                    return Err(Error::multiple(errors));
-                }
-
-                Ok(map)
+                errors.finish_with(map)
             }
         }
     };
