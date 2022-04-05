@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.13.3 (April 5, 2022)
 
 - Impl `FromMeta` for `syn::Type` and its variants [#172](https://github.com/TedDriggs/darling/pulls/172)
 
