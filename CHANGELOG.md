@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Impl `FromMeta` for `syn::Type` and its variants [#172](https://github.com/TedDriggs/darling/pulls/172)
+
 ## v0.13.2 (March 30, 2022)
 
 - Impl `FromMeta` for `syn::ExprPath` [#169](https://github.com/TedDriggs/darling/issues/169)
