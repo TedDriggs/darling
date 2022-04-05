@@ -253,6 +253,10 @@ impl<T: syn::parse::Parse, P: syn::parse::Parse> FromMeta for syn::punctuated::P
     }
 }
 
+/// Adapter from `syn::parse::Parse` to `FromMeta`.
+///
+/// This cannot be a blanket impl, due to the `syn::Lit` family's need to handle non-string values.
+/// Therefore, we use a macro and a lot of impls.
 macro_rules! from_syn_parse {
     ($ty:path) => {
         impl FromMeta for $ty {
@@ -277,6 +281,22 @@ from_syn_parse!(syn::Expr);
 from_syn_parse!(syn::ExprArray);
 from_syn_parse!(syn::ExprPath);
 from_syn_parse!(syn::Path);
+from_syn_parse!(syn::Type);
+from_syn_parse!(syn::TypeArray);
+from_syn_parse!(syn::TypeBareFn);
+from_syn_parse!(syn::TypeGroup);
+from_syn_parse!(syn::TypeImplTrait);
+from_syn_parse!(syn::TypeInfer);
+from_syn_parse!(syn::TypeMacro);
+from_syn_parse!(syn::TypeNever);
+from_syn_parse!(syn::TypeParam);
+from_syn_parse!(syn::TypeParen);
+from_syn_parse!(syn::TypePath);
+from_syn_parse!(syn::TypePtr);
+from_syn_parse!(syn::TypeReference);
+from_syn_parse!(syn::TypeSlice);
+from_syn_parse!(syn::TypeTraitObject);
+from_syn_parse!(syn::TypeTuple);
 from_syn_parse!(syn::WhereClause);
 
 macro_rules! from_numeric_array {
