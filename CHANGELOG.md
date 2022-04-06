@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## v0.13.4 (April 6, 2022)
 
-- Impl `FromMeta` for `syn::Visibility`
+- Impl `FromMeta` for `syn::Visibility` [#173](https://github.com/TedDriggs/darling/pull/173)
 
 ## v0.13.3 (April 5, 2022)
 
