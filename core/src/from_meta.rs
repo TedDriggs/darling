@@ -297,6 +297,7 @@ from_syn_parse!(syn::TypeReference);
 from_syn_parse!(syn::TypeSlice);
 from_syn_parse!(syn::TypeTraitObject);
 from_syn_parse!(syn::TypeTuple);
+from_syn_parse!(syn::Visibility);
 from_syn_parse!(syn::WhereClause);
 
 macro_rules! from_numeric_array {
