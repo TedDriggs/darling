@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Impl `FromMeta` for `syn::Visibility`
+
 ## v0.13.3 (April 5, 2022)
 
 - Add `error::Accumulator` for dealing with multiple errors [#164](https://github.com/TedDriggs/darling/pull/164)
