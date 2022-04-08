@@ -41,6 +41,10 @@ impl Deref for Flag {
 }
 
 impl FromMeta for Flag {
+    fn from_none() -> Option<Self> {
+        Some(Flag(None))
+    }
+
     fn from_meta(mi: &syn::Meta) -> Result<Self> {
         FromMeta::from_meta(mi).map(Flag)
     }
