@@ -191,11 +191,19 @@ impl<'a> ToTokens for CheckMissing<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         if !self.0.multiple && self.0.default_expression.is_none() {
             let ident = self.0.ident;
+            let ty = self.0.ty;
             let name_in_attr = &self.0.name_in_attr;
 
             tokens.append_all(quote! {
                 if !#ident.0 {
-                    __errors.push(::darling::Error::missing_field(#name_in_attr));
+                    match <#ty as ::darling::FromMeta>::from_none() {
+                        ::darling::export::Some(__type_fallback) => {
+                            #ident.1 = ::darling::export::Some(__type_fallback);
+                        }
+                        ::darling::export::None => {
+                            __errors.push(::darling::Error::missing_field(#name_in_attr))
+                        }
+                    }
                 }
             })
         }
