@@ -146,7 +146,7 @@ mod implicit_default {
 
         assert_eq!(person.first_name, "James");
         assert_eq!(person.last_name, None);
-        assert_eq!(person.lefty, false);
+        assert!(!person.lefty.is_present());
     }
 }
 
@@ -184,6 +184,6 @@ mod overridden_implicit_default {
 
         assert_eq!(person.first_name, "Jane");
         assert_eq!(person.last_name, Some("Archer".into()));
-        assert_eq!(person.lefty, false);
+        assert!(!person.lefty.is_present());
     }
 }
