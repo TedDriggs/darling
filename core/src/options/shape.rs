@@ -72,11 +72,23 @@ impl ToTokens for Shape {
         } else {
             let en = &self.enum_values;
             let st = &self.struct_values;
+
+            let check_empty_enum = if en.supports_none() {
+                let ty = en.prefix.trim_end_matches('_');
+                quote!(return ::darling::export::Err(::darling::Error::unsupported_shape(#ty));)
+            } else {
+                quote!()
+            };
+
             quote! {
                 match *__body {
                     ::syn::Data::Enum(ref data) => {
                         fn validate_variant(data: &::syn::Fields) -> ::darling::Result<()> {
                             #en
+                        }
+
+                        if data.variants.is_empty() {
+                            #check_empty_enum
                         }
 
                         for variant in &data.variants {
