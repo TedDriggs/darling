@@ -1,22 +1,30 @@
-use std::ops::{BitAnd, BitOr, Deref, Not};
+use proc_macro2::Span;
+use syn::{spanned::Spanned, Meta};
 
 use crate::{FromMeta, Result};
 
-/// Marker type equivalent to `Option<()>` for use in attribute parsing.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub struct Flag(Option<()>);
+/// A meta-item that can be present as a word - with no value - or absent.
+///
+/// Unlike `Option<()>`, `Flag` keeps the span where its word was seen.
+/// This enables attaching custom error messages to the word, such as in the
+/// case of two conflicting keywords being present.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct Flag(Option<Span>);
 
 impl Flag {
     /// Creates a new `Flag` which corresponds to the presence of a value.
     pub fn present() -> Self {
-        Flag(Some(()))
+        Flag(Some(Span::call_site()))
     }
-}
 
-impl Deref for Flag {
-    type Target = Option<()>;
-    fn deref(&self) -> &Self::Target {
-        &self.0
+    /// Check if the flag is present.
+    pub fn is_present(&self) -> bool {
+        self.0.is_some()
+    }
+
+    #[deprecated(since = "0.14.0", note = "Use Flag::is_present")]
+    pub fn is_some(&self) -> bool {
+        self.is_present()
     }
 }
 
@@ -26,13 +34,25 @@ impl FromMeta for Flag {
     }
 
     fn from_meta(mi: &syn::Meta) -> Result<Self> {
-        FromMeta::from_meta(mi).map(Flag)
+        if let Meta::Path(p) = mi {
+            Ok(Flag(Some(p.span())))
+        } else {
+            // The implementation for () will produce an error for all non-path meta items;
+            // call it to make sure the span behaviors and error messages are the same.
+            Err(<()>::from_meta(mi).unwrap_err())
+        }
+    }
+}
+
+impl Spanned for Flag {
+    fn span(&self) -> Span {
+        self.0.unwrap_or_else(Span::call_site)
     }
 }
 
 impl From<Flag> for bool {
     fn from(flag: Flag) -> Self {
-        flag.is_some()
+        flag.is_present()
     }
 }
 
@@ -43,59 +63,5 @@ impl From<bool> for Flag {
         } else {
             Flag(None)
         }
-    }
-}
-
-impl From<Option<()>> for Flag {
-    fn from(v: Option<()>) -> Self {
-        Flag::from(v.is_some())
-    }
-}
-
-impl PartialEq<Option<()>> for Flag {
-    fn eq(&self, rhs: &Option<()>) -> bool {
-        self.0 == *rhs
-    }
-}
-
-impl PartialEq<Flag> for Option<()> {
-    fn eq(&self, rhs: &Flag) -> bool {
-        *self == rhs.0
-    }
-}
-
-impl PartialEq<bool> for Flag {
-    fn eq(&self, rhs: &bool) -> bool {
-        self.is_some() == *rhs
-    }
-}
-
-impl Not for Flag {
-    type Output = Self;
-
-    fn not(self) -> Self {
-        if self.is_some() {
-            Flag(None)
-        } else {
-            Flag::present()
-        }
-    }
-}
-
-impl BitAnd for Flag {
-    type Output = Self;
-
-    fn bitand(self, rhs: Self) -> Self {
-        #[allow(clippy::suspicious_arithmetic_impl)]
-        (self.into() && rhs.into()).into()
-    }
-}
-
-impl BitOr for Flag {
-    type Output = Self;
-
-    fn bitor(self, rhs: Self) -> Self {
-        #[allow(clippy::suspicious_arithmetic_impl)]
-        (self.into() || rhs.into()).into()
     }
 }
