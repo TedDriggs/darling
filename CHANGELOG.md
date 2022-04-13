@@ -5,7 +5,9 @@
 - **BREAKING CHANGE:** Remove many trait impls from `util::Flag`. 
   This type had a number of deref and operator impls that made it usable as sort-of-a-boolean.
   Real-world usage showed this type is more useful if it's able to carry a span for good errors,
-  and that most of those impls were unnecessary.
+  and that most of those impls were unnecessary. [#179](https://github.com/TedDriggs/darling/pull/179)
+- Remove need for `#[darling(default)]` on `Option<T>` and `Flag` fields [#161](https://github.com/TedDriggs/darling/issues/161)
+- Improve validation of enum shapes [#178](https://github.com/TedDriggs/darling/pull/178)
 
 ## v0.13.4 (April 6, 2022)
 
