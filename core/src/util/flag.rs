@@ -5,9 +5,42 @@ use crate::{FromMeta, Result};
 
 /// A meta-item that can be present as a word - with no value - or absent.
 ///
-/// Unlike `Option<()>`, `Flag` keeps the span where its word was seen.
-/// This enables attaching custom error messages to the word, such as in the
-/// case of two conflicting keywords being present.
+/// # Defaulting
+/// Like `Option`, `Flag` does not require `#[darling(default)]` to be optional.
+/// If the caller does not include the property, then an absent `Flag` will be included
+/// in the receiver struct.
+///
+/// # Spans
+/// `Flag` keeps the span where its word was seen.
+/// This enables attaching custom error messages to the word, such as in the case of two
+/// conflicting flags being present.
+///
+/// # Example
+/// ```ignore
+/// #[derive(FromMeta)]
+/// #[darling(and_then = "Self::not_both")]
+/// struct Demo {
+///     flag_a: Flag,
+///     flag_b: Flag,
+/// }
+///
+/// impl Demo {
+///     fn not_both(self) -> Result<Self> {
+///         if self.flag_a.is_present() && self.flag_b.is_present() {
+///             Err(Error::custom("Cannot set flag_a and flag_b").with_span(self.flag_b))
+///         } else {
+///             Ok(self)
+///         }
+///     }
+/// }
+/// ```
+///
+/// The above struct would then produce the following error.
+///
+/// ```ignore
+/// #[example(flag_a, flag_b)]
+/// //                ^^^^^^ Cannot set flag_a and flag_b
+/// ```
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Flag(Option<Span>);
 
