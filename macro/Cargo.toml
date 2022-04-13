@@ -11,8 +11,8 @@ license = "MIT"
 edition = "2018"
 
 [dependencies]
-quote = "1.0.9"
-syn = "1.0.69"
+quote = "1.0.18"
+syn = "1.0.91"
 darling_core = { version = "=0.13.4", path = "../core" }
 
 [lib]
