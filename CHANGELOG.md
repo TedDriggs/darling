@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- **BREAKING CHANGE:** Remove many trait impls from `util::Flag`. 
+  This type had a number of deref and operator impls that made it usable as sort-of-a-boolean.
+  Real-world usage showed this type is more useful if it's able to carry a span for good errors,
+  and that most of those impls were unnecessary.
+
 ## v0.13.4 (April 6, 2022)
 
 - Impl `FromMeta` for `syn::Visibility` [#173](https://github.com/TedDriggs/darling/pull/173)
