@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.14.0 (April 13, 2022)
 
 - **BREAKING CHANGE:** Remove many trait impls from `util::Flag`. 
   This type had a number of deref and operator impls that made it usable as sort-of-a-boolean.
@@ -8,6 +8,9 @@
   and that most of those impls were unnecessary. [#179](https://github.com/TedDriggs/darling/pull/179)
 - Remove need for `#[darling(default)]` on `Option<T>` and `Flag` fields [#161](https://github.com/TedDriggs/darling/issues/161)
 - Improve validation of enum shapes [#178](https://github.com/TedDriggs/darling/pull/178)
+- Bump `proc-macro2` dependency to 1.0.37 [#180](https://github.com/TedDriggs/darling/pull/180)
+- Bump `quote` dependency to 1.0.18 [#180](https://github.com/TedDriggs/darling/pull/180)
+- Bump `syn` dependency to 1.0.91 [#180](https://github.com/TedDriggs/darling/pull/180)
 
 ## v0.13.4 (April 6, 2022)
 
