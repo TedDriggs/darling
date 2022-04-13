@@ -4,7 +4,7 @@ use syn::Ident;
 
 use crate::codegen::FromFieldImpl;
 use crate::options::{OuterFrom, ParseAttribute, ParseData};
-use crate::Result;
+use crate::{Error, Result};
 
 #[derive(Debug)]
 pub struct FromFieldOptions {
@@ -15,13 +15,26 @@ pub struct FromFieldOptions {
 
 impl FromFieldOptions {
     pub fn new(di: &syn::DeriveInput) -> Result<Self> {
-        (FromFieldOptions {
+        let opts = (FromFieldOptions {
             base: OuterFrom::start(di)?,
             vis: Default::default(),
             ty: Default::default(),
         })
         .parse_attributes(&di.attrs)?
-        .parse_body(&di.data)
+        .parse_body(&di.data)?;
+
+        if opts.base.attr_names.is_empty()
+            && opts
+                .base
+                .forward_attrs
+                .as_ref()
+                .map(|f| f.is_empty())
+                .unwrap_or(true)
+        {
+            Err(Error::custom("FromField without #[darling(attributes(...))] or #[darling(forward_attrs(...))] collects nothing. If that is intentional, consider using syn::Field directly."))
+        } else {
+            Ok(opts)
+        }
     }
 }
 
