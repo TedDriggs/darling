@@ -56,19 +56,31 @@ impl ToTokens for FromDeriveInputImpl<'_> {
             .as_ref()
             .map(|i| quote!(#i: ::darling::FromGenerics::from_generics(&#input.generics)?,));
         let passed_attrs = self.forward_attrs.as_initializer();
-        let passed_body = self.data.as_ref().map(|i| {
-            let ForwardedField { ident, with } = i;
-            let path = match with {
-                Some(p) => quote!(#p),
-                None => quote_spanned!(ident.span()=> ::darling::ast::Data::try_from),
-            };
-            quote_spanned!(ident.span()=> #ident: #path(&#input.data)?,)
-        });
 
-        let supports = self.supports.map(|i| {
+        let check_shape = self
+            .supports
+            .map(|s| s.validator_path().into_token_stream())
+            .unwrap_or_else(|| quote!(::darling::export::Ok));
+
+        let read_data = self
+            .data
+            .as_ref()
+            .map(|i| match &i.with {
+                Some(p) => quote!(#p),
+                None => quote_spanned!(i.ident.span()=> ::darling::ast::Data::try_from),
+            })
+            .unwrap_or_else(|| quote!(::darling::export::Ok));
+
+        let supports = self.supports;
+        let validate_and_read_data = quote! {
+            #supports
+            let __data = __errors.handle(#check_shape(&#input.data).and_then(#read_data));
+        };
+
+        let pass_data_to_receiver = self.data.map(|data| {
+            let data_ident = &data.ident;
             quote! {
-                #i
-                __errors.handle(__validate_body(&#input.data));
+                #data_ident: __data.expect("Data parsed successfully"),
             }
         });
 
@@ -92,7 +104,7 @@ impl ToTokens for FromDeriveInputImpl<'_> {
 
                     #grab_attrs
 
-                    #supports
+                    #validate_and_read_data
 
                     #require_fields
 
@@ -105,7 +117,7 @@ impl ToTokens for FromDeriveInputImpl<'_> {
                         #passed_generics
                         #passed_vis
                         #passed_attrs
-                        #passed_body
+                        #pass_data_to_receiver
                         #inits
                     }) #post_transform
                 }

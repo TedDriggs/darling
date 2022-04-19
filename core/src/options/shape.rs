@@ -1,7 +1,7 @@
 //! Types for "shape" validation. This allows types deriving `FromDeriveInput` etc. to declare
 //! that they only work on - for example - structs with named fields, or newtype enum variants.
 
-use proc_macro2::TokenStream;
+use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens, TokenStreamExt};
 use syn::{parse_quote, Meta};
 
@@ -20,6 +20,20 @@ pub struct DeriveInputShapeSet {
     enum_values: DataShape,
     struct_values: DataShape,
     any: bool,
+}
+
+impl DeriveInputShapeSet {
+    fn validator_fn_ident(&self) -> syn::Ident {
+        syn::Ident::new("__validate_body", Span::call_site())
+    }
+
+    pub fn validator_path(&self) -> syn::Path {
+        if self.any {
+            parse_quote!(::darling::export::Ok)
+        } else {
+            self.validator_fn_ident().into()
+        }
+    }
 }
 
 impl Default for DeriveInputShapeSet {
@@ -61,11 +75,14 @@ impl FromMeta for DeriveInputShapeSet {
     }
 }
 
+/// Generates a body-shape validator if and only if that validation could fail for some inputs.
 impl ToTokens for DeriveInputShapeSet {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let fn_body = if self.any {
-            quote!(::darling::export::Ok(()))
-        } else {
+        if self.any {
+            return;
+        }
+
+        let fn_body = {
             let en = &self.enum_values;
             let st = &self.struct_values;
 
@@ -87,7 +104,7 @@ impl ToTokens for DeriveInputShapeSet {
                                 variant_errors.handle(enum_check.check(variant));
                             }
 
-                            variant_errors.finish()
+                            variant_errors.finish_with(__body)
                         }
                         ::darling::export::syn::Data::Struct(ref struct_data) => {
                             if struct_check.is_empty() {
@@ -96,7 +113,7 @@ impl ToTokens for DeriveInputShapeSet {
                                 );
                             }
 
-                            struct_check.check(struct_data)
+                            struct_check.check(struct_data).and(::darling::export::Ok(__body))
                         }
                         ::darling::export::syn::Data::Union(_) => unreachable!(),
                     }
@@ -104,9 +121,10 @@ impl ToTokens for DeriveInputShapeSet {
             }
         };
 
+        let fn_ident = self.validator_fn_ident();
+
         tokens.append_all(quote! {
-            #[allow(unused_variables)]
-            fn __validate_body(__body: &::darling::export::syn::Data) -> ::darling::Result<()> {
+            fn #fn_ident(__body: &::darling::export::syn::Data) -> ::darling::Result<&::darling::export::syn::Data> {
                 #fn_body
             }
         });
