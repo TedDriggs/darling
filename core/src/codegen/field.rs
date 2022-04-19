@@ -123,13 +123,8 @@ impl<'a> ToTokens for MatchArm<'a> {
                         // Store the index of the name we're assessing in case we need
                         // it for error reporting.
                         let __len = #ident.len();
-                        match #extractor {
-                            ::darling::export::Ok(__val) => {
-                                #ident.push(__val)
-                            }
-                            ::darling::export::Err(__err) => {
-                                __errors.push(__err)
-                            }
+                        if let ::darling::export::Some(__val) = __errors.handle(#extractor) {
+                            #ident.push(__val)
                         }
                     }
                 )
@@ -137,15 +132,7 @@ impl<'a> ToTokens for MatchArm<'a> {
                 quote!(
                     #name_str => {
                         if !#ident.0 {
-                            match #extractor {
-                                ::darling::export::Ok(__val) => {
-                                    #ident = (true, ::darling::export::Some(__val));
-                                }
-                                ::darling::export::Err(__err) => {
-                                    #ident = (true, None);
-                                    __errors.push(__err);
-                                }
-                            }
+                            #ident = (true, __errors.handle(#extractor));
                         } else {
                             __errors.push(::darling::Error::duplicate_field(#name_str).with_span(&__inner));
                         }

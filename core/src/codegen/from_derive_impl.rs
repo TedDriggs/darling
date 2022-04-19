@@ -63,7 +63,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
         let supports = self.supports.map(|i| {
             quote! {
                 #i
-                __validate_body(&#input.data)?;
+                __errors.handle(__validate_body(&#input.data));
             }
         });
 
