@@ -1,11 +1,11 @@
-use darling::{ast, FromDeriveInput, FromVariant};
+use darling::{ast, FromDeriveInput, FromField, FromVariant};
 
 #[derive(Debug, FromDeriveInput)]
 #[darling(attributes(from_variants), supports(enum_any))]
 pub struct Container {
     // The second type parameter can be anything that implements FromField, since
     // FromDeriveInput will produce an error if given a struct.
-    data: ast::Data<Variant, ()>,
+    data: ast::Data<Variant, Panic>,
 }
 
 #[derive(Default, Debug, FromVariant)]
@@ -20,7 +20,28 @@ pub struct Variant {
 pub struct StructContainer {
     // The second type parameter can be anything that implements FromVariant, since
     // FromDeriveInput will produce an error if given an enum.
-    data: ast::Data<(), syn::Field>,
+    data: ast::Data<Panic, syn::Field>,
+}
+
+/// A struct that will panic if construction is attempted via `FromVariant` or `FromField`.
+///
+/// These tests use this to ensure no attempts are made to read fields or variants if
+/// shape validation has failed. Failure to do this could cause panics or spurious errors
+/// to be emitted by derived `FromDeriveInput` impls, which breaks library author's trust
+/// in `darling` to emit great error messages.
+#[derive(Debug)]
+struct Panic;
+
+impl FromVariant for Panic {
+    fn from_variant(variant: &syn::Variant) -> darling::Result<Self> {
+        panic!("Should not have called from_variant on {}", variant.ident);
+    }
+}
+
+impl FromField for Panic {
+    fn from_field(_field: &syn::Field) -> darling::Result<Self> {
+        panic!("Should not have called from_field");
+    }
 }
 
 mod source {

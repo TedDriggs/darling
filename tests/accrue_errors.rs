@@ -37,7 +37,10 @@ fn bad_type_and_missing_fields() {
     let s_result: ::darling::Error = Lorem::from_derive_input(&input).unwrap_err();
     let err = s_result.flatten();
     println!("{}", err);
-    assert_eq!(3, err.len());
+    //   3  errors from the struct-level `accrue` attribute
+    // + 1  for the field `foo` missing `aliased_as`
+    // = 4  total errors
+    assert_eq!(4, err.len());
 }
 
 #[test]
