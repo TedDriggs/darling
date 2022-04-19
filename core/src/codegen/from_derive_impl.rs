@@ -51,11 +51,19 @@ impl ToTokens for FromDeriveInputImpl<'_> {
             .as_ref()
             .map(|i| quote!(#i: #input.ident.clone(),));
         let passed_vis = self.vis.as_ref().map(|i| quote!(#i: #input.vis.clone(),));
-        let passed_generics = self
-            .generics
-            .as_ref()
-            .map(|i| quote!(#i: ::darling::FromGenerics::from_generics(&#input.generics)?,));
         let passed_attrs = self.forward_attrs.as_initializer();
+
+        let read_generics = self.generics.map(|_| {
+            quote! {
+                let __generics = __errors.handle(::darling::FromGenerics::from_generics(&#input.generics));
+            }
+        });
+
+        let pass_generics_to_receiver = self.generics.map(|generics| {
+            quote! {
+                #generics: __generics.expect("Parsing succeeded"),
+            }
+        });
 
         let check_shape = self
             .supports
@@ -106,6 +114,8 @@ impl ToTokens for FromDeriveInputImpl<'_> {
 
                     #validate_and_read_data
 
+                    #read_generics
+
                     #require_fields
 
                     #check_errors
@@ -114,7 +124,7 @@ impl ToTokens for FromDeriveInputImpl<'_> {
 
                     ::darling::export::Ok(#ty_ident {
                         #passed_ident
-                        #passed_generics
+                        #pass_generics_to_receiver
                         #passed_vis
                         #passed_attrs
                         #pass_data_to_receiver
