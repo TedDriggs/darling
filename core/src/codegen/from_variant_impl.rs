@@ -66,7 +66,7 @@ impl<'a> ToTokens for FromVariantImpl<'a> {
         let supports = self.supports.map(|i| {
             quote! {
                 #i
-                __validate_data(&#input.fields)?;
+                __errors.handle(__validate_data(&#input.fields));
             }
         });
 
