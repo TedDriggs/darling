@@ -34,7 +34,7 @@ impl<'a> Field<'a> {
     }
 
     pub fn as_declaration(&'a self) -> Declaration<'a> {
-        Declaration(self, !self.skip)
+        Declaration(self)
     }
 
     pub fn as_match(&'a self) -> MatchArm<'a> {
@@ -61,14 +61,7 @@ impl<'a> UsesTypeParams for Field<'a> {
 }
 
 /// An individual field during variable declaration in the generated parsing method.
-pub struct Declaration<'a>(&'a Field<'a>, bool);
-
-impl<'a> Declaration<'a> {
-    /// Creates a new declaration with the given field and mutability.
-    pub fn new(field: &'a Field<'a>, mutable: bool) -> Self {
-        Declaration(field, mutable)
-    }
-}
+pub struct Declaration<'a>(&'a Field<'a>);
 
 impl<'a> ToTokens for Declaration<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
@@ -76,13 +69,11 @@ impl<'a> ToTokens for Declaration<'a> {
         let ident = field.ident;
         let ty = field.ty;
 
-        let mutable = if self.1 { quote!(mut) } else { quote!() };
-
         tokens.append_all(if field.multiple {
             // This is NOT mutable, as it will be declared mutable only temporarily.
-            quote!(let #mutable #ident: #ty = ::darling::export::Default::default();)
+            quote!(let mut #ident: #ty = ::darling::export::Default::default();)
         } else {
-            quote!(let #mutable #ident: (bool, ::darling::export::Option<#ty>) = (false, None);)
+            quote!(let mut #ident: (bool, ::darling::export::Option<#ty>) = (false, None);)
         });
     }
 }

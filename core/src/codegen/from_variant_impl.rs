@@ -108,10 +108,6 @@ impl<'a> ExtractAttribute for FromVariantImpl<'a> {
         self.base.local_declarations()
     }
 
-    fn immutable_declarations(&self) -> TokenStream {
-        self.base.immutable_declarations()
-    }
-
     fn attr_names(&self) -> &PathList {
         self.attr_names
     }
