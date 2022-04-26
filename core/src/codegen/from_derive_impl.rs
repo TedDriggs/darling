@@ -130,10 +130,6 @@ impl<'a> ExtractAttribute for FromDeriveInputImpl<'a> {
     fn local_declarations(&self) -> TokenStream {
         self.base.local_declarations()
     }
-
-    fn immutable_declarations(&self) -> TokenStream {
-        self.base.immutable_declarations()
-    }
 }
 
 impl<'a> OuterFromImpl<'a> for FromDeriveInputImpl<'a> {

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Fix a bug where using a trait that accepts `#[darling(attributes(...))]` without specifying any attributes would emit code that did not compile. [#183](https://github.com/TedDriggs/darling/issues/183)
+
 ## v0.14.0 (April 13, 2022)
 
 - **BREAKING CHANGE:** Remove many trait impls from `util::Flag`. 
