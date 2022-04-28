@@ -252,6 +252,20 @@ impl Error {
         self
     }
 
+    /// Get a span for the error.
+    ///
+    /// # Return Value
+    /// This function will return [`Span::call_site()`](proc_macro2::Span) if [`Self::has_span`] is `false`.
+    /// To get the span only if one has been explicitly set for `self`, instead use [`Error::explicit_span`].
+    pub fn span(&self) -> Span {
+        self.span.unwrap_or_else(Span::call_site)
+    }
+
+    /// Get the span for `self`, if one has been set.
+    pub fn explicit_span(&self) -> Option<Span> {
+        self.span
+    }
+
     /// Recursively converts a tree of errors to a flattened list.
     pub fn flatten(self) -> Self {
         Error::multiple(self.into_vec())
