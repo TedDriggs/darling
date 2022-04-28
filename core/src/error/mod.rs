@@ -56,8 +56,7 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 ///    to ensure those errors appear in the right place. Use `darling::util::SpannedValue` to keep
 ///    span information around on parsed fields so that custom diagnostics can point to the correct
 ///    parts of the input AST.
-#[derive(Debug)]
-#[cfg_attr(test, derive(Clone))]
+#[derive(Debug, Clone)]
 pub struct Error {
     kind: ErrorKind,
     locations: Vec<String>,
@@ -449,14 +448,16 @@ impl From<Error> for syn::Error {
         if e.len() == 1 {
             syn::Error::new(e.span(), e)
         } else {
-            e.flatten()
-                .into_iter()
-                .map(syn::Error::from)
-                .reduce(|mut accum, next| {
-                    accum.combine(next);
-                    accum
-                })
-                .expect("darling::Error can never be empty")
+            let mut syn_errors = e.flatten().into_iter().map(syn::Error::from);
+            let mut error = syn_errors
+                .next()
+                .expect("darling::Error can never be empty");
+
+            for next_error in syn_errors {
+                error.combine(next_error);
+            }
+
+            error
         }
     }
 }
