@@ -3,6 +3,9 @@
 ## Unreleased
 
 - Fix a bug where using a trait that accepts `#[darling(attributes(...))]` without specifying any attributes would emit code that did not compile. [#183](https://github.com/TedDriggs/darling/issues/183)
+- Impl `Clone` for `darling::Error` [#184](https://github.com/TedDriggs/darling/pull/184)
+- Impl `From<darling::Error> for syn::Error` [#184](https://github.com/TedDriggs/darling/pull/184)
+- Add `Error::span` and `Error::explicit_span` methods [#184](https://github.com/TedDriggs/darling/pull/184)
 
 ## v0.14.0 (April 13, 2022)
 
