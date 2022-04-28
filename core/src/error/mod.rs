@@ -350,18 +350,7 @@ impl Error {
 
         #[cfg(not(feature = "diagnostics"))]
         {
-            self.flatten()
-                .into_iter()
-                .map(|e| e.single_to_syn_error().to_compile_error())
-                .collect()
-        }
-    }
-
-    #[cfg(not(feature = "diagnostics"))]
-    fn single_to_syn_error(self) -> ::syn::Error {
-        match self.span {
-            Some(span) => ::syn::Error::new(span, self.kind),
-            None => ::syn::Error::new(Span::call_site(), self),
+            syn::Error::from(self).into_compile_error()
         }
     }
 
@@ -451,6 +440,23 @@ impl From<syn::Error> for Error {
         Self {
             span: Some(e.span()),
             ..Self::custom(e)
+        }
+    }
+}
+
+impl From<Error> for syn::Error {
+    fn from(e: Error) -> Self {
+        if e.len() == 1 {
+            syn::Error::new(e.span(), e)
+        } else {
+            e.flatten()
+                .into_iter()
+                .map(syn::Error::from)
+                .reduce(|mut accum, next| {
+                    accum.combine(next);
+                    accum
+                })
+                .expect("darling::Error can never be empty")
         }
     }
 }
