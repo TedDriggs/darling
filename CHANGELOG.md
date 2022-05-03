@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add `ast::Meta<T>`, an equivalent to `syn::Meta` that is generic rather than being restricted to literals.
+
 ## v0.14.1 (April 28, 2022)
 
 - Fix a bug where using a trait that accepts `#[darling(attributes(...))]` without specifying any attributes would emit code that did not compile. [#183](https://github.com/TedDriggs/darling/issues/183)
