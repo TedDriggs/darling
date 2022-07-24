@@ -66,8 +66,9 @@ impl<'a> FieldsGen<'a> {
                             __other => { #handle_unknown }
                         }
                     }
-                    ::syn::NestedMeta::Lit(_) => {
-                        __errors.push(::darling::Error::unsupported_format("literal").with_span(__item));
+                    ::syn::NestedMeta::Lit(ref __inner) => {
+                        __errors.push(::darling::Error::unsupported_format("literal")
+                            .with_span(__inner));
                     }
                 }
             }
