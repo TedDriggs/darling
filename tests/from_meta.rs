@@ -1,7 +1,7 @@
-use darling::FromMeta;
+use darling::{Error, FromMeta};
 use syn::parse_quote;
 
-#[derive(FromMeta)]
+#[derive(Debug, FromMeta)]
 struct Meta {
     #[darling(default)]
     meta1: Option<String>,
@@ -31,10 +31,9 @@ fn nested_meta_meta_bool() {
 
 #[test]
 fn nested_meta_lit_errors() {
-    let meta = Meta::from_list(&vec![parse_quote! {
+    let err = Meta::from_list(&vec![parse_quote! {
         "meta2"
     }])
-    .unwrap();
-    assert_eq!(meta.meta1, None);
-    assert_eq!(meta.meta2, false);
+    .unwrap_err();
+    assert_eq!(err.to_string(), Error::unknown_value("meta2").to_string());
 }
