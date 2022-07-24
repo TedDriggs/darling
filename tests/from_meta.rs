@@ -35,5 +35,5 @@ fn nested_meta_lit_errors() {
         "meta2"
     }])
     .unwrap_err();
-    assert_eq!(err.to_string(), Error::unknown_value("meta2").to_string());
+    assert_eq!(err.to_string(), Error::unsupported_format("literal").to_string());
 }
