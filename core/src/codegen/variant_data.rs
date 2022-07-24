@@ -64,6 +64,8 @@ impl<'a> FieldsGen<'a> {
                         #(#arms)*
                         __other => { #handle_unknown }
                     }
+                } else {
+                    __errors.push(::darling::Error::unsupported_format("literal").with_span(__item));
                 }
             }
         )
