@@ -30,9 +30,33 @@ fn nested_meta_meta_bool() {
 }
 
 #[test]
-fn nested_meta_lit_errors() {
+fn nested_meta_lit_string_errors() {
     let err = Meta::from_list(&vec![parse_quote! {
         "meta2"
+    }])
+    .unwrap_err();
+    assert_eq!(
+        err.to_string(),
+        Error::unsupported_format("literal").to_string()
+    );
+}
+
+#[test]
+fn nested_meta_lit_integer_errors() {
+    let err = Meta::from_list(&vec![parse_quote! {
+        2
+    }])
+    .unwrap_err();
+    assert_eq!(
+        err.to_string(),
+        Error::unsupported_format("literal").to_string()
+    );
+}
+
+#[test]
+fn nested_meta_lit_bool_errors() {
+    let err = Meta::from_list(&vec![parse_quote! {
+        true
     }])
     .unwrap_err();
     assert_eq!(
