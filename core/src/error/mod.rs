@@ -683,10 +683,14 @@ impl Extend<Error> for Accumulator {
 
 impl Drop for Accumulator {
     fn drop(&mut self) {
-        if let Some(errors) = &mut self.0 {
-            match errors.len() {
-                0 => panic!("darling::error::Accumulator dropped without being finished"),
-                error_count => panic!("darling::error::Accumulator dropped without being finished. {} errors were lost.", error_count)
+        // don't try to panic if we are currently unwinding a panic
+        // otherwise we end up with an unhelful "thread panicked while panicking. aborting." message
+        if !std::thread::panicking() {
+            if let Some(errors) = &mut self.0 {
+                match errors.len() {
+                    0 => panic!("darling::error::Accumulator dropped without being finished"),
+                    error_count => panic!("darling::error::Accumulator dropped without being finished. {} errors were lost.", error_count)
+                }
             }
         }
     }
