@@ -11,27 +11,27 @@ struct Meta {
 
 #[test]
 fn nested_meta_meta_value() {
-    let meta = Meta::from_list(&vec![parse_quote! {
+    let meta = Meta::from_list(&[parse_quote! {
         meta1 = "thefeature"
     }])
     .unwrap();
     assert_eq!(meta.meta1, Some("thefeature".to_string()));
-    assert_eq!(meta.meta2, false);
+    assert!(!meta.meta2);
 }
 
 #[test]
 fn nested_meta_meta_bool() {
-    let meta = Meta::from_list(&vec![parse_quote! {
+    let meta = Meta::from_list(&[parse_quote! {
         meta2
     }])
     .unwrap();
     assert_eq!(meta.meta1, None);
-    assert_eq!(meta.meta2, true);
+    assert!(meta.meta2);
 }
 
 #[test]
 fn nested_meta_lit_string_errors() {
-    let err = Meta::from_list(&vec![parse_quote! {
+    let err = Meta::from_list(&[parse_quote! {
         "meta2"
     }])
     .unwrap_err();
@@ -43,7 +43,7 @@ fn nested_meta_lit_string_errors() {
 
 #[test]
 fn nested_meta_lit_integer_errors() {
-    let err = Meta::from_list(&vec![parse_quote! {
+    let err = Meta::from_list(&[parse_quote! {
         2
     }])
     .unwrap_err();
@@ -55,7 +55,7 @@ fn nested_meta_lit_integer_errors() {
 
 #[test]
 fn nested_meta_lit_bool_errors() {
-    let err = Meta::from_list(&vec![parse_quote! {
+    let err = Meta::from_list(&[parse_quote! {
         true
     }])
     .unwrap_err();
