@@ -1,8 +1,9 @@
 //! # Darling
+//!
 //! Darling is a tool for declarative attribute parsing in proc macro implementations.
 //!
-//!
 //! ## Design
+//!
 //! Darling takes considerable design inspiration from [`serde`](https://serde.rs). A data structure that can be
 //! read from any attribute implements `FromMeta` (or has an implementation automatically
 //! generated using `derive`). Any crate can provide `FromMeta` implementations, even one not
@@ -12,6 +13,7 @@
 //! `FromField`, `FromVariant`, `FromGenerics`, _et alia_ to gather settings relevant to their operation.
 //!
 //! ## Attributes
+//!
 //! There are a number of attributes that `darling` exposes to enable finer-grained control over the code
 //! it generates.
 //!
@@ -63,6 +65,40 @@
 //! |`discriminant`|`Option<syn::Expr>`|For a variant such as `Example = 2`, the `2`|
 //! |`fields`|`Option<darling::ast::Fields<__>>`|The fields associated with the variant|
 //! |`attrs`|`Vec<syn::Attribute>`|The forwarded attributes from the passed in variant. These are controlled using the `forward_attrs` attribute.|
+//!
+//! ## Examples
+//!
+//! ### Derive Macro
+//!
+//! Here's an example-invocation of a derive macro `Foo` that parses a single top-level attribute
+//! named `bar` that accepts a string value:
+//!
+//! ```ignore
+//! #[derive(Foo)]
+//! #[foo(bar = "hello")]
+//! struct Foo {
+//! }
+//! ```
+//!
+//! Which can be parsed with `darling` like so:
+//!
+//! ```ignore
+//! use darling::FromDeriveInput;
+//!
+//! #[derive(FromDeriveInput)]
+//! struct Foo {
+//!   bar: syn::LitStr,
+//! }
+//!
+//! #[proc_macro_derive(Foo, attributes(foo))]
+//! pub fn display(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+//!   let derive_input = syn::parse_macro_input!(item as syn::DeriveInput);
+//!
+//!   let foo = Foo::from_derive_input(&derive_input).unwrap();
+//!
+//!   todo!("Derive macro input goes here");
+//! }
+//! ```
 
 extern crate core;
 
