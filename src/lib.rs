@@ -86,7 +86,7 @@
 //! use darling::FromDeriveInput;
 //!
 //! #[derive(FromDeriveInput)]
-//! struct Foo {
+//! struct Input {
 //!   bar: syn::LitStr,
 //! }
 //!
@@ -94,9 +94,12 @@
 //! pub fn display(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
 //!   let derive_input = syn::parse_macro_input!(item as syn::DeriveInput);
 //!
-//!   let foo = Foo::from_derive_input(&derive_input).unwrap();
+//!   let input = match Input::from_derive_input(&derive_input) {
+//!     Ok(input) => input,
+//!     Err(err) => return err.write_errors(),
+//!   };
 //!
-//!   todo!("Derive macro input goes here");
+//!   todo!("Emit derive macro output here.");
 //! }
 //! ```
 
