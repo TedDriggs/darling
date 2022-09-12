@@ -70,7 +70,7 @@
 //!
 //! ### Derive Macro
 //!
-//! Here's an example-invocation of a derive macro `Foo` that parses a single top-level attribute
+//! Here's an example invocation of a derive macro `Foo` that parses a single top-level attribute
 //! named `bar` that accepts a string value:
 //!
 //! ```ignore
