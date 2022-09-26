@@ -621,7 +621,7 @@ mod tests {
 
     #[test]
     fn unit_succeeds() {
-        let _ = fm::<()>(quote!(ignore));
+        fm::<()>(quote!(ignore));
     }
 
     #[test]
