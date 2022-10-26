@@ -1,9 +1,9 @@
 # Changelog
 
-## Unreleased
+## v0.14.2 (October 26, 2022)
 
 - Derived impls of `FromMeta` will now error on literals, rather than silently ignoring them. [#193](https://github.com/TedDriggs/darling/pull/193)
-- Don't include property paths in compile errors when spans are available.
+- Don't include property paths in compile errors when spans are available. [#203](https://github.com/TedDriggs/darling/pull/203)
 
 ## v0.14.1 (April 28, 2022)
 
