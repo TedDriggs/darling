@@ -446,7 +446,16 @@ impl From<syn::Error> for Error {
 impl From<Error> for syn::Error {
     fn from(e: Error) -> Self {
         if e.len() == 1 {
-            syn::Error::new(e.span(), e)
+            if let Some(span) = e.explicit_span() {
+                // Don't include the location path if the error has an explicit span,
+                // since it will be redundant and isn't consistent with how rustc
+                // exposes errors.
+                syn::Error::new(span, e.kind)
+            } else {
+                // If the error's span is going to be the macro call site, include
+                // the location information to try and help the user pinpoint the issue.
+                syn::Error::new(e.span(), e)
+            }
         } else {
             let mut syn_errors = e.flatten().into_iter().map(syn::Error::from);
             let mut error = syn_errors
