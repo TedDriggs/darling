@@ -172,9 +172,48 @@ impl<'a> ToTokens for CheckMissing<'a> {
             let ty = self.0.ty;
             let name_in_attr = &self.0.name_in_attr;
 
+            let custom_from_none = self.0.post_transform.map(|post_transform| {
+                let (transformer_ret, handle_error) = match &*post_transform.transformer.to_string()
+                {
+                    "and_then" => (
+                        quote! { ::darling::Result<__Ret> },
+                        Some(
+                            quote! { let __ret = __ret.and_then(|__ret| __errors.handle(__ret)); },
+                        ),
+                    ),
+                    "map" => (quote! { __Ret }, None),
+                    _ => unreachable!(),
+                };
+
+                quote! {
+                    fn __from_none<__Fn, __Arg, __Ret>(
+                        __function: __Fn,
+                        __errors: &mut ::darling::error::Accumulator,
+                    ) -> ::darling::export::Option<__Ret>
+                    where
+                        __Fn: ::darling::export::FnOnce(__Arg) -> #transformer_ret,
+                        __Arg: ::darling::FromMeta,
+                    {
+                        let __ret = <__Arg as ::darling::FromMeta>::from_none().map(__function);
+                        #handle_error
+                        __ret
+                    }
+                }
+            });
+
+            let from_none_call = match self.0.post_transform {
+                Some(post_transform) => {
+                    let function = &post_transform.function;
+                    quote! { __from_none(#function, &mut __errors) }
+                }
+                None => quote! { <#ty as ::darling::FromMeta>::from_none() },
+            };
+
             tokens.append_all(quote! {
                 if !#ident.0 {
-                    match <#ty as ::darling::FromMeta>::from_none() {
+                    #custom_from_none
+
+                    match #from_none_call {
                         ::darling::export::Some(__type_fallback) => {
                             #ident.1 = ::darling::export::Some(__type_fallback);
                         }

@@ -97,6 +97,7 @@ pub use darling_core::ToTokens;
 pub mod export {
     pub use core::convert::From;
     pub use core::default::Default;
+    pub use core::ops::FnOnce;
     pub use core::option::Option::{self, None, Some};
     pub use core::result::Result::{self, Err, Ok};
     pub use std::string::ToString;
