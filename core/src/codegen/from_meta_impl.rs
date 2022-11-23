@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use quote::ToTokens;
+use quote::{quote, ToTokens};
 
 use crate::ast::{Data, Fields, Style};
 use crate::codegen::{Field, OuterFromImpl, TraitImpl, Variant};

@@ -344,7 +344,7 @@ impl Error {
         #[cfg(feature = "diagnostics")]
         {
             self.emit();
-            quote!()
+            TokenStream::default()
         }
 
         #[cfg(not(feature = "diagnostics"))]
