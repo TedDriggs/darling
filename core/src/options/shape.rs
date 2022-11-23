@@ -2,7 +2,7 @@
 //! that they only work on - for example - structs with named fields, or newtype enum variants.
 
 use proc_macro2::TokenStream;
-use quote::{ToTokens, TokenStreamExt};
+use quote::{quote, ToTokens, TokenStreamExt};
 use syn::{Meta, NestedMeta};
 
 use crate::{Error, FromMeta, Result};
@@ -232,6 +232,7 @@ fn match_arm(name: &'static str, is_supported: bool) -> TokenStream {
 #[cfg(test)]
 mod tests {
     use proc_macro2::TokenStream;
+    use quote::quote;
     use syn::parse_quote;
 
     use super::Shape;

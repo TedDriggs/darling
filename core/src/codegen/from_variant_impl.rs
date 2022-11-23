@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use quote::ToTokens;
+use quote::{quote, ToTokens};
 use syn::Ident;
 
 use crate::codegen::{ExtractAttribute, OuterFromImpl, TraitImpl};

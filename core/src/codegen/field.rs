@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use proc_macro2::TokenStream;
-use quote::{ToTokens, TokenStreamExt};
+use quote::{quote, ToTokens, TokenStreamExt};
 use syn::{Ident, Path, Type};
 
 use crate::codegen::{DefaultExpression, PostfixTransform};

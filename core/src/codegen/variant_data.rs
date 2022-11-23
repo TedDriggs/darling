@@ -1,4 +1,5 @@
 use proc_macro2::TokenStream;
+use quote::quote;
 
 use crate::ast::{Fields, Style};
 use crate::codegen::Field;
