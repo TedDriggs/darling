@@ -232,6 +232,7 @@ fn match_arm(name: &'static str, is_supported: bool) -> TokenStream {
 #[cfg(test)]
 mod tests {
     use proc_macro2::TokenStream;
+    use syn::parse_quote;
 
     use super::Shape;
     use crate::FromMeta;

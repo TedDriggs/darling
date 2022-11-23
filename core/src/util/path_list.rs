@@ -66,7 +66,7 @@ mod tests {
     use super::PathList;
     use crate::FromMeta;
     use proc_macro2::TokenStream;
-    use syn::{Attribute, Meta};
+    use syn::{parse_quote, Attribute, Meta};
 
     /// parse a string as a syn::Meta instance.
     fn pm(tokens: TokenStream) -> ::std::result::Result<Meta, String> {

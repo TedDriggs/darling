@@ -1,3 +1,5 @@
+use syn::parse_quote;
+
 use crate::{Error, FromMeta, Result};
 
 mod core;

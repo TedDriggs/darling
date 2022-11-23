@@ -6,7 +6,7 @@ macro_rules! quote {
 
 macro_rules! path {
     ($($path:tt)+) => {
-        parse_quote!($($path)+)
+        ::syn::parse_quote!($($path)+)
         //stringify!($($path)+).parse().unwrap()
     };
 }

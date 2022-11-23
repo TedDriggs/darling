@@ -1,5 +1,7 @@
 use std::borrow::Cow;
 
+use syn::parse_quote;
+
 use crate::codegen;
 use crate::options::{Core, DefaultExpression, ParseAttribute};
 use crate::{Error, FromMeta, Result};
