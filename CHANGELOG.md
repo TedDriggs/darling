@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Re-export `syn` from `darling` to avoid requiring that consuming crates have a `syn` dependency.
+
 ## v0.14.2 (October 26, 2022)
 
 - Derived impls of `FromMeta` will now error on literals, rather than silently ignoring them. [#193](https://github.com/TedDriggs/darling/pull/193)

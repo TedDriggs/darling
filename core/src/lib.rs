@@ -35,6 +35,8 @@ pub use self::from_meta::FromMeta;
 pub use self::from_type_param::FromTypeParam;
 pub use self::from_variant::FromVariant;
 
-// Re-export tokenizer
+// Re-exports
 #[doc(hidden)]
 pub use quote::ToTokens;
+#[doc(hidden)]
+pub use syn;

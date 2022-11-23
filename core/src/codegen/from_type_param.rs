@@ -51,7 +51,7 @@ impl<'a> ToTokens for FromTypeParamImpl<'a> {
 
         self.wrap(
             quote! {
-                fn from_type_param(#input: &::syn::TypeParam) -> ::darling::Result<Self> {
+                fn from_type_param(#input: &::darling::export::syn::TypeParam) -> ::darling::Result<Self> {
                     #error_declaration
 
                     #grab_attrs

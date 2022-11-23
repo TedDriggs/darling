@@ -120,7 +120,7 @@ impl<'a> ToTokens for DataMatchArm<'a> {
 
             tokens.append_all(quote!(
                 #name_in_attr => {
-                    if let ::syn::Meta::List(ref __data) = *__nested {
+                    if let ::darling::export::syn::Meta::List(ref __data) = *__nested {
                         let __items = &__data.nested;
 
                         #declare_errors
