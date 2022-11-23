@@ -23,7 +23,7 @@ impl ToTokens for FromAttributesImpl<'_> {
             if data.is_newtype() {
                 self.wrap(
                     quote! {
-                        fn from_attributes(#input: &[::syn::Attribute]) -> ::darling::Result<Self> {
+                        fn from_attributes(#input: &[::darling::export::syn::Attribute]) -> ::darling::Result<Self> {
                             ::darling::export::Ok(
                                 #ty_ident(::darling::FromAttributes::from_attributes(#input)?)
                             ) #post_transform
@@ -47,7 +47,7 @@ impl ToTokens for FromAttributesImpl<'_> {
 
         self.wrap(
             quote! {
-                fn from_attributes(#input: &[::syn::Attribute]) -> ::darling::Result<Self> {
+                fn from_attributes(#input: &[::darling::export::syn::Attribute]) -> ::darling::Result<Self> {
                     #declare_errors
 
                     #grab_attrs

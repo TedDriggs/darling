@@ -32,7 +32,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
             if data.is_newtype() {
                 self.wrap(
                     quote!{
-                        fn from_derive_input(#input: &::syn::DeriveInput) -> ::darling::Result<Self> {
+                        fn from_derive_input(#input: &::darling::export::syn::DeriveInput) -> ::darling::Result<Self> {
                             ::darling::export::Ok(
                                 #ty_ident(::darling::FromDeriveInput::from_derive_input(#input)?)
                             ) #post_transform
@@ -82,7 +82,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
 
         self.wrap(
             quote! {
-                fn from_derive_input(#input: &::syn::DeriveInput) -> ::darling::Result<Self> {
+                fn from_derive_input(#input: &::darling::export::syn::DeriveInput) -> ::darling::Result<Self> {
                     #declare_errors
 
                     #grab_attrs

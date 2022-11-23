@@ -88,7 +88,7 @@ pub trait ExtractAttribute {
         quote!(
             #declarations
             use ::darling::ToTokens;
-            let mut __fwd_attrs: ::darling::export::Vec<::syn::Attribute> = vec![];
+            let mut __fwd_attrs: ::darling::export::Vec<::darling::export::syn::Attribute> = vec![];
 
             for __attr in #attrs_accessor {
                 // Filter attributes based on name

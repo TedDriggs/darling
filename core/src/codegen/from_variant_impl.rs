@@ -76,7 +76,7 @@ impl<'a> ToTokens for FromVariantImpl<'a> {
 
         self.wrap(
             quote!(
-                fn from_variant(#input: &::syn::Variant) -> ::darling::Result<Self> {
+                fn from_variant(#input: &::darling::export::syn::Variant) -> ::darling::Result<Self> {
                     #error_declaration
 
                     #extractor

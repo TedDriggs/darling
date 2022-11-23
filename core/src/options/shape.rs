@@ -78,7 +78,7 @@ impl ToTokens for Shape {
                 quote!(return ::darling::export::Err(::darling::Error::unsupported_shape(#ty));)
             } else {
                 quote! {
-                    fn validate_variant(data: &::syn::Fields) -> ::darling::Result<()> {
+                    fn validate_variant(data: &::darling::export::syn::Fields) -> ::darling::Result<()> {
                         #en
                     }
 
@@ -92,21 +92,21 @@ impl ToTokens for Shape {
 
             quote! {
                 match *__body {
-                    ::syn::Data::Enum(ref data) => {
+                    ::darling::export::syn::Data::Enum(ref data) => {
                         #enum_validation
                     }
-                    ::syn::Data::Struct(ref struct_data) => {
+                    ::darling::export::syn::Data::Struct(ref struct_data) => {
                         let data = &struct_data.fields;
                         #st
                     }
-                    ::syn::Data::Union(_) => unreachable!(),
+                    ::darling::export::syn::Data::Union(_) => unreachable!(),
                 }
             }
         };
 
         tokens.append_all(quote! {
             #[allow(unused_variables)]
-            fn __validate_body(__body: &::syn::Data) -> ::darling::Result<()> {
+            fn __validate_body(__body: &::darling::export::syn::Data) -> ::darling::Result<()> {
                 #fn_body
             }
         });
@@ -201,10 +201,10 @@ impl ToTokens for DataShape {
             let tuple = match_arm("tuple", self.tuple);
             quote! {
                 match *data {
-                    ::syn::Fields::Unit => #unit,
-                    ::syn::Fields::Unnamed(ref fields) if fields.unnamed.len() == 1 => #newtype,
-                    ::syn::Fields::Unnamed(_) => #tuple,
-                    ::syn::Fields::Named(_) => #named,
+                    ::darling::export::syn::Fields::Unit => #unit,
+                    ::darling::export::syn::Fields::Unnamed(ref fields) if fields.unnamed.len() == 1 => #newtype,
+                    ::darling::export::syn::Fields::Unnamed(_) => #tuple,
+                    ::darling::export::syn::Fields::Named(_) => #named,
                 }
             }
         };
@@ -213,7 +213,7 @@ impl ToTokens for DataShape {
             body.to_tokens(tokens);
         } else {
             tokens.append_all(quote! {
-                fn __validate_data(data: &::syn::Fields) -> ::darling::Result<()> {
+                fn __validate_data(data: &::darling::export::syn::Fields) -> ::darling::Result<()> {
                     #body
                 }
             });
