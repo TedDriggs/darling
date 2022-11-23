@@ -605,6 +605,7 @@ hash_map!(syn::Path);
 #[cfg(test)]
 mod tests {
     use proc_macro2::TokenStream;
+    use syn::parse_quote;
 
     use crate::{Error, FromMeta, Result};
 
