@@ -3,13 +3,8 @@
 
 #[macro_use]
 extern crate quote;
-extern crate fnv;
-extern crate ident_case;
 #[cfg(feature = "diagnostics")]
 extern crate proc_macro;
-extern crate proc_macro2;
-#[cfg(feature = "suggestions")]
-extern crate strsim;
 
 #[macro_use]
 mod macros_private;
