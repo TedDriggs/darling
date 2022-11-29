@@ -25,6 +25,10 @@ proc-macro2 = "1.0.37"
 quote = "1.0.18"
 syn = "1.0.91"
 
+[target.'cfg(compiletests)'.dev-dependencies]
+rustversion = "1.0.9"
+trybuild = "1.0.38"
+
 [features]
 default = ["suggestions"]
 diagnostics = ["darling_core/diagnostics"]
