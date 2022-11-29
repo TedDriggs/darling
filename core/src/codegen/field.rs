@@ -147,7 +147,7 @@ impl<'a> ToTokens for Initializer<'a> {
         let ident = field.ident;
         tokens.append_all(if field.multiple {
             if let Some(ref expr) = field.default_expression {
-                quote!(#ident: if !#ident.is_empty() {
+                quote_spanned!(expr.span()=> #ident: if !#ident.is_empty() {
                     #ident
                 } else {
                     #expr
@@ -156,9 +156,10 @@ impl<'a> ToTokens for Initializer<'a> {
                 quote!(#ident: #ident)
             }
         } else if let Some(ref expr) = field.default_expression {
-            quote!(#ident: match #ident.1 {
-                ::darling::export::Some(__val) => __val,
-                ::darling::export::None => #expr,
+            quote_spanned!(expr.span()=> #ident: if let Some(__val) = #ident.1 {
+                __val
+            } else {
+                #expr
             })
         } else {
             quote!(#ident: #ident.1.expect("Uninitialized fields without defaults were already checked"))

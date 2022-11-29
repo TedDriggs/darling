@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens, TokenStreamExt};
-use syn::{Ident, Path};
+use quote::{quote, quote_spanned, ToTokens, TokenStreamExt};
+use syn::{spanned::Spanned, Ident, Path};
 
 /// This will be in scope during struct initialization after option parsing.
 const DEFAULT_STRUCT_NAME: &str = "__default";
@@ -28,7 +28,10 @@ impl<'a> ToTokens for DefaultExpression<'a> {
                 let dsn = Ident::new(DEFAULT_STRUCT_NAME, ::proc_macro2::Span::call_site());
                 quote!(#dsn.#ident)
             }
-            DefaultExpression::Explicit(path) => quote!(#path()),
+            DefaultExpression::Explicit(path) => {
+                // Use quote_spanned to properly set the span of the parentheses
+                quote_spanned!(path.span()=>#path())
+            }
             DefaultExpression::Trait => quote!(::darling::export::Default::default()),
         });
     }
