@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use syn::parse_quote;
+use syn::{parse_quote_spanned, spanned::Spanned};
 
 use crate::codegen;
 use crate::options::{Core, DefaultExpression, ParseAttribute};
@@ -33,7 +33,11 @@ impl InputField {
             ty: &self.ty,
             default_expression: self.as_codegen_default(),
             with_path: self.with.as_ref().map_or_else(
-                || Cow::Owned(parse_quote!(::darling::FromMeta::from_meta)),
+                || {
+                    Cow::Owned(
+                        parse_quote_spanned!(self.ty.span()=> ::darling::FromMeta::from_meta),
+                    )
+                },
                 Cow::Borrowed,
             ),
             skip: self.skip.unwrap_or_default(),
