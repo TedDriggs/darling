@@ -1,8 +1,8 @@
 use std::borrow::Cow;
 
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens, TokenStreamExt};
-use syn::{Ident, Path, Type};
+use quote::{quote, quote_spanned, ToTokens, TokenStreamExt};
+use syn::{spanned::Spanned, Ident, Path, Type};
 
 use crate::codegen::{DefaultExpression, PostfixTransform};
 use crate::usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
@@ -102,11 +102,15 @@ impl<'a> ToTokens for MatchArm<'a> {
                 quote!(#name_str)
             };
 
-            // Add the span immediately on extraction failure, so that it's as specific as possible.
+            // Give darling's generated code the span of the `with_path` so that if the target
+            // type doesn't impl FromMeta, darling's immediate user gets a properly-spanned error.
+            //
+            // Within the generated code, add the span immediately on extraction failure, so that it's
+            // as specific as possible.
             // The behavior of `with_span` makes this safe to do; if the child applied an
             // even-more-specific span, our attempt here will not overwrite that and will only cost
             // us one `if` check.
-            let extractor = quote!(#with_path(__inner)#post_transform.map_err(|e| e.with_span(&__inner).at(#location)));
+            let extractor = quote_spanned!(with_path.span()=>#with_path(__inner)#post_transform.map_err(|e| e.with_span(&__inner).at(#location)));
 
             tokens.append_all(if field.multiple {
                 quote!(
@@ -172,9 +176,14 @@ impl<'a> ToTokens for CheckMissing<'a> {
             let ty = self.0.ty;
             let name_in_attr = &self.0.name_in_attr;
 
+            // If `ty` does not impl FromMeta, the compiler error should point
+            // at the offending type rather than at the derive-macro call site.
+            let from_none_call =
+                quote_spanned!(ty.span()=> <#ty as ::darling::FromMeta>::from_none());
+
             tokens.append_all(quote! {
                 if !#ident.0 {
-                    match <#ty as ::darling::FromMeta>::from_none() {
+                    match #from_none_call {
                         ::darling::export::Some(__type_fallback) => {
                             #ident.1 = ::darling::export::Some(__type_fallback);
                         }
