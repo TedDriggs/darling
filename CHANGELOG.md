@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Re-export `syn` from `darling` to avoid requiring that consuming crates have a `syn` dependency.
+- Change `<SpannedValue<T> as FromMeta>` impl to more precisely capture the _value_ span, as opposed to the span of the entire item.
 
 ## v0.14.2 (October 26, 2022)
 
