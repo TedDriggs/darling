@@ -10,7 +10,7 @@ use crate::codegen::{Field, FieldsGen};
 use crate::usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
 
 /// A variant of the enum which is deriving `FromMeta`.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub struct Variant<'a> {
     /// The name which will appear in code passed to the `FromMeta` input.
     pub name_in_attr: Cow<'a, String>,
