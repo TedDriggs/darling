@@ -4,6 +4,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::spanned::Spanned;
 
+use crate::from_data::FromData;
 use crate::usage::{
     self, IdentRefSet, IdentSet, LifetimeRefSet, LifetimeSet, UsesLifetimes, UsesTypeParams,
 };
@@ -136,6 +137,12 @@ impl<V: FromVariant, F: FromField> Data<V, F> {
             // putting it on the union keyword ends up being confusing.
             syn::Data::Union(_) => Err(Error::custom("Unions are not supported")),
         }
+    }
+}
+
+impl<V: FromVariant, F: FromField> FromData for Data<V, F> {
+    fn from_data(data: &syn::Data) -> Result<Self> {
+        Self::try_from(data)
     }
 }
 

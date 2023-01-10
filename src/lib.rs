@@ -75,7 +75,7 @@ pub use darling_macro::*;
 
 #[doc(inline)]
 pub use darling_core::{
-    FromAttributes, FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta,
+    FromAttributes, FromData, FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta,
     FromTypeParam, FromVariant,
 };
 

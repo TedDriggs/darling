@@ -58,7 +58,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
         let passed_body = self
             .data
             .as_ref()
-            .map(|i| quote!(#i: ::darling::ast::Data::try_from(&#input.data)?,));
+            .map(|i| quote!(#i: ::darling::FromData::from_data(&#input.data)?,));
 
         let supports = self.supports.map(|i| {
             quote! {
