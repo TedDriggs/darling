@@ -1,4 +1,5 @@
 use crate::{
+    usage::{UsesLifetimes, UsesTypeParams},
     FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta, FromTypeParam,
     FromVariant, Result,
 };
@@ -33,3 +34,25 @@ with_original!(FromGenericParam, from_generic_param, syn::GenericParam);
 with_original!(FromMeta, from_meta, syn::Meta);
 with_original!(FromTypeParam, from_type_param, syn::TypeParam);
 with_original!(FromVariant, from_variant, syn::Variant);
+
+/// Get the lifetime usage of `parsed`.
+impl<P: UsesLifetimes, O> UsesLifetimes for WithOriginal<P, O> {
+    fn uses_lifetimes<'a>(
+        &self,
+        options: &crate::usage::Options,
+        lifetimes: &'a crate::usage::LifetimeSet,
+    ) -> crate::usage::LifetimeRefSet<'a> {
+        self.parsed.uses_lifetimes(options, lifetimes)
+    }
+}
+
+/// Get the type param usage of `parsed`.
+impl<P: UsesTypeParams, O> UsesTypeParams for WithOriginal<P, O> {
+    fn uses_type_params<'a>(
+        &self,
+        options: &crate::usage::Options,
+        type_set: &'a crate::usage::IdentSet,
+    ) -> crate::usage::IdentRefSet<'a> {
+        self.parsed.uses_type_params(options, type_set)
+    }
+}
