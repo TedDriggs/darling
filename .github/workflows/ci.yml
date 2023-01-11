@@ -26,10 +26,9 @@ jobs:
           - { rust: 1.31.0, os: windows-latest }
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
-          override: true
       - uses: Swatinem/rust-cache@v1
       - name: Check Cargo availability
         run: cargo --version
@@ -44,10 +43,7 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          override: true
+      - uses: dtolnay/rust-toolchain@nightly
       - uses: Swatinem/rust-cache@v1
       - name: Check Cargo availability
         run: cargo --version
@@ -60,11 +56,8 @@ jobs:
       RUSTFLAGS: -Dwarnings
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
           components: clippy
       - uses: Swatinem/rust-cache@v1
       - name: Run clippy --workspace --tests
@@ -75,15 +68,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
           components: rustfmt
       - uses: Swatinem/rust-cache@v1
       - name: Run fmt --all -- --check
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+        run: cargo fmt --all -- --check
