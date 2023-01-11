@@ -11,13 +11,8 @@ jobs:
             RUSTFLAGS: "--cfg compiletests"
 
         steps:
-            - uses: actions/checkout@v2
-
-            - uses: actions-rs/toolchain@v1
-              with:
-                  toolchain: 1.65.0
-                  override: true
-
+            - uses: actions/checkout@v3
+            - uses: dtolnay/rust-toolchain@1.65.0
             - name: main crate
               run: |
                   cargo build --verbose
