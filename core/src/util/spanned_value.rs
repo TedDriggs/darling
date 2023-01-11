@@ -3,7 +3,7 @@ use std::ops::{Deref, DerefMut};
 use syn::spanned::Spanned;
 
 use crate::{
-    FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta, FromTypeParam,
+    FromData, FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta, FromTypeParam,
     FromVariant, Result,
 };
 
@@ -102,6 +102,28 @@ impl<T: FromMeta> FromMeta for SpannedValue<T> {
         };
 
         Ok(Self::new(value, span))
+    }
+}
+
+impl<T: FromData> FromData for SpannedValue<T> {
+    fn from_data(data: &syn::Data) -> Result<Self> {
+        match data {
+            syn::Data::Struct(st) => {
+                let span = st.fields.span();
+                let value = T::from_data(data).map_err(|e| e.with_span(&st.fields))?;
+                Ok(Self::new(value, span))
+            }
+            syn::Data::Enum(nm) => {
+                let span = nm.variants.span();
+                let value = T::from_data(data).map_err(|e| e.with_span(&nm.variants))?;
+                Ok(Self::new(value, span))
+            }
+            syn::Data::Union(un) => {
+                let span = un.fields.span();
+                let value = T::from_data(data).map_err(|e| e.with_span(&un.fields))?;
+                Ok(Self::new(value, span))
+            }
+        }
     }
 }
 

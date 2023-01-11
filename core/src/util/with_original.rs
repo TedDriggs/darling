@@ -1,5 +1,5 @@
 use crate::{
-    FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta, FromTypeParam,
+    FromData, FromDeriveInput, FromField, FromGenericParam, FromGenerics, FromMeta, FromTypeParam,
     FromVariant, Result,
 };
 
@@ -33,3 +33,4 @@ with_original!(FromGenericParam, from_generic_param, syn::GenericParam);
 with_original!(FromMeta, from_meta, syn::Meta);
 with_original!(FromTypeParam, from_type_param, syn::TypeParam);
 with_original!(FromVariant, from_variant, syn::Variant);
+with_original!(FromData, from_data, syn::Data);
