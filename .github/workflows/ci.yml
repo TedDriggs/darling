@@ -29,7 +29,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - name: Check Cargo availability
         run: cargo --version
       - run: cargo test --verbose --all
@@ -44,7 +44,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - name: Check Cargo availability
         run: cargo --version
       - run: cargo test --verbose --workspace --features diagnostics
@@ -59,7 +59,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - name: Run clippy --workspace --tests
         run: cargo clippy --workspace --tests
 
@@ -71,6 +71,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
       - name: Run fmt --all -- --check
         run: cargo fmt --all -- --check
