@@ -5,7 +5,7 @@ use syn::Ident;
 use crate::{
     ast::Data,
     codegen::{ExtractAttribute, OuterFromImpl, TraitImpl},
-    options::{ForwardAttrs, Shape},
+    options::{DeriveInputShapeSet, ForwardAttrs},
     util::PathList,
 };
 
@@ -19,7 +19,7 @@ pub struct FromDeriveInputImpl<'a> {
     pub attr_names: &'a PathList,
     pub forward_attrs: Option<&'a ForwardAttrs>,
     pub from_ident: bool,
-    pub supports: Option<&'a Shape>,
+    pub supports: Option<&'a DeriveInputShapeSet>,
 }
 
 impl<'a> ToTokens for FromDeriveInputImpl<'a> {
