@@ -27,7 +27,7 @@ pub use self::from_variant::FromVariantOptions;
 pub use self::input_field::InputField;
 pub use self::input_variant::InputVariant;
 pub use self::outer_from::OuterFrom;
-pub use self::shape::{DataShape, Shape};
+pub use self::shape::{DataShape, DeriveInputShapeSet};
 
 /// A default/fallback expression encountered in attributes during parsing.
 #[derive(Debug, Clone)]
