@@ -180,7 +180,10 @@ impl ShapeSet {
         if self.contains_shape(shape) {
             Ok(())
         } else {
-            Err(crate::Error::unsupported_shape(shape.description()))
+            Err(crate::Error::unsupported_shape_with_expected(
+                shape.description(),
+                self,
+            ))
         }
     }
 
