@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased 
+- Add support for child diagnostics when `diagnostics` feature enabled [#224](https://github.com/TedDriggs/darling/issues/224)
+
 ## v0.14.3 (February 3, 2023)
 
 - Re-export `syn` from `darling` to avoid requiring that consuming crates have a `syn` dependency.
