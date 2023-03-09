@@ -1,6 +1,7 @@
 # Changelog
 
-## Unreleased 
+## v0.14.4 (March 9, 2023)
+
 - Add support for child diagnostics when `diagnostics` feature enabled [#224](https://github.com/TedDriggs/darling/issues/224)
 
 ## v0.14.3 (February 3, 2023)
