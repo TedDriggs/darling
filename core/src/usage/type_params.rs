@@ -87,8 +87,8 @@ impl<T: UsesTypeParams, U> UsesTypeParams for Punctuated<T, U> {
 }
 
 uses_type_params!(syn::AngleBracketedGenericArguments, args);
+uses_type_params!(syn::AssocType, ty);
 uses_type_params!(syn::BareFnArg, ty);
-uses_type_params!(syn::Binding, ty);
 uses_type_params!(syn::Constraint, bounds);
 uses_type_params!(syn::DataEnum, variants);
 uses_type_params!(syn::DataStruct, fields);
@@ -96,7 +96,6 @@ uses_type_params!(syn::DataUnion, fields);
 uses_type_params!(syn::Field, ty);
 uses_type_params!(syn::FieldsNamed, named);
 uses_type_params!(syn::ParenthesizedGenericArguments, inputs, output);
-uses_type_params!(syn::PredicateEq, lhs_ty, rhs_ty);
 uses_type_params!(syn::PredicateType, bounded_ty, bounds);
 uses_type_params!(syn::QSelf, ty);
 uses_type_params!(syn::TraitBound, path);
@@ -217,7 +216,8 @@ impl UsesTypeParams for syn::WherePredicate {
         match *self {
             syn::WherePredicate::Lifetime(_) => Default::default(),
             syn::WherePredicate::Type(ref v) => v.uses_type_params(options, type_set),
-            syn::WherePredicate::Eq(ref v) => v.uses_type_params(options, type_set),
+            // non-exhaustive enum
+            _ => Default::default(),
         }
     }
 }
@@ -226,11 +226,13 @@ impl UsesTypeParams for syn::GenericArgument {
     fn uses_type_params<'a>(&self, options: &Options, type_set: &'a IdentSet) -> IdentRefSet<'a> {
         match *self {
             syn::GenericArgument::Type(ref v) => v.uses_type_params(options, type_set),
-            syn::GenericArgument::Binding(ref v) => v.uses_type_params(options, type_set),
+            syn::GenericArgument::AssocType(ref v) => v.uses_type_params(options, type_set),
             syn::GenericArgument::Constraint(ref v) => v.uses_type_params(options, type_set),
-            syn::GenericArgument::Const(_) | syn::GenericArgument::Lifetime(_) => {
-                Default::default()
-            }
+            syn::GenericArgument::AssocConst(_)
+            | syn::GenericArgument::Const(_)
+            | syn::GenericArgument::Lifetime(_) => Default::default(),
+            // non-exhaustive enum
+            _ => Default::default(),
         }
     }
 }
@@ -240,6 +242,8 @@ impl UsesTypeParams for syn::TypeParamBound {
         match *self {
             syn::TypeParamBound::Trait(ref v) => v.uses_type_params(options, type_set),
             syn::TypeParamBound::Lifetime(_) => Default::default(),
+            // non-exhaustive enum
+            _ => Default::default(),
         }
     }
 }
