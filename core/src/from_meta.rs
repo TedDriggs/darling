@@ -7,9 +7,11 @@ use std::rc::Rc;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
-use syn::{Expr, Lit, Meta, NestedMeta};
+use syn::{Expr, Lit, Meta};
 
-use crate::{util::path_to_string, Error, Result};
+use crate::ast::NestedMeta;
+use crate::util::path_to_string;
+use crate::{Error, Result};
 
 /// Create an instance from an item in an attribute declaration.
 ///
@@ -47,14 +49,6 @@ use crate::{util::path_to_string, Error, Result};
 /// * Allows for fallible parsing; will populate the target field with the result of the
 ///   parse attempt.
 pub trait FromMeta: Sized {
-    fn from_nested_meta(item: &NestedMeta) -> Result<Self> {
-        (match *item {
-            NestedMeta::Lit(ref lit) => Self::from_value(lit),
-            NestedMeta::Meta(ref mi) => Self::from_meta(mi),
-        })
-        .map_err(|e| e.with_span(item))
-    }
-
     /// Create an instance from a `syn::Meta` by dispatching to the format-appropriate
     /// trait function. This generally should not be overridden by implementers.
     ///
@@ -66,14 +60,10 @@ pub trait FromMeta: Sized {
     fn from_meta(item: &Meta) -> Result<Self> {
         (match *item {
             Meta::Path(_) => Self::from_word(),
-            Meta::List(ref value) => Self::from_list(
-                &value
-                    .nested
-                    .iter()
-                    .cloned()
-                    .collect::<Vec<syn::NestedMeta>>()[..],
-            ),
-            Meta::NameValue(ref value) => Self::from_value(&value.lit),
+            Meta::List(ref value) => {
+                Self::from_list(&NestedMeta::parse_meta_list(value.tokens.clone())?[..])
+            }
+            Meta::NameValue(ref value) => Self::from_expr(&value.value),
         })
         .map_err(|e| e.with_span(item))
     }
@@ -119,6 +109,14 @@ pub trait FromMeta: Sized {
             _ => Err(Error::unexpected_lit_type(value)),
         })
         .map_err(|e| e.with_span(value))
+    }
+
+    fn from_expr(expr: &Expr) -> Result<Self> {
+        match *expr {
+            Expr::Lit(ref lit) => Self::from_value(&lit.lit),
+            _ => Err(Error::unexpected_expr_type(expr)),
+        }
+        .map_err(|e| e.with_span(expr))
     }
 
     /// Create an instance from a char literal in a value position.
@@ -519,7 +517,7 @@ impl KeyFromPath for syn::Ident {
 macro_rules! hash_map {
     ($key:ty) => {
         impl<V: FromMeta, S: BuildHasher + Default> FromMeta for HashMap<$key, V, S> {
-            fn from_list(nested: &[syn::NestedMeta]) -> Result<Self> {
+            fn from_list(nested: &[NestedMeta]) -> Result<Self> {
                 // Convert the nested meta items into a sequence of (path, value result) result tuples.
                 // An outer Err means no (key, value) structured could be found, while an Err in the
                 // second position of the tuple means that value was rejected by FromMeta.
@@ -530,14 +528,14 @@ macro_rules! hash_map {
                     .iter()
                     .map(|item| -> Result<(&syn::Path, Result<V>)> {
                         match *item {
-                            syn::NestedMeta::Meta(ref inner) => {
+                            NestedMeta::Meta(ref inner) => {
                                 let path = inner.path();
                                 Ok((
                                     path,
                                     FromMeta::from_meta(inner).map_err(|e| e.at_path(&path)),
                                 ))
                             }
-                            syn::NestedMeta::Lit(_) => Err(Error::unsupported_format("literal")),
+                            NestedMeta::Lit(_) => Err(Error::unsupported_format("expression")),
                         }
                     });
 
@@ -613,7 +611,7 @@ mod tests {
     /// parse a string as a syn::Meta instance.
     fn pm(tokens: TokenStream) -> ::std::result::Result<syn::Meta, String> {
         let attribute: syn::Attribute = parse_quote!(#[#tokens]);
-        attribute.parse_meta().map_err(|_| "Unable to parse".into())
+        Ok(attribute.meta)
     }
 
     fn fm<T: FromMeta>(tokens: TokenStream) -> T {
