@@ -1,6 +1,6 @@
+use crate::ast::NestedMeta;
 use crate::util::PathList;
 use crate::{FromMeta, Result};
-use crate::ast::NestedMeta;
 
 /// A rule about which attributes to forward to the generated struct.
 #[derive(Debug, Clone, PartialEq, Eq)]

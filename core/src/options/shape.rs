@@ -5,8 +5,8 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens, TokenStreamExt};
 use syn::{parse_quote, Meta};
 
-use crate::{Error, FromMeta, Result};
 use crate::ast::NestedMeta;
+use crate::{Error, FromMeta, Result};
 
 /// Receiver struct for shape validation. Shape validation allows a deriving type
 /// to declare that it only accepts - for example - named structs, or newtype enum
