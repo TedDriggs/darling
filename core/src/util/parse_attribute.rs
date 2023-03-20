@@ -56,18 +56,21 @@ mod tests {
     use super::parse_attribute_to_meta_list;
     use syn::spanned::Spanned;
     use syn::{parse_quote, Ident};
+    use crate::ast::NestedMeta;
 
     #[test]
     fn parse_list() {
         let meta = parse_attribute_to_meta_list(&parse_quote!(#[bar(baz = 4)])).unwrap();
-        assert_eq!(meta.nested.len(), 1);
+        let nested_meta = NestedMeta::parse_meta_list(meta.tokens.clone()).unwrap();
+        assert_eq!(nested_meta.len(), 1);
     }
 
     #[test]
     fn parse_path_returns_empty_list() {
         let meta = parse_attribute_to_meta_list(&parse_quote!(#[bar])).unwrap();
+        let nested_meta = NestedMeta::parse_meta_list(meta.tokens.clone()).unwrap();
         assert!(meta.path.is_ident(&Ident::new("bar", meta.path.span())));
-        assert!(meta.nested.is_empty());
+        assert!(nested_meta.is_empty());
     }
 
     #[test]
