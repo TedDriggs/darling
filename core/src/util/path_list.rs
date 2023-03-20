@@ -2,8 +2,8 @@ use std::ops::Deref;
 
 use syn::{Meta, Path};
 
-use crate::{Error, FromMeta, Result};
 use crate::ast::NestedMeta;
+use crate::{Error, FromMeta, Result};
 
 use super::path_to_string;
 

@@ -13,7 +13,7 @@ use std::iter::{self, Iterator};
 use std::string::ToString;
 use std::vec;
 use syn::spanned::Spanned;
-use syn::{Lit, LitStr, Path, Expr};
+use syn::{Expr, Lit, LitStr, Path};
 
 #[cfg(feature = "diagnostics")]
 mod child;

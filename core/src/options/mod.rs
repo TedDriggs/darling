@@ -1,8 +1,8 @@
 use proc_macro2::Span;
 use syn::{parse_quote, spanned::Spanned};
 
-use crate::{Error, FromMeta, Result};
 use crate::ast::NestedMeta;
+use crate::{Error, FromMeta, Result};
 
 mod core;
 mod forward_attrs;

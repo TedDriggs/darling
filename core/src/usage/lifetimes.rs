@@ -263,8 +263,9 @@ impl UsesLifetimes for syn::GenericArgument {
             syn::GenericArgument::AssocType(ref v) => v.uses_lifetimes(options, lifetimes),
             syn::GenericArgument::Lifetime(ref v) => v.uses_lifetimes(options, lifetimes),
             syn::GenericArgument::Constraint(ref v) => v.uses_lifetimes(options, lifetimes),
-            syn::GenericArgument::AssocConst(_)
-            | syn::GenericArgument::Const(_) => Default::default(),
+            syn::GenericArgument::AssocConst(_) | syn::GenericArgument::Const(_) => {
+                Default::default()
+            }
             // non-exhaustive enum
             _ => Default::default(),
         }
