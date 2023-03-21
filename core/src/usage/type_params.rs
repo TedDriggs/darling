@@ -327,7 +327,7 @@ mod tests {
 
     #[test]
     fn box_fn_output() {
-        let input: DeriveInput = parse_quote! { struct Foo<T>(Box<Fn() -> T>); };
+        let input: DeriveInput = parse_quote! { struct Foo<T>(Box<dyn Fn() -> T>); };
         let generics = ident_set(vec!["T"]);
         let matches = input.data.uses_type_params(&BoundImpl.into(), &generics);
         assert_eq!(matches.len(), 1);
@@ -336,7 +336,7 @@ mod tests {
 
     #[test]
     fn box_fn_input() {
-        let input: DeriveInput = parse_quote! { struct Foo<T>(Box<Fn(&T) -> ()>); };
+        let input: DeriveInput = parse_quote! { struct Foo<T>(Box<dyn Fn(&T) -> ()>); };
         let generics = ident_set(vec!["T"]);
         let matches = input.data.uses_type_params(&BoundImpl.into(), &generics);
         assert_eq!(matches.len(), 1);
