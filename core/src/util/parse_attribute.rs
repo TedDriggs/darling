@@ -54,9 +54,9 @@ impl fmt::Display for DisplayPath<'_> {
 #[cfg(test)]
 mod tests {
     use super::parse_attribute_to_meta_list;
+    use crate::ast::NestedMeta;
     use syn::spanned::Spanned;
     use syn::{parse_quote, Ident};
-    use crate::ast::NestedMeta;
 
     #[test]
     fn parse_list() {
