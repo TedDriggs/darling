@@ -1,76 +1,76 @@
 name: CI
 
 on:
-  push:
-  pull_request:
-  schedule: [cron: "40 1 * * *"]
+    push:
+    pull_request:
+    schedule: [cron: "40 1 * * *"]
 
 env:
-  RUST_BACKTRACE: 1
+    RUST_BACKTRACE: 1
 
 jobs:
-  test:
-    name: Test Rust ${{ matrix.rust }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { rust: nightly, os: ubuntu-latest }
-          - { rust: nightly, os: macos-latest }
-          - { rust: nightly, os: windows-latest }
-          - { rust: stable, os: ubuntu-latest }
-          - { rust: stable, os: macos-latest }
-          - { rust: stable, os: windows-latest }
-          - { rust: 1.31.0, os: ubuntu-latest }
-          - { rust: 1.31.0, os: windows-latest }
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ matrix.rust }}
-      - uses: Swatinem/rust-cache@v2
-      - name: Check Cargo availability
-        run: cargo --version
-      - run: cargo test --verbose --all
-      - run: cargo test --verbose --manifest-path core/Cargo.toml --no-default-features
+    test:
+        name: Test Rust ${{ matrix.rust }} on ${{ matrix.os }}
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - { rust: nightly, os: ubuntu-latest }
+                    - { rust: nightly, os: macos-latest }
+                    - { rust: nightly, os: windows-latest }
+                    - { rust: stable, os: ubuntu-latest }
+                    - { rust: stable, os: macos-latest }
+                    - { rust: stable, os: windows-latest }
+                    - { rust: 1.56.0, os: ubuntu-latest }
+                    - { rust: 1.56.0, os: windows-latest }
+        steps:
+            - uses: actions/checkout@v3
+            - uses: dtolnay/rust-toolchain@master
+              with:
+                  toolchain: ${{ matrix.rust }}
+            - uses: Swatinem/rust-cache@v2
+            - name: Check Cargo availability
+              run: cargo --version
+            - run: cargo test --verbose --all
+            - run: cargo test --verbose --manifest-path core/Cargo.toml --no-default-features
 
-  # Diagnostics are remaining a nightly-only feature for the foreseeable future, but
-  # we don't want them to break without us realizing.
-  test_diagnostics:
-    name: Test nightly with diagnostics feature
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@nightly
-      - uses: Swatinem/rust-cache@v2
-      - name: Check Cargo availability
-        run: cargo --version
-      - run: cargo test --verbose --workspace --features diagnostics
+    # Diagnostics are remaining a nightly-only feature for the foreseeable future, but
+    # we don't want them to break without us realizing.
+    test_diagnostics:
+        name: Test nightly with diagnostics feature
+        runs-on: ubuntu-latest
+        continue-on-error: true
+        steps:
+            - uses: actions/checkout@v3
+            - uses: dtolnay/rust-toolchain@nightly
+            - uses: Swatinem/rust-cache@v2
+            - name: Check Cargo availability
+              run: cargo --version
+            - run: cargo test --verbose --workspace --features diagnostics
 
-  clippy:
-    name: Lint with clippy
-    runs-on: ubuntu-latest
-    env:
-      RUSTFLAGS: -Dwarnings
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
-      - uses: Swatinem/rust-cache@v2
-      - name: Run clippy --workspace --tests
-        run: cargo clippy --workspace --tests
+    clippy:
+        name: Lint with clippy
+        runs-on: ubuntu-latest
+        env:
+            RUSTFLAGS: -Dwarnings
+        steps:
+            - uses: actions/checkout@v3
+            - uses: dtolnay/rust-toolchain@stable
+              with:
+                  components: clippy
+            - uses: Swatinem/rust-cache@v2
+            - name: Run clippy --workspace --tests
+              run: cargo clippy --workspace --tests
 
-  rustfmt:
-    name: Verify code formatting
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
-      - uses: Swatinem/rust-cache@v2
-      - name: Run fmt --all -- --check
-        run: cargo fmt --all -- --check
+    rustfmt:
+        name: Verify code formatting
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+            - uses: dtolnay/rust-toolchain@stable
+              with:
+                  components: rustfmt
+            - uses: Swatinem/rust-cache@v2
+            - name: Run fmt --all -- --check
+              run: cargo fmt --all -- --check
