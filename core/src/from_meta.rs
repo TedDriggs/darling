@@ -122,6 +122,7 @@ pub trait FromMeta: Sized {
     fn from_expr(expr: &Expr) -> Result<Self> {
         match *expr {
             Expr::Lit(ref lit) => Self::from_value(&lit.lit),
+            Expr::Group(ref group) => Self::from_expr(&group.expr),
             _ => Err(Error::unexpected_expr_type(expr)),
         }
         .map_err(|e| e.with_span(expr))
