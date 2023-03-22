@@ -61,14 +61,14 @@ mod tests {
     #[test]
     fn parse_list() {
         let meta = parse_attribute_to_meta_list(&parse_quote!(#[bar(baz = 4)])).unwrap();
-        let nested_meta = NestedMeta::parse_meta_list(meta.tokens.clone()).unwrap();
+        let nested_meta = NestedMeta::parse_meta_list(meta.tokens).unwrap();
         assert_eq!(nested_meta.len(), 1);
     }
 
     #[test]
     fn parse_path_returns_empty_list() {
         let meta = parse_attribute_to_meta_list(&parse_quote!(#[bar])).unwrap();
-        let nested_meta = NestedMeta::parse_meta_list(meta.tokens.clone()).unwrap();
+        let nested_meta = NestedMeta::parse_meta_list(meta.tokens).unwrap();
         assert!(meta.path.is_ident(&Ident::new("bar", meta.path.span())));
         assert!(nested_meta.is_empty());
     }
