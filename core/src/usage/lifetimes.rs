@@ -295,6 +295,7 @@ impl UsesLifetimes for syn::TypeParamBound {
         match *self {
             syn::TypeParamBound::Trait(ref v) => v.uses_lifetimes(options, lifetimes),
             syn::TypeParamBound::Lifetime(ref v) => v.uses_lifetimes(options, lifetimes),
+            // non-exhaustive enum
             _ => Default::default(),
         }
     }
