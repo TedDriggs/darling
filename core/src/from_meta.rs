@@ -49,6 +49,14 @@ use crate::{Error, Result};
 /// * Allows for fallible parsing; will populate the target field with the result of the
 ///   parse attempt.
 pub trait FromMeta: Sized {
+    fn from_nested_meta(item: &NestedMeta) -> Result<Self> {
+        (match *item {
+            NestedMeta::Lit(ref lit) => Self::from_value(lit),
+            NestedMeta::Meta(ref mi) => Self::from_meta(mi),
+        })
+        .map_err(|e| e.with_span(item))
+    }
+
     /// Create an instance from a `syn::Meta` by dispatching to the format-appropriate
     /// trait function. This generally should not be overridden by implementers.
     ///
