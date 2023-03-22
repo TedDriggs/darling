@@ -55,7 +55,7 @@ pub trait ExtractAttribute {
                 #(#attr_names)|* => {
                     match ::darling::util::parse_attribute_to_meta_list(__attr) {
                         ::darling::export::Ok(__data) => {
-                            match ::darling::export::NestedMeta::parse_meta_list(__data.tokens.clone()) {
+                            match ::darling::export::NestedMeta::parse_meta_list(__data.tokens) {
                                 ::darling::export::Ok(ref __items) => {
                                     if __items.is_empty() {
                                         continue;
