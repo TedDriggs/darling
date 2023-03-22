@@ -307,6 +307,7 @@ impl Error {
     /// overridden:
     ///
     /// * `FromMeta::from_meta`
+    /// * `FromMeta::from_nested_meta`
     /// * `FromMeta::from_value`
     pub fn with_span<T: Spanned>(mut self, node: &T) -> Self {
         if !self.has_span() {
