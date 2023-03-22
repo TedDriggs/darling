@@ -23,7 +23,7 @@ pub trait GenericParamExt {
     }
 
     /// If this GenericParam is a lifetime, get the underlying value.
-    fn as_lifetime_def(&self) -> Option<&Self::LifetimeParam> {
+    fn as_lifetime_param(&self) -> Option<&Self::LifetimeParam> {
         None
     }
 
@@ -46,7 +46,7 @@ impl GenericParamExt for syn::GenericParam {
         }
     }
 
-    fn as_lifetime_def(&self) -> Option<&Self::LifetimeParam> {
+    fn as_lifetime_param(&self) -> Option<&Self::LifetimeParam> {
         if let syn::GenericParam::Lifetime(ref val) = *self {
             Some(val)
         } else {
@@ -114,7 +114,7 @@ impl<T, L, C> GenericParamExt for GenericParam<T, L, C> {
         }
     }
 
-    fn as_lifetime_def(&self) -> Option<&L> {
+    fn as_lifetime_param(&self) -> Option<&L> {
         if let GenericParam::Lifetime(ref val) = *self {
             Some(val)
         } else {
