@@ -69,8 +69,9 @@ This will produce a normal `darling::Result<T>` that can be used the same as a r
 ## Macro Code
 
 ```rust,ignore
-use darling::FromMeta;
-use syn::{AttributeArgs, ItemFn};
+use darling::{Error, FromMeta};
+use darling::ast::NestedMeta;
+use syn::ItemFn;
 use proc_macro::TokenStream;
 
 #[derive(Debug, FromMeta)]
@@ -80,10 +81,13 @@ pub struct MacroArgs {
     path: String,
 }
 
-#[proc_macro_attribute]
+// #[proc_macro_attribute]
 fn your_attr(args: TokenStream, input: TokenStream) -> TokenStream {
-    let attr_args = parse_macro_input!(args as AttributeArgs);
-    let _input = parse_macro_input!(input as ItemFn);
+    let attr_args = match NestedMeta::parse_meta_list(args) {
+        Ok(v) => v,
+        Err(e) => { return TokenStream::from(Error::from(e).write_errors()); }
+    };
+    let _input = syn::parse_macro_input!(input as ItemFn);
 
     let _args = match MacroArgs::from_list(&attr_args) {
         Ok(v) => v,
