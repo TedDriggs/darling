@@ -274,6 +274,74 @@ impl<T: syn::parse::Parse, P: syn::parse::Parse> FromMeta for syn::punctuated::P
     }
 }
 
+/// Support for arbitrary expressions as values in a meta item.
+///
+/// For backwards-compatibility to versions of `darling` based on `syn` 1,
+/// string literals will be "unwrapped" and their contents will be parsed
+/// as an expression.
+impl FromMeta for syn::Expr {
+    fn from_expr(expr: &Expr) -> Result<Self> {
+        if let syn::Expr::Lit(expr_lit) = expr {
+            if let syn::Lit::Str(_) = &expr_lit.lit {
+                return Self::from_value(&expr_lit.lit);
+            }
+        }
+
+        Ok(expr.clone())
+    }
+
+    fn from_string(value: &str) -> Result<Self> {
+        syn::parse_str(value).map_err(|_| Error::unknown_value(value))
+    }
+
+    fn from_value(value: &::syn::Lit) -> Result<Self> {
+        if let ::syn::Lit::Str(ref v) = *value {
+            v.parse::<syn::Expr>()
+                .map_err(|_| Error::unknown_lit_str_value(v))
+        } else {
+            Err(Error::unexpected_lit_type(value))
+        }
+    }
+}
+
+/// Adapter for various expression types.
+///
+/// Prior to syn 2.0, darling supported arbitrary expressions as long as they
+/// were wrapped in quotation marks. This was helpful for people writing
+/// libraries that needed expressions, but it now creates an ambiguity when
+/// parsing a meta item.
+///
+/// To address this, the macro supports both formats; if it cannot parse the
+/// item as an expression of the right type and the passed-in expression is
+/// a string literal, it will fall back to parsing the string contents.
+macro_rules! from_syn_expr_type {
+    ($ty:path, $variant:ident) => {
+        impl FromMeta for $ty {
+            fn from_expr(expr: &syn::Expr) -> Result<Self> {
+                if let syn::Expr::$variant(body) = expr {
+                    Ok(body.clone())
+                } else if let syn::Expr::Lit(expr_lit) = expr {
+                    Self::from_value(&expr_lit.lit)
+                } else {
+                    Err(Error::unexpected_expr_type(expr))
+                }
+            }
+
+            fn from_value(value: &::syn::Lit) -> Result<Self> {
+                if let syn::Lit::Str(body) = &value {
+                    body.parse::<$ty>()
+                        .map_err(|_| Error::unknown_lit_str_value(body))
+                } else {
+                    Err(Error::unexpected_lit_type(value))
+                }
+            }
+        }
+    };
+}
+
+from_syn_expr_type!(syn::ExprArray, Array);
+from_syn_expr_type!(syn::ExprPath, Path);
+
 /// Adapter from `syn::parse::Parse` to `FromMeta`.
 ///
 /// This cannot be a blanket impl, due to the `syn::Lit` family's need to handle non-string values.
@@ -298,9 +366,6 @@ macro_rules! from_syn_parse {
 }
 
 from_syn_parse!(syn::Ident);
-from_syn_parse!(syn::Expr);
-from_syn_parse!(syn::ExprArray);
-from_syn_parse!(syn::ExprPath);
 from_syn_parse!(syn::Path);
 from_syn_parse!(syn::Type);
 from_syn_parse!(syn::TypeArray);
@@ -325,11 +390,9 @@ macro_rules! from_numeric_array {
     ($ty:ident) => {
         /// Parsing an unsigned integer array, i.e. `example = "[1, 2, 3, 4]"`.
         impl FromMeta for Vec<$ty> {
-            fn from_value(value: &Lit) -> Result<Self> {
-                let expr_array = syn::ExprArray::from_value(value)?;
-                // To meet rust <1.36 borrow checker rules on expr_array.elems
-                let v =
-                    expr_array
+            fn from_expr(expr: &syn::Expr) -> Result<Self> {
+                if let syn::Expr::Array(expr_array) = expr {
+                    let v = expr_array
                         .elems
                         .iter()
                         .map(|expr| match expr {
@@ -338,7 +401,17 @@ macro_rules! from_numeric_array {
                                 .with_span(expr)),
                         })
                         .collect::<Result<Vec<$ty>>>();
-                v
+                    v
+                } else if let syn::Expr::Lit(expr_lit) = expr {
+                    Self::from_value(&expr_lit.lit)
+                } else {
+                    Err(Error::unexpected_expr_type(expr))
+                }
+            }
+
+            fn from_value(value: &Lit) -> Result<Self> {
+                let expr_array = syn::ExprArray::from_value(value)?;
+                Self::from_expr(&syn::Expr::Array(expr_array))
             }
         }
     };
@@ -623,6 +696,7 @@ mod tests {
         Ok(attribute.meta)
     }
 
+    #[track_caller]
     fn fm<T: FromMeta>(tokens: TokenStream) -> T {
         FromMeta::from_meta(&pm(tokens).expect("Tests should pass well-formed input"))
             .expect("Tests should pass valid input")
@@ -836,10 +910,7 @@ mod tests {
 
     #[test]
     fn test_number_array() {
-        assert_eq!(
-            fm::<Vec<u8>>(quote!(ignore = "[16, 0xff]")),
-            vec![0x10, 0xff]
-        );
+        assert_eq!(fm::<Vec<u8>>(quote!(ignore = [16, 0xff])), vec![0x10, 0xff]);
         assert_eq!(
             fm::<Vec<u16>>(quote!(ignore = "[32, 0xffff]")),
             vec![0x20, 0xffff]
