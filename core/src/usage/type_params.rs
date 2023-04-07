@@ -217,7 +217,8 @@ impl UsesTypeParams for syn::WherePredicate {
             syn::WherePredicate::Lifetime(_) => Default::default(),
             syn::WherePredicate::Type(ref v) => v.uses_type_params(options, type_set),
             // non-exhaustive enum
-            _ => Default::default(),
+            // TODO: replace panic with failible function
+            _ => panic!("Unknown syn::WherePredicate: {:?}", self),
         }
     }
 }
@@ -232,7 +233,8 @@ impl UsesTypeParams for syn::GenericArgument {
             | syn::GenericArgument::Const(_)
             | syn::GenericArgument::Lifetime(_) => Default::default(),
             // non-exhaustive enum
-            _ => Default::default(),
+            // TODO: replace panic with failible function
+            _ => panic!("Unknown syn::GenericArgument: {:?}", self),
         }
     }
 }
@@ -243,7 +245,8 @@ impl UsesTypeParams for syn::TypeParamBound {
             syn::TypeParamBound::Trait(ref v) => v.uses_type_params(options, type_set),
             syn::TypeParamBound::Lifetime(_) => Default::default(),
             // non-exhaustive enum
-            _ => Default::default(),
+            // TODO: replace panic with failible function
+            _ => panic!("Unknown syn::TypeParamBound: {:?}", self),
         }
     }
 }

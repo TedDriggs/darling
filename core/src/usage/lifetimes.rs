@@ -247,7 +247,8 @@ impl UsesLifetimes for syn::WherePredicate {
             syn::WherePredicate::Type(ref v) => v.uses_lifetimes(options, lifetimes),
             syn::WherePredicate::Lifetime(ref v) => v.uses_lifetimes(options, lifetimes),
             // non-exhaustive enum
-            _ => Default::default(),
+            // TODO: replace panic with failible function
+            _ => panic!("Unknown syn::WherePredicate: {:?}", self),
         }
     }
 }
@@ -267,7 +268,8 @@ impl UsesLifetimes for syn::GenericArgument {
                 Default::default()
             }
             // non-exhaustive enum
-            _ => Default::default(),
+            // TODO: replace panic with failible function
+            _ => panic!("Unknown syn::GenericArgument: {:?}", self),
         }
     }
 }
@@ -296,7 +298,8 @@ impl UsesLifetimes for syn::TypeParamBound {
             syn::TypeParamBound::Trait(ref v) => v.uses_lifetimes(options, lifetimes),
             syn::TypeParamBound::Lifetime(ref v) => v.uses_lifetimes(options, lifetimes),
             // non-exhaustive enum
-            _ => Default::default(),
+            // TODO: replace panic with failible function
+            _ => panic!("Unknown syn::TypeParamBound: {:?}", self),
         }
     }
 }
