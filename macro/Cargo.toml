@@ -12,7 +12,7 @@ edition = "2018"
 
 [dependencies]
 quote = "1.0.18"
-syn = "2.0.0"
+syn = "2.0.15"
 darling_core = { version = "=0.14.4", path = "../core" }
 
 [lib]
