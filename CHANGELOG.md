@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.20.1 (May 2, 2023)
+
+- Add `Clone` impl for `NestedMeta` [#230](https://github.com/TedDriggs/darling/pull/230)
+
 ## v0.20.0 (April 27, 2023)
 
 - Bump syn to version 2, courtesy of @jonasbb [#227](https://github.com/TedDriggs/darling/issues/227)
