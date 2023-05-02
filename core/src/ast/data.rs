@@ -413,7 +413,7 @@ impl<'a> From<&'a syn::Fields> for Style {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum NestedMeta {
     Meta(syn::Meta),
     Lit(syn::Lit),
