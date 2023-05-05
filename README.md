@@ -75,15 +75,15 @@ use syn::ItemFn;
 use proc_macro::TokenStream;
 
 #[derive(Debug, FromMeta)]
-pub struct MacroArgs {
+struct MacroArgs {
     #[darling(default)]
     timeout_ms: Option<u16>,
     path: String,
 }
 
-// #[proc_macro_attribute]
-fn your_attr(args: TokenStream, input: TokenStream) -> TokenStream {
-    let attr_args = match NestedMeta::parse_meta_list(args) {
+#[proc_macro_attribute]
+pub fn your_attr(args: TokenStream, input: TokenStream) -> TokenStream {
+    let attr_args = match NestedMeta::parse_meta_list(args.into()) {
         Ok(v) => v,
         Err(e) => { return TokenStream::from(Error::from(e).write_errors()); }
     };
