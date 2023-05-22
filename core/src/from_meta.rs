@@ -279,6 +279,9 @@ impl<T: syn::parse::Parse, P: syn::parse::Parse> FromMeta for syn::punctuated::P
 /// For backwards-compatibility to versions of `darling` based on `syn` 1,
 /// string literals will be "unwrapped" and their contents will be parsed
 /// as an expression.
+///
+/// See [`util::parse_expr`](crate::util::parse_expr) for functions to provide
+/// alternate parsing modes for this type.
 impl FromMeta for syn::Expr {
     fn from_expr(expr: &Expr) -> Result<Self> {
         if let syn::Expr::Lit(expr_lit) = expr {
