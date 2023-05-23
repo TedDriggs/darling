@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Allow darling users to omit quotation marks for paths and idents
+
 ## v0.20.1 (May 2, 2023)
 
 - Add `Clone` impl for `NestedMeta` [#230](https://github.com/TedDriggs/darling/pull/230)

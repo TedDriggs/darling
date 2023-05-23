@@ -304,6 +304,57 @@ impl FromMeta for syn::Expr {
     }
 }
 
+/// Parser for paths that supports both quote-wrapped and bare values.
+impl FromMeta for syn::Path {
+    fn from_string(value: &str) -> Result<Self> {
+        syn::parse_str(value).map_err(|_| Error::unknown_value(value))
+    }
+
+    fn from_value(value: &::syn::Lit) -> Result<Self> {
+        if let ::syn::Lit::Str(ref v) = *value {
+            v.parse().map_err(|_| Error::unknown_lit_str_value(v))
+        } else {
+            Err(Error::unexpected_lit_type(value))
+        }
+    }
+
+    fn from_expr(expr: &Expr) -> Result<Self> {
+        match expr {
+            Expr::Lit(lit) => Self::from_value(&lit.lit),
+            Expr::Path(path) => Ok(path.path.clone()),
+            _ => Err(Error::unexpected_expr_type(expr)),
+        }
+    }
+}
+
+impl FromMeta for syn::Ident {
+    fn from_string(value: &str) -> Result<Self> {
+        syn::parse_str(value).map_err(|_| Error::unknown_value(value))
+    }
+
+    fn from_value(value: &syn::Lit) -> Result<Self> {
+        if let syn::Lit::Str(ref v) = *value {
+            v.parse().map_err(|_| Error::unknown_lit_str_value(v))
+        } else {
+            Err(Error::unexpected_lit_type(value))
+        }
+    }
+
+    fn from_expr(expr: &Expr) -> Result<Self> {
+        match expr {
+            Expr::Lit(lit) => Self::from_value(&lit.lit),
+            // All idents are paths, but not all paths are idents -
+            // the get_ident() method does additional validation to
+            // make sure the path is actually an ident.
+            Expr::Path(path) => match path.path.get_ident() {
+                Some(ident) => Ok(ident.clone()),
+                None => Err(Error::unexpected_expr_type(expr)),
+            },
+            _ => Err(Error::unexpected_expr_type(expr)),
+        }
+    }
+}
+
 /// Adapter for various expression types.
 ///
 /// Prior to syn 2.0, darling supported arbitrary expressions as long as they
@@ -342,7 +393,8 @@ macro_rules! from_syn_expr_type {
 from_syn_expr_type!(syn::ExprArray, Array);
 from_syn_expr_type!(syn::ExprPath, Path);
 
-/// Adapter from `syn::parse::Parse` to `FromMeta`.
+/// Adapter from `syn::parse::Parse` to `FromMeta` for items that cannot
+/// be expressed in a [`syn::MetaNameValue`].
 ///
 /// This cannot be a blanket impl, due to the `syn::Lit` family's need to handle non-string values.
 /// Therefore, we use a macro and a lot of impls.
@@ -365,8 +417,6 @@ macro_rules! from_syn_parse {
     };
 }
 
-from_syn_parse!(syn::Ident);
-from_syn_parse!(syn::Path);
 from_syn_parse!(syn::Type);
 from_syn_parse!(syn::TypeArray);
 from_syn_parse!(syn::TypeBareFn);
@@ -902,10 +952,36 @@ mod tests {
     }
 
     #[test]
+    fn test_expr_without_quotes() {
+        fm::<syn::Expr>(quote!(ignore = x + y));
+        fm::<syn::Expr>(quote!(ignore = an_object.method_call()));
+        fm::<syn::Expr>(quote!(
+            ignore = {
+                a_statement();
+                in_a_block
+            }
+        ));
+    }
+
+    #[test]
     fn test_expr_path() {
         fm::<syn::ExprPath>(quote!(ignore = "std::mem::replace"));
         fm::<syn::ExprPath>(quote!(ignore = "x"));
         fm::<syn::ExprPath>(quote!(ignore = "example::<Test>"));
+    }
+
+    #[test]
+    fn test_expr_path_without_quotes() {
+        fm::<syn::ExprPath>(quote!(ignore = std::mem::replace));
+        fm::<syn::ExprPath>(quote!(ignore = x));
+        fm::<syn::ExprPath>(quote!(ignore = example::<Test>));
+    }
+
+    #[test]
+    fn test_path_without_quotes() {
+        fm::<syn::Path>(quote!(ignore = std::mem::replace));
+        fm::<syn::Path>(quote!(ignore = x));
+        fm::<syn::Path>(quote!(ignore = example::<Test>));
     }
 
     #[test]
