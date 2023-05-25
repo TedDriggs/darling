@@ -1,8 +1,9 @@
 # Changelog
 
-## Unreleased
+## v0.20.2 (May 25, 2023)
 
-- Allow darling users to omit quotation marks for paths and idents
+- Allow darling users to omit quotation marks for paths and idents [#236](https://github.com/TedDriggs/darling/pull/236)
+- Add new util functions for controlling how quotation marks are handled when reading into `Expr` fields [#235](https://github.com/TedDriggs/darling/pull/235)
 
 ## v0.20.1 (May 2, 2023)
 
