@@ -775,7 +775,7 @@ impl Accumulator {
     /// This function defuses the drop bomb.
     #[must_use = "Accumulated errors should be handled or propagated to the caller"]
     pub fn into_inner(mut self) -> Vec<Error> {
-        match std::mem::replace(&mut self.0, None) {
+        match self.0.take() {
             Some(errors) => errors,
             None => panic!("darling internal error: Accumulator accessed after defuse"),
         }
