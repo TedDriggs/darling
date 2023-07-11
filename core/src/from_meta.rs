@@ -228,11 +228,13 @@ from_meta_num!(u8);
 from_meta_num!(u16);
 from_meta_num!(u32);
 from_meta_num!(u64);
+from_meta_num!(u128);
 from_meta_num!(usize);
 from_meta_num!(i8);
 from_meta_num!(i16);
 from_meta_num!(i32);
 from_meta_num!(i64);
+from_meta_num!(i128);
 from_meta_num!(isize);
 
 /// Generate an impl of `FromMeta` that will accept strings which parse to floats or
