@@ -103,7 +103,10 @@ impl<T> Override<T> {
 impl<T: Default> Override<T> {
     /// Returns the contained value or the default value of `T`.
     pub fn unwrap_or_default(self) -> T {
-        self.unwrap_or_else(Default::default)
+        match self {
+            Inherit => Default::default(),
+            Explicit(val) => val,
+        }
     }
 }
 
