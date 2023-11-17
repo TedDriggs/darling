@@ -55,6 +55,10 @@ impl FromMeta for DefaultExpression {
         }
     }
 
+    fn from_expr(expr: &syn::Expr) -> Result<Self> {
+        syn::Path::from_expr(expr).map(DefaultExpression::Explicit)
+    }
+
     fn from_value(value: &syn::Lit) -> Result<Self> {
         syn::Path::from_value(value).map(DefaultExpression::Explicit)
     }
