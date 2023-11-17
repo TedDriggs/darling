@@ -203,6 +203,12 @@ impl FromMeta for String {
     }
 }
 
+impl FromMeta for std::path::PathBuf {
+    fn from_string(s: &str) -> Result<Self> {
+        Ok(s.into())
+    }
+}
+
 /// Generate an impl of `FromMeta` that will accept strings which parse to numbers or
 /// integer literals.
 macro_rules! from_meta_num {
@@ -793,6 +799,14 @@ mod tests {
 
         // raw form
         assert_eq!(&fm::<String>(quote!(ignore = r#"world"#)), "world");
+    }
+
+    #[test]
+    fn pathbuf_succeeds() {
+        assert_eq!(
+            fm::<std::path::PathBuf>(quote!(ignore = r#"C:\"#)),
+            std::path::PathBuf::from(r#"C:\"#)
+        );
     }
 
     #[test]

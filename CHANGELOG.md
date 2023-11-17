@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Accept bare paths in `#[darling(default = ...)]` [#258](https://github.com/TedDriggs/darling/pull/258)
+- Add `FromMeta` impl for `PathBuf` [#259](https://github.com/TedDriggs/darling/pull/259)
 
 ## v0.20.3 (July 12, 2023)
 
