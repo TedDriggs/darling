@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Accept bare paths in `#[darling(default = ...)]` [#258](https://github.com/TedDriggs/darling/pull/258)
+
 ## v0.20.3 (July 12, 2023)
 
 - Add `FromMeta` impl for `u128` and `i128` [#243](https://github.com/TedDriggs/darling/pull/243)
