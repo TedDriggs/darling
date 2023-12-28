@@ -53,6 +53,16 @@ impl<'a> UsesTypeParams for Variant<'a> {
     }
 }
 
+impl<'a> ToTokens for Variant<'a> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        if self.data.is_unit() {
+            self.as_unit_match_arm().to_tokens(tokens);
+        } else {
+            self.as_data_match_arm().to_tokens(tokens)
+        }
+    }
+}
+
 /// Code generator for an enum variant in a unit match position.
 /// This is placed in generated `from_string` calls for the parent enum.
 /// Value-carrying variants wrapped in this type will emit code to produce an "unsupported format" error.
