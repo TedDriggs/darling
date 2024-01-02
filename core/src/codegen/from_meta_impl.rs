@@ -89,10 +89,13 @@ impl<'a> ToTokens for FromMetaImpl<'a> {
                     }
                 };
 
-                let default_or_err = base.default.as_ref().map_or(
-                    quote!(::darling::export::Err(::darling::Error::too_few_items(1))),
-                    |default_expr| quote!(::darling::export::Ok(#default_expr)),
-                );
+                let default_or_err = base
+                    .default
+                    .as_ref()
+                    .map(|default_expr| quote!(::darling::export::Ok(#default_expr)))
+                    .unwrap_or_else(|| {
+                        quote!(::darling::export::Err(::darling::Error::too_few_items(1)))
+                    });
 
                 let word_or_err = variants
                     .iter()
@@ -105,9 +108,11 @@ impl<'a> ToTokens for FromMetaImpl<'a> {
                             None
                         }
                     })
-                    .unwrap_or(quote!(::darling::export::Err(
-                        ::darling::Error::unsupported_format("word")
-                    )));
+                    .unwrap_or_else(|| {
+                        quote!(::darling::export::Err(
+                            ::darling::Error::unsupported_format("word")
+                        ))
+                    });
 
                 quote!(
                     fn from_list(__outer: &[::darling::export::NestedMeta]) -> ::darling::Result<Self> {
