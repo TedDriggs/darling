@@ -94,6 +94,21 @@ impl<'a> ToTokens for FromMetaImpl<'a> {
                     |default_expr| quote!(::darling::export::Ok(#default_expr)),
                 );
 
+                let word_or_err = variants
+                    .iter()
+                    .find_map(|variant| {
+                        if variant.word {
+                            let ty_ident = variant.ty_ident;
+                            let variant_ident = variant.variant_ident;
+                            Some(quote!(::darling::export::Ok(#ty_ident::#variant_ident)))
+                        } else {
+                            None
+                        }
+                    })
+                    .unwrap_or(quote!(::darling::export::Err(
+                        ::darling::Error::unsupported_format("word")
+                    )));
+
                 quote!(
                     fn from_list(__outer: &[::darling::export::NestedMeta]) -> ::darling::Result<Self> {
                         // An enum must have exactly one value inside the parentheses if it's not a unit
@@ -120,6 +135,10 @@ impl<'a> ToTokens for FromMetaImpl<'a> {
                             #(#unit_arms)*
                             __other => ::darling::export::Err(::darling::Error::unknown_value(__other))
                         }
+                    }
+
+                    fn from_word() -> ::darling::Result<Self> {
+                        #word_or_err
                     }
                 )
             }

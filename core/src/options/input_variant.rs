@@ -11,6 +11,7 @@ pub struct InputVariant {
     attr_name: Option<String>,
     data: Fields<InputField>,
     skip: Option<bool>,
+    word: Option<bool>,
     /// Whether or not unknown fields are acceptable in this
     allow_unknown_fields: Option<bool>,
 }
@@ -26,6 +27,7 @@ impl InputVariant {
                 .map_or_else(|| Cow::Owned(self.ident.to_string()), Cow::Borrowed),
             data: self.data.as_ref().map(InputField::as_codegen_field),
             skip: self.skip.unwrap_or_default(),
+            word: self.word.unwrap_or_default(),
             allow_unknown_fields: self.allow_unknown_fields.unwrap_or_default(),
         }
     }
@@ -36,6 +38,7 @@ impl InputVariant {
             attr_name: Default::default(),
             data: Fields::empty_from(&v.fields),
             skip: Default::default(),
+            word: Default::default(),
             allow_unknown_fields: None,
         })
         .parse_attributes(&v.attrs)?;
@@ -95,6 +98,12 @@ impl ParseAttribute for InputVariant {
             }
 
             self.skip = FromMeta::from_meta(mi)?;
+        } else if path.is_ident("word") && self.data.is_unit() {
+            if self.word.is_some() {
+                return Err(Error::duplicate_field_path(path).with_span(mi));
+            }
+
+            self.word = FromMeta::from_meta(mi)?;
         } else {
             return Err(Error::unknown_field_path(path).with_span(mi));
         }
