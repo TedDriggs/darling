@@ -71,11 +71,9 @@ mod enum_impl {
     use syn::parse_quote;
 
     /// A playback volume.
-    /// Deriving `Default` will cause the "default" variant to be set when the meta-item is empty.
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, FromMeta)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, FromMeta)]
     #[darling(default)]
     enum Volume {
-        #[default]
         Normal,
         Low,
         High,
@@ -83,15 +81,16 @@ mod enum_impl {
         Decibels(u8),
     }
 
-    #[test]
-    fn empty_list() {
-        let volume = Volume::from_list(&[]).unwrap();
-        assert_eq!(volume, Volume::Normal);
+    /// Implementing `Default` will cause the "default" variant to be set when the meta-item is empty.
+    impl Default for Volume {
+        fn default() -> Self {
+            Self::Normal
+        }
     }
 
     #[test]
-    fn empty_string() {
-        let volume = Volume::from_string("").unwrap();
+    fn empty_list() {
+        let volume = Volume::from_list(&[]).unwrap();
         assert_eq!(volume, Volume::Normal);
     }
 

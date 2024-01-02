@@ -89,14 +89,10 @@ impl<'a> ToTokens for FromMetaImpl<'a> {
                     }
                 };
 
-                let default = base
-                    .default
-                    .as_ref()
-                    .map(|default_expr| quote!(::darling::export::Ok(#default_expr)));
-                let unit_arm_default = default.as_ref().map(|default| quote!("" => #default,));
-                let list_default_or_err = default.unwrap_or(quote! {
-                    ::darling::export::Err(::darling::Error::too_few_items(1))
-                });
+                let default_or_err = base.default.as_ref().map_or(
+                    quote!(::darling::export::Err(::darling::Error::too_few_items(1))),
+                    |default_expr| quote!(::darling::export::Ok(#default_expr)),
+                );
 
                 quote!(
                     fn from_list(__outer: &[::darling::export::NestedMeta]) -> ::darling::Result<Self> {
@@ -104,7 +100,7 @@ impl<'a> ToTokens for FromMetaImpl<'a> {
                         // match arm.
                         // NOTE: The empty list case uses the annotated default value for the enum if any.
                         match __outer.len() {
-                            0 => #list_default_or_err,
+                            0 => #default_or_err,
                             1 => {
                                 if let ::darling::export::NestedMeta::Meta(ref __nested) = __outer[0] {
                                     match ::darling::util::path_to_string(__nested.path()).as_ref() {
@@ -122,7 +118,6 @@ impl<'a> ToTokens for FromMetaImpl<'a> {
                     fn from_string(lit: &str) -> ::darling::Result<Self> {
                         match lit {
                             #(#unit_arms)*
-                            #unit_arm_default
                             __other => ::darling::export::Err(::darling::Error::unknown_value(__other))
                         }
                     }
