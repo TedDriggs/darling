@@ -65,33 +65,19 @@ fn nested_meta_lit_bool_errors() {
     );
 }
 
-/// Tests behavior of FromMeta implementation for enums (including behavior of defaults).
+/// Tests behavior of FromMeta implementation for enums.
 mod enum_impl {
     use darling::{Error, FromMeta};
     use syn::parse_quote;
 
     /// A playback volume.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, FromMeta)]
-    #[darling(default)]
     enum Volume {
         Normal,
         Low,
         High,
         #[darling(rename = "dB")]
         Decibels(u8),
-    }
-
-    /// Implementing `Default` will cause the "default" variant to be set when the meta-item is empty.
-    impl Default for Volume {
-        fn default() -> Self {
-            Self::Normal
-        }
-    }
-
-    #[test]
-    fn empty_list() {
-        let volume = Volume::from_list(&[]).unwrap();
-        assert_eq!(volume, Volume::Normal);
     }
 
     #[test]

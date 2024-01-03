@@ -89,14 +89,6 @@ impl<'a> ToTokens for FromMetaImpl<'a> {
                     }
                 };
 
-                let default_or_err = base
-                    .default
-                    .as_ref()
-                    .map(|default_expr| quote!(::darling::export::Ok(#default_expr)))
-                    .unwrap_or_else(|| {
-                        quote!(::darling::export::Err(::darling::Error::too_few_items(1)))
-                    });
-
                 let word_or_err = variants
                     .iter()
                     .find_map(|variant| {
@@ -118,9 +110,8 @@ impl<'a> ToTokens for FromMetaImpl<'a> {
                     fn from_list(__outer: &[::darling::export::NestedMeta]) -> ::darling::Result<Self> {
                         // An enum must have exactly one value inside the parentheses if it's not a unit
                         // match arm.
-                        // NOTE: The empty list case uses the annotated default value for the enum if any.
                         match __outer.len() {
-                            0 => #default_or_err,
+                            0 => ::darling::export::Err(::darling::Error::too_few_items(1)),
                             1 => {
                                 if let ::darling::export::NestedMeta::Meta(ref __nested) = __outer[0] {
                                     match ::darling::util::path_to_string(__nested.path()).as_ref() {
