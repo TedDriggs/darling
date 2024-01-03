@@ -1,9 +1,11 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 
+use crate::ast::Data;
 use crate::codegen::FromMetaImpl;
+use crate::error::Accumulator;
 use crate::options::{Core, ParseAttribute, ParseData};
-use crate::Result;
+use crate::{Error, Result};
 
 pub struct FromMetaOptions {
     base: Core,
@@ -32,6 +34,26 @@ impl ParseData for FromMetaOptions {
 
     fn parse_field(&mut self, field: &syn::Field) -> Result<()> {
         self.base.parse_field(field)
+    }
+
+    fn validate_body(&self, errors: &mut Accumulator) {
+        match self.base.data {
+            Data::Enum(ref data) => {
+                // Adds errors for duplicate `#[darling(word)]` annotations across all variants.
+                let word_variants: Vec<_> = data
+                    .iter()
+                    .filter(|variant| variant.word.is_some())
+                    .collect();
+                if word_variants.len() > 1 {
+                    for variant in word_variants[1..].iter() {
+                        if let Some(word) = variant.word {
+                            errors.push(Error::duplicate_field("word").with_span(&word.span()));
+                        }
+                    }
+                }
+            }
+            Data::Struct(_) => (),
+        }
     }
 }
 
