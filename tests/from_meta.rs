@@ -81,6 +81,12 @@ mod enum_impl {
     }
 
     #[test]
+    fn string_for_unit_variant() {
+        let volume = Volume::from_string("low").unwrap();
+        assert_eq!(volume, Volume::Low);
+    }
+
+    #[test]
     fn single_value_list() {
         let unit_variant = Volume::from_list(&[parse_quote!(high)]).unwrap();
         assert_eq!(unit_variant, Volume::High);
@@ -90,9 +96,9 @@ mod enum_impl {
     }
 
     #[test]
-    fn string_for_unit_variant() {
-        let volume = Volume::from_string("low").unwrap();
-        assert_eq!(volume, Volume::Low);
+    fn empty_list_errors() {
+        let err = Volume::from_list(&[]).unwrap_err();
+        assert_eq!(err.to_string(), Error::too_few_items(1).to_string());
     }
 
     #[test]
