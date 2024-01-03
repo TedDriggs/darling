@@ -45,9 +45,12 @@ impl ParseData for FromMetaOptions {
                     .filter(|variant| variant.word.is_some())
                     .collect();
                 if word_variants.len() > 1 {
-                    for variant in word_variants[1..].iter() {
+                    for variant in word_variants {
                         if let Some(word) = variant.word {
-                            errors.push(Error::duplicate_field("word").with_span(&word.span()));
+                            errors.push(
+                                Error::custom("`word` can only be applied to one variant")
+                                    .with_span(&word.span()),
+                            );
                         }
                     }
                 }

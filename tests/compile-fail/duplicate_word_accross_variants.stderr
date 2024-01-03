@@ -1,5 +1,0 @@
-error: Duplicate field `word`
- --> tests/compile-fail/duplicate_word_accross_variants.rs:7:15
-  |
-7 |     #[darling(word)]
-  |               ^^^^

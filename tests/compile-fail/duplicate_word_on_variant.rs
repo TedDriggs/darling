@@ -1,6 +1,6 @@
 use darling::FromMeta;
 
-#[derive(Debug, FromMeta, PartialEq, Eq)]
+#[derive(FromMeta)]
 enum Choice {
     #[darling(word, word)]
     A,
