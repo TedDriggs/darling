@@ -5,7 +5,7 @@
 - Accept bare paths in `#[darling(default = ...)]` [#258](https://github.com/TedDriggs/darling/pull/258)
 - Add `FromMeta` impl for `PathBuf` [#259](https://github.com/TedDriggs/darling/pull/259)
 - Improve `FromMeta` implementation for enums [#260](https://github.com/TedDriggs/darling/pull/260)
-  - Properly implement unit arms in `FromMeta::from_list` to provide a consistent API for heterogenous enums that include a mix of unit, newtype and struct variants
+  - Properly implement unit arms in `FromMeta::from_list` to provide a consistent API for heterogeneous enums that include a mix of unit, newtype and struct variants
   - Add `#[darling(word)]` attribute for unit enum variants (See [#63](https://github.com/TedDriggs/darling/issues/63) for details)
 
 ## v0.20.3 (July 12, 2023)
