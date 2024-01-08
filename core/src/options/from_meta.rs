@@ -48,8 +48,10 @@ impl ParseData for FromMetaOptions {
                     for variant in word_variants {
                         if let Some(word) = variant.word {
                             errors.push(
-                                Error::custom("`word` can only be applied to one variant")
-                                    .with_span(&word.span()),
+                                Error::custom(
+                                    "`#[darling(word)]` can only be applied to one variant",
+                                )
+                                .with_span(&word.span()),
                             );
                         }
                     }
