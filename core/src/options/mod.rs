@@ -2,6 +2,7 @@ use proc_macro2::Span;
 use syn::{parse_quote, spanned::Spanned};
 
 use crate::ast::NestedMeta;
+use crate::error::Accumulator;
 use crate::{Error, FromMeta, Result};
 
 mod core;
@@ -132,6 +133,8 @@ pub trait ParseData: Sized {
             Data::Union(_) => unreachable!(),
         };
 
+        self.validate_body(&mut errors);
+
         errors.finish_with(self)
     }
 
@@ -146,4 +149,10 @@ pub trait ParseData: Sized {
     fn parse_field(&mut self, field: &syn::Field) -> Result<()> {
         Err(Error::unsupported_format("struct field").with_span(field))
     }
+
+    /// Perform validation checks that require data from more than one field or variant.
+    /// The default implementation does no validations.
+    /// Implementors can override this method as appropriate for their use-case.
+    #[allow(unused_variables)]
+    fn validate_body(&self, errors: &mut Accumulator) {}
 }
