@@ -37,27 +37,20 @@ impl ParseData for FromMetaOptions {
     }
 
     fn validate_body(&self, errors: &mut Accumulator) {
-        match self.base.data {
-            Data::Enum(ref data) => {
-                // Adds errors for duplicate `#[darling(word)]` annotations across all variants.
-                let word_variants: Vec<_> = data
-                    .iter()
-                    .filter(|variant| variant.word.is_some())
-                    .collect();
-                if word_variants.len() > 1 {
-                    for variant in word_variants {
-                        if let Some(word) = variant.word {
-                            errors.push(
-                                Error::custom(
-                                    "`#[darling(word)]` can only be applied to one variant",
-                                )
-                                .with_span(&word.span()),
-                            );
-                        }
-                    }
+        if let Data::Enum(ref data) = self.base.data {
+            // Adds errors for duplicate `#[darling(word)]` annotations across all variants.
+            let word_variants: Vec<_> = data
+                .iter()
+                .filter_map(|variant| variant.word.as_ref())
+                .collect();
+            if word_variants.len() > 1 {
+                for word in word_variants {
+                    errors.push(
+                        Error::custom("`#[darling(word)]` can only be applied to one variant")
+                            .with_span(&word.span()),
+                    );
                 }
             }
-            Data::Struct(_) => (),
         }
     }
 }

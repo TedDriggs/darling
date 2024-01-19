@@ -12,6 +12,8 @@ pub struct InputVariant {
     attr_name: Option<String>,
     data: Fields<InputField>,
     skip: Option<bool>,
+    /// Whether or not the variant should be used to create an instance for
+    /// `FromMeta::from_word`.
     pub word: Option<SpannedValue<bool>>,
     /// Whether or not unknown fields are acceptable in this
     allow_unknown_fields: Option<bool>,

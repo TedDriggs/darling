@@ -151,7 +151,7 @@ pub trait ParseData: Sized {
     }
 
     /// Perform validation checks that require data from more than one field or variant.
-    /// This default implementation is essentially a noop.
+    /// The default implementation does no validations.
     /// Implementors can override this method as appropriate for their use-case.
     #[allow(unused_variables)]
     fn validate_body(&self, errors: &mut Accumulator) {}
