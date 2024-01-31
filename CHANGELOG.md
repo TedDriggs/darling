@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add `Flag::span` inherent method, as `Flag` can no longer impl `syn::spanned::Spanned` [#242](https://github.com/TedDriggs/darling/issues/242)
+
 ## v0.20.4 (January 29, 2024)
 
 - Accept bare paths in `#[darling(default = ...)]` [#258](https://github.com/TedDriggs/darling/pull/258)
