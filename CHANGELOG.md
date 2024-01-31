@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.20.5 (January 30, 2024)
 
 - Add `Flag::span` inherent method, as `Flag` can no longer impl `syn::spanned::Spanned` [#242](https://github.com/TedDriggs/darling/issues/242)
 
