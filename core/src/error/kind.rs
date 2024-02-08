@@ -44,7 +44,7 @@ impl ErrorKind {
             UnknownField(_) => "Unexpected field",
             UnsupportedShape { .. } => "Unsupported shape",
             UnexpectedFormat(_) => "Unexpected meta-item format",
-            UnexpectedType(_) => "Unexpected literal type",
+            UnexpectedType(_) => "Unexpected type",
             UnknownValue(_) => "Unknown literal value",
             TooFewItems(_) => "Too few items",
             TooManyItems(_) => "Too many items",
@@ -84,7 +84,7 @@ impl fmt::Display for ErrorKind {
                 Ok(())
             }
             UnexpectedFormat(ref format) => write!(f, "Unexpected meta-item format `{}`", format),
-            UnexpectedType(ref ty) => write!(f, "Unexpected literal type `{}`", ty),
+            UnexpectedType(ref ty) => write!(f, "Unexpected type `{}`", ty),
             UnknownValue(ref val) => write!(f, "Unknown literal value `{}`", val),
             TooFewItems(ref min) => write!(f, "Too few items: Expected at least {}", min),
             TooManyItems(ref max) => write!(f, "Too many items: Expected no more than {}", max),
