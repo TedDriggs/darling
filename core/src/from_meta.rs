@@ -333,6 +333,7 @@ impl FromMeta for syn::Path {
         match expr {
             Expr::Lit(lit) => Self::from_value(&lit.lit),
             Expr::Path(path) => Ok(path.path.clone()),
+            Expr::Group(group) => Self::from_expr(&group.expr),
             _ => Err(Error::unexpected_expr_type(expr)),
         }
     }
