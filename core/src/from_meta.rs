@@ -292,13 +292,11 @@ impl<T: syn::parse::Parse, P: syn::parse::Parse> FromMeta for syn::punctuated::P
 /// alternate parsing modes for this type.
 impl FromMeta for syn::Expr {
     fn from_expr(expr: &Expr) -> Result<Self> {
-        if let syn::Expr::Lit(expr_lit) = expr {
-            if let syn::Lit::Str(_) = &expr_lit.lit {
-                return Self::from_value(&expr_lit.lit);
-            }
+        match expr {
+            Expr::Lit(syn::ExprLit{lit: lit @ syn::Lit::Str(_), ..}) => Self::from_value(lit),
+            Expr::Group(group) => Self::from_expr(&group.expr),
+            _ => Ok(expr.clone()),
         }
-
-        Ok(expr.clone())
     }
 
     fn from_string(value: &str) -> Result<Self> {
@@ -362,6 +360,7 @@ impl FromMeta for syn::Ident {
                 Some(ident) => Ok(ident.clone()),
                 None => Err(Error::unexpected_expr_type(expr)),
             },
+            Expr::Group(group) => Self::from_expr(&group.expr),
             _ => Err(Error::unexpected_expr_type(expr)),
         }
     }
@@ -381,12 +380,11 @@ macro_rules! from_syn_expr_type {
     ($ty:path, $variant:ident) => {
         impl FromMeta for $ty {
             fn from_expr(expr: &syn::Expr) -> Result<Self> {
-                if let syn::Expr::$variant(body) = expr {
-                    Ok(body.clone())
-                } else if let syn::Expr::Lit(expr_lit) = expr {
-                    Self::from_value(&expr_lit.lit)
-                } else {
-                    Err(Error::unexpected_expr_type(expr))
+                match expr {
+                    syn::Expr::$variant(body) => Ok(body.clone()),
+                    syn::Expr::Lit(expr_lit) => Self::from_value(&expr_lit.lit),
+                    syn::Expr::Group(group) => Self::from_expr(&group.expr),
+                    _ => Err(Error::unexpected_expr_type(expr)),
                 }
             }
 
@@ -453,21 +451,21 @@ macro_rules! from_numeric_array {
         /// Parsing an unsigned integer array, i.e. `example = "[1, 2, 3, 4]"`.
         impl FromMeta for Vec<$ty> {
             fn from_expr(expr: &syn::Expr) -> Result<Self> {
-                if let syn::Expr::Array(expr_array) = expr {
-                    let v = expr_array
-                        .elems
-                        .iter()
-                        .map(|expr| match expr {
-                            Expr::Lit(lit) => $ty::from_value(&lit.lit),
-                            _ => Err(Error::custom("Expected array of unsigned integers")
-                                .with_span(expr)),
-                        })
-                        .collect::<Result<Vec<$ty>>>();
-                    v
-                } else if let syn::Expr::Lit(expr_lit) = expr {
-                    Self::from_value(&expr_lit.lit)
-                } else {
-                    Err(Error::unexpected_expr_type(expr))
+                match expr {
+                    syn::Expr::Array(expr_array) => {
+                        expr_array
+                            .elems
+                            .iter()
+                            .map(|expr| match expr {
+                                Expr::Lit(lit) => $ty::from_value(&lit.lit),
+                                _ => Err(Error::custom("Expected array of unsigned integers")
+                                    .with_span(expr)),
+                            })
+                            .collect::<Result<Vec<$ty>>>()
+                    }
+                    syn::Expr::Lit(expr_lit) => Self::from_value(&expr_lit.lit),
+                    syn::Expr::Group(group) => Self::from_expr(&group.expr),
+                    _ => Err(Error::unexpected_expr_type(expr)),
                 }
             }
 
