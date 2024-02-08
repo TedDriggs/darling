@@ -452,17 +452,23 @@ macro_rules! from_numeric_array {
         impl FromMeta for Vec<$ty> {
             fn from_expr(expr: &syn::Expr) -> Result<Self> {
                 match expr {
-                    syn::Expr::Array(expr_array) => {
-                        expr_array
-                            .elems
-                            .iter()
-                            .map(|expr| match expr {
+                    syn::Expr::Array(expr_array) => expr_array
+                        .elems
+                        .iter()
+                        .map(|expr| {
+                            let unexpected = || {
+                                Error::custom("Expected array of unsigned integers").with_span(expr)
+                            };
+                            match expr {
                                 Expr::Lit(lit) => $ty::from_value(&lit.lit),
-                                _ => Err(Error::custom("Expected array of unsigned integers")
-                                    .with_span(expr)),
-                            })
-                            .collect::<Result<Vec<$ty>>>()
-                    }
+                                Expr::Group(group) => match &*group.expr {
+                                    Expr::Lit(lit) => $ty::from_value(&lit.lit),
+                                    _ => Err(unexpected()),
+                                },
+                                _ => Err(unexpected()),
+                            }
+                        })
+                        .collect::<Result<Vec<$ty>>>(),
                     syn::Expr::Lit(expr_lit) => Self::from_value(&expr_lit.lit),
                     syn::Expr::Group(group) => Self::from_expr(&group.expr),
                     _ => Err(Error::unexpected_expr_type(expr)),
