@@ -1070,4 +1070,15 @@ mod tests {
             vec![0x50, 0xffffffff]
         );
     }
+
+    #[test]
+    fn test_lit_array() {
+        fm::<Vec<syn::LitStr>>(quote!(ignore = "[\"Hello World\", \"Test Array\"]"));
+        fm::<Vec<syn::LitStr>>(quote!(ignore = ["Hello World", "Test Array"]));
+        fm::<Vec<syn::LitChar>>(quote!(ignore = "['a', 'b', 'c']"));
+        fm::<Vec<syn::LitBool>>(quote!(ignore = "[true]"));
+        fm::<Vec<syn::LitStr>>(quote!(ignore = "[]"));
+        fm::<Vec<syn::LitStr>>(quote!(ignore = []));
+        fm::<Vec<syn::LitBool>>(quote!(ignore = [true, false]));
+    }
 }
