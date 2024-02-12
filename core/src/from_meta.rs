@@ -300,7 +300,10 @@ impl<T: syn::parse::Parse, P: syn::parse::Parse> FromMeta for syn::punctuated::P
 impl FromMeta for syn::Expr {
     fn from_expr(expr: &Expr) -> Result<Self> {
         match expr {
-            Expr::Lit(syn::ExprLit{lit: lit @ syn::Lit::Str(_), ..}) => Self::from_value(lit),
+            Expr::Lit(syn::ExprLit {
+                lit: lit @ syn::Lit::Str(_),
+                ..
+            }) => Self::from_value(lit),
             Expr::Group(group) => Self::from_expr(&group.expr),
             _ => Ok(expr.clone()),
         }
