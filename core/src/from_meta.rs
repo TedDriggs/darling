@@ -304,7 +304,7 @@ impl FromMeta for syn::Expr {
                 lit: lit @ syn::Lit::Str(_),
                 ..
             }) => Self::from_value(lit),
-            Expr::Group(group) => Self::from_expr(&group.expr),
+            Expr::Group(group) => Self::from_expr(&group.expr), // see FromMeta::from_expr
             _ => Ok(expr.clone()),
         }
     }
@@ -341,7 +341,7 @@ impl FromMeta for syn::Path {
         match expr {
             Expr::Lit(lit) => Self::from_value(&lit.lit),
             Expr::Path(path) => Ok(path.path.clone()),
-            Expr::Group(group) => Self::from_expr(&group.expr),
+            Expr::Group(group) => Self::from_expr(&group.expr), // see FromMeta::from_expr
             _ => Err(Error::unexpected_expr_type(expr)),
         }
     }
@@ -370,7 +370,7 @@ impl FromMeta for syn::Ident {
                 Some(ident) => Ok(ident.clone()),
                 None => Err(Error::unexpected_expr_type(expr)),
             },
-            Expr::Group(group) => Self::from_expr(&group.expr),
+            Expr::Group(group) => Self::from_expr(&group.expr), // see FromMeta::from_expr
             _ => Err(Error::unexpected_expr_type(expr)),
         }
     }
@@ -393,7 +393,7 @@ macro_rules! from_syn_expr_type {
                 match expr {
                     syn::Expr::$variant(body) => Ok(body.clone()),
                     syn::Expr::Lit(expr_lit) => Self::from_value(&expr_lit.lit),
-                    syn::Expr::Group(group) => Self::from_expr(&group.expr),
+                    syn::Expr::Group(group) => Self::from_expr(&group.expr), // see FromMeta::from_expr
                     _ => Err(Error::unexpected_expr_type(expr)),
                 }
             }
@@ -480,7 +480,7 @@ macro_rules! from_numeric_array {
                         })
                         .collect::<Result<Vec<$ty>>>(),
                     syn::Expr::Lit(expr_lit) => Self::from_value(&expr_lit.lit),
-                    syn::Expr::Group(group) => Self::from_expr(&group.expr),
+                    syn::Expr::Group(group) => Self::from_expr(&group.expr), // see FromMeta::from_expr
                     _ => Err(Error::unexpected_expr_type(expr)),
                 }
             }
