@@ -843,6 +843,12 @@ mod tests {
     }
 
     #[test]
+    fn negative_int_without_quotes() {
+        assert_eq!(fm::<i8>(quote!(ignore = -2)), -2i8);
+        assert_eq!(fm::<i32>(quote!(ignore = -255)), -255i32);
+    }
+
+    #[test]
     #[allow(clippy::float_cmp)] // we want exact equality
     fn float_without_quotes() {
         assert_eq!(fm::<f32>(quote!(ignore = 2.)), 2.0f32);
