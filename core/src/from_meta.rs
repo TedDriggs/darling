@@ -519,7 +519,10 @@ macro_rules! from_meta_lit {
 
         impl FromMeta for Vec<$impl_ty> {
             fn from_list(items: &[NestedMeta]) -> Result<Self> {
-                items.iter().map(<$impl_ty as FromMeta>::from_nested_meta).collect()
+                items
+                    .iter()
+                    .map(<$impl_ty as FromMeta>::from_nested_meta)
+                    .collect()
             }
 
             fn from_value(value: &syn::Lit) -> Result<Self> {
@@ -529,13 +532,11 @@ macro_rules! from_meta_lit {
 
             fn from_expr(expr: &syn::Expr) -> Result<Self> {
                 match expr {
-                    syn::Expr::Array(expr_array) => {
-                        expr_array
-                            .elems
-                            .iter()
-                            .map(<$impl_ty as FromMeta>::from_expr)
-                            .collect::<Result<Vec<_>>>()
-                    }
+                    syn::Expr::Array(expr_array) => expr_array
+                        .elems
+                        .iter()
+                        .map(<$impl_ty as FromMeta>::from_expr)
+                        .collect::<Result<Vec<_>>>(),
                     syn::Expr::Lit(expr_lit) => Self::from_value(&expr_lit.lit),
                     syn::Expr::Group(g) => Self::from_expr(&g.expr),
                     _ => Err(Error::unexpected_expr_type(expr)),
