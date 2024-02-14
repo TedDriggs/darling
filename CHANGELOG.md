@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.20.6 (February 14, 2024)
+
+-  Fix some missing syn invisible group handling in `FromMeta` impls [#263](https://github.com/TedDriggs/darling/pull/263)
+-  Fix misleading error message on `Error::unexpected_type` so it no longer implies the type was a literal [#264](https://github.com/TedDriggs/darling/pull/264)
+-  Impl `FromMeta` `Vec` of literals, e.g. `LitStr` [#265](https://github.com/TedDriggs/pull/265)
+
 ## v0.20.5 (January 30, 2024)
 
 - Add `Flag::span` inherent method, as `Flag` can no longer impl `syn::spanned::Spanned` [#242](https://github.com/TedDriggs/darling/issues/242)
