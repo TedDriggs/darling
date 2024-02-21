@@ -29,8 +29,12 @@ pub struct Field<'a> {
 }
 
 impl<'a> Field<'a> {
-    pub fn as_name(&'a self) -> &'a str {
-        &self.name_in_attr
+    pub fn as_name(&'a self) -> Option<&'a str> {
+        if self.skip {
+            None
+        } else {
+            Some(&self.name_in_attr)
+        }
     }
 
     pub fn as_declaration(&'a self) -> Declaration<'a> {
