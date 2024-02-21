@@ -3,6 +3,7 @@ use ident_case::RenameRule;
 use crate::ast::{Data, Fields, Style};
 use crate::codegen;
 use crate::codegen::PostfixTransform;
+use crate::error::Accumulator;
 use crate::options::{DefaultExpression, InputField, InputVariant, ParseAttribute, ParseData};
 use crate::{Error, FromMeta, Result};
 
@@ -150,6 +151,30 @@ impl ParseData for Core {
                 Ok(())
             }
             Data::Enum(_) => panic!("Core::parse_field should never be called for an enum"),
+        }
+    }
+
+    fn validate_body(&self, errors: &mut Accumulator) {
+        if let Data::Struct(fields) = &self.data {
+            let flatten_targets: Vec<_> = fields
+                .iter()
+                .filter_map(|field| {
+                    if field.flatten.is_present() {
+                        Some(field.flatten)
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+
+            if flatten_targets.len() > 1 {
+                for flatten in flatten_targets {
+                    errors.push(
+                        Error::custom("`#[darling(flatten)]` can only be applied to one field")
+                            .with_span(&flatten.span()),
+                    );
+                }
+            }
         }
     }
 }

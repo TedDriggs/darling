@@ -78,4 +78,8 @@ impl ParseData for OuterFrom {
             _ => self.container.parse_field(field),
         }
     }
+
+    fn validate_body(&self, errors: &mut crate::error::Accumulator) {
+        self.container.validate_body(errors);
+    }
 }

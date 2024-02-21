@@ -49,6 +49,10 @@ impl ParseData for FromFieldOptions {
             _ => self.base.parse_field(field),
         }
     }
+
+    fn validate_body(&self, errors: &mut crate::error::Accumulator) {
+        self.base.validate_body(errors);
+    }
 }
 
 impl<'a> From<&'a FromFieldOptions> for FromFieldImpl<'a> {

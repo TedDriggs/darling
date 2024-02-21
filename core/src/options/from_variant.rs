@@ -70,6 +70,10 @@ impl ParseData for FromVariantOptions {
             _ => self.base.parse_field(field),
         }
     }
+
+    fn validate_body(&self, errors: &mut crate::error::Accumulator) {
+        self.base.validate_body(errors);
+    }
 }
 
 impl ToTokens for FromVariantOptions {
