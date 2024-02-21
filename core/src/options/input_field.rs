@@ -4,7 +4,7 @@ use syn::{parse_quote_spanned, spanned::Spanned};
 
 use crate::codegen;
 use crate::options::{Core, DefaultExpression, ParseAttribute};
-use crate::util::SpannedValue;
+use crate::util::{Flag, SpannedValue};
 use crate::{Error, FromMeta, Result};
 
 #[derive(Debug, Clone)]
@@ -20,6 +20,7 @@ pub struct InputField {
     pub skip: Option<SpannedValue<bool>>,
     pub post_transform: Option<codegen::PostfixTransform>,
     pub multiple: Option<bool>,
+    pub flatten: Flag,
 }
 
 impl InputField {
@@ -67,6 +68,7 @@ impl InputField {
             skip: None,
             post_transform: Default::default(),
             multiple: None,
+            flatten: Default::default(),
         }
     }
 
@@ -171,6 +173,12 @@ impl ParseAttribute for InputField {
             }
 
             self.multiple = FromMeta::from_meta(mi)?;
+        } else if path.is_ident("flatten") {
+            if self.flatten.is_present() {
+                return Err(Error::duplicate_field_path(path).with_span(mi));
+            }
+
+            self.flatten = FromMeta::from_meta(mi)?;
         } else {
             return Err(Error::unknown_field_path(path).with_span(mi));
         }

@@ -37,6 +37,8 @@ impl ParseData for FromMetaOptions {
     }
 
     fn validate_body(&self, errors: &mut Accumulator) {
+        self.base.validate_body(errors);
+
         if let Data::Enum(ref data) = self.base.data {
             // Adds errors for duplicate `#[darling(word)]` annotations across all variants.
             let word_variants: Vec<_> = data
