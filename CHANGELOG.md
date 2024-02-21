@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+-  Don't suggest names of skipped fields in derived impls [#268](https://github.com/TedDriggs/darling/issues/268)
+
 ## v0.20.6 (February 14, 2024)
 
 -  Fix some missing syn invisible group handling in `FromMeta` impls [#263](https://github.com/TedDriggs/darling/pull/263)
