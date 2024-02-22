@@ -123,6 +123,7 @@ Darling's features are built to work well for real-world projects.
 -   **Multiple-occurrence fields**: Use `#[darling(multiple)]` on a `Vec` field to allow that field to appear multiple times in the meta-item. Each occurrence will be pushed into the `Vec`.
 -   **Span access**: Use `darling::util::SpannedValue` in a struct to get access to that meta item's source code span. This can be used to emit warnings that point at a specific field from your proc macro. In addition, you can use `darling::Error::write_errors` to automatically get precise error location details in most cases.
 -   **"Did you mean" suggestions**: Compile errors from derived darling trait impls include suggestions for misspelled fields.
+-   **Struct flattening**: Use `#[darling(flatten)]` to remove one level of structure when presenting your meta item to users. Fields that are not known to the parent struct will be forwarded to the `flatten` field.
 
 ## Shape Validation
 

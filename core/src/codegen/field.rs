@@ -26,11 +26,18 @@ pub struct Field<'a> {
     pub post_transform: Option<&'a PostfixTransform>,
     pub skip: bool,
     pub multiple: bool,
+    /// If set, this field will be given all unclaimed meta items and will
+    /// not be exposed as a standard named field.
+    pub flatten: bool,
 }
 
 impl<'a> Field<'a> {
+    /// Get the name of the meta item that should be matched against input and should be used in diagnostics.
+    ///
+    /// This will be `None` if the field is `skip` or `flatten`, as neither kind of field is addressable
+    /// by name from the input meta.
     pub fn as_name(&'a self) -> Option<&'a str> {
-        if self.skip {
+        if self.skip || self.flatten {
             None
         } else {
             Some(&self.name_in_attr)
@@ -39,6 +46,10 @@ impl<'a> Field<'a> {
 
     pub fn as_declaration(&'a self) -> Declaration<'a> {
         Declaration(self)
+    }
+
+    pub fn as_flatten_initializer(&'a self) -> FlattenInitializer<'a> {
+        FlattenInitializer(self)
     }
 
     pub fn as_match(&'a self) -> MatchArm<'a> {
@@ -82,41 +93,60 @@ impl<'a> ToTokens for Declaration<'a> {
     }
 }
 
+pub struct FlattenInitializer<'a>(&'a Field<'a>);
+
+impl<'a> ToTokens for FlattenInitializer<'a> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let field = self.0;
+        let ident = field.ident;
+
+        tokens.append_all(quote! {
+            #ident = (true, __errors.handle(::darling::FromMeta::from_list(__flatten.into_iter().cloned().map(::darling::ast::NestedMeta::Meta).collect::<Vec<_>>().as_slice())));
+        });
+    }
+}
+
 /// Represents an individual field in the match.
 pub struct MatchArm<'a>(&'a Field<'a>);
 
 impl<'a> ToTokens for MatchArm<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let field: &Field = self.0;
-        if !field.skip {
-            let name_str = &field.name_in_attr;
-            let ident = field.ident;
-            let with_path = &field.with_path;
-            let post_transform = field.post_transform.as_ref();
 
-            // Errors include the location of the bad input, so we compute that here.
-            // Fields that take multiple values add the index of the error for convenience,
-            // while single-value fields only expose the name in the input attribute.
-            let location = if field.multiple {
-                // we use the local variable `len` here because location is accessed via
-                // a closure, and the borrow checker gets very unhappy if we try to immutably
-                // borrow `#ident` in that closure when it was declared `mut` outside.
-                quote!(&format!("{}[{}]", #name_str, __len))
-            } else {
-                quote!(#name_str)
-            };
+        // Skipped and flattened fields cannot be populated by a meta
+        // with their name, so they do not have a match arm.
+        if field.skip || field.flatten {
+            return;
+        }
 
-            // Give darling's generated code the span of the `with_path` so that if the target
-            // type doesn't impl FromMeta, darling's immediate user gets a properly-spanned error.
-            //
-            // Within the generated code, add the span immediately on extraction failure, so that it's
-            // as specific as possible.
-            // The behavior of `with_span` makes this safe to do; if the child applied an
-            // even-more-specific span, our attempt here will not overwrite that and will only cost
-            // us one `if` check.
-            let extractor = quote_spanned!(with_path.span()=>#with_path(__inner)#post_transform.map_err(|e| e.with_span(&__inner).at(#location)));
+        let name_str = &field.name_in_attr;
+        let ident = field.ident;
+        let with_path = &field.with_path;
+        let post_transform = field.post_transform.as_ref();
 
-            tokens.append_all(if field.multiple {
+        // Errors include the location of the bad input, so we compute that here.
+        // Fields that take multiple values add the index of the error for convenience,
+        // while single-value fields only expose the name in the input attribute.
+        let location = if field.multiple {
+            // we use the local variable `len` here because location is accessed via
+            // a closure, and the borrow checker gets very unhappy if we try to immutably
+            // borrow `#ident` in that closure when it was declared `mut` outside.
+            quote!(&format!("{}[{}]", #name_str, __len))
+        } else {
+            quote!(#name_str)
+        };
+
+        // Give darling's generated code the span of the `with_path` so that if the target
+        // type doesn't impl FromMeta, darling's immediate user gets a properly-spanned error.
+        //
+        // Within the generated code, add the span immediately on extraction failure, so that it's
+        // as specific as possible.
+        // The behavior of `with_span` makes this safe to do; if the child applied an
+        // even-more-specific span, our attempt here will not overwrite that and will only cost
+        // us one `if` check.
+        let extractor = quote_spanned!(with_path.span()=>#with_path(__inner)#post_transform.map_err(|e| e.with_span(&__inner).at(#location)));
+
+        tokens.append_all(if field.multiple {
                 quote!(
                     #name_str => {
                         // Store the index of the name we're assessing in case we need
@@ -138,7 +168,6 @@ impl<'a> ToTokens for MatchArm<'a> {
                     }
                 )
             });
-        }
     }
 }
 
