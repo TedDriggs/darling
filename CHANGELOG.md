@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.20.7 (February 22, 2024)
 
 -  Add `#[darling(flatten)]` to allow forwarding unknown fields to another struct [#146](https://github.com/TedDriggs/darling/issues/146)
 -  Don't suggest names of skipped fields in derived impls [#268](https://github.com/TedDriggs/darling/issues/268)
