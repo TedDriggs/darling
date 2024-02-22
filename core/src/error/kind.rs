@@ -9,7 +9,7 @@ type MetaFormat = String;
 #[derive(Debug, Clone)]
 // Don't want to publicly commit to ErrorKind supporting equality yet, but
 // not having it makes testing very difficult.
-#[cfg_attr(test, derive(PartialEq, Eq))]
+#[cfg_attr(test, derive(PartialEq))]
 pub(in crate::error) enum ErrorKind {
     /// An arbitrary error message.
     Custom(String),
@@ -120,14 +120,14 @@ impl From<ErrorUnknownField> for ErrorKind {
 #[derive(Clone, Debug)]
 // Don't want to publicly commit to ErrorKind supporting equality yet, but
 // not having it makes testing very difficult.
-#[cfg_attr(test, derive(PartialEq, Eq))]
+#[cfg_attr(test, derive(PartialEq))]
 pub(in crate::error) struct ErrorUnknownField {
     name: String,
-    did_you_mean: Option<String>,
+    did_you_mean: Option<(f64, String)>,
 }
 
 impl ErrorUnknownField {
-    pub fn new<I: Into<String>>(name: I, did_you_mean: Option<String>) -> Self {
+    pub fn new<I: Into<String>>(name: I, did_you_mean: Option<(f64, String)>) -> Self {
         ErrorUnknownField {
             name: name.into(),
             did_you_mean,
@@ -149,7 +149,7 @@ impl ErrorUnknownField {
             .unwrap()
             .error(self.top_line());
         match self.did_you_mean {
-            Some(alt_name) => base.help(format!("did you mean `{}`?", alt_name)),
+            Some((_, alt_name)) => base.help(format!("did you mean `{}`?", alt_name)),
             None => base,
         }
     }
@@ -176,7 +176,7 @@ impl fmt::Display for ErrorUnknownField {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Unknown field: `{}`", self.name)?;
 
-        if let Some(ref did_you_mean) = self.did_you_mean {
+        if let Some((_, ref did_you_mean)) = self.did_you_mean {
             write!(f, ". Did you mean `{}`?", did_you_mean)?;
         }
 
@@ -185,7 +185,7 @@ impl fmt::Display for ErrorUnknownField {
 }
 
 #[cfg(feature = "suggestions")]
-fn did_you_mean<'a, T, I>(field: &str, alternates: I) -> Option<String>
+fn did_you_mean<'a, T, I>(field: &str, alternates: I) -> Option<(f64, String)>
 where
     T: AsRef<str> + 'a,
     I: IntoIterator<Item = &'a T>,
@@ -198,11 +198,11 @@ where
             candidate = Some((confidence, pv.as_ref()));
         }
     }
-    candidate.map(|(_, candidate)| candidate.into())
+    candidate.map(|(score, candidate)| (score, candidate.into()))
 }
 
 #[cfg(not(feature = "suggestions"))]
-fn did_you_mean<'a, T, I>(_field: &str, _alternates: I) -> Option<String>
+fn did_you_mean<'a, T, I>(_field: &str, _alternates: I) -> Option<(f64, String)>
 where
     T: AsRef<str> + 'a,
     I: IntoIterator<Item = &'a T>,
