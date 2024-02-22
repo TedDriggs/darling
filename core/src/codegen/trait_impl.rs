@@ -112,7 +112,17 @@ impl<'a> TraitImpl<'a> {
         if let Data::Struct(ref vd) = self.data {
             let check_nones = vd.as_ref().map(Field::as_presence_check);
             let checks = check_nones.fields.as_slice();
-            quote!(#(#checks)*)
+
+            // If a field was marked `flatten`, now is the time to process any unclaimed meta items
+            // and mark the field as having been seen.
+            let flatten_field_init = vd.fields.iter().find(|f| f.flatten).map(|v| {
+                v.as_flatten_initializer(vd.fields.iter().filter_map(Field::as_name).collect())
+            });
+
+            quote! {
+                #flatten_field_init
+                #(#checks)*
+            }
         } else {
             quote!()
         }

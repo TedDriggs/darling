@@ -7,14 +7,12 @@ use crate::codegen::Field;
 pub struct FieldsGen<'a> {
     fields: &'a Fields<Field<'a>>,
     allow_unknown_fields: bool,
-    flatten_field: Option<&'a Field<'a>>,
 }
 
 impl<'a> FieldsGen<'a> {
     pub fn new(fields: &'a Fields<Field<'a>>, allow_unknown_fields: bool) -> Self {
         Self {
             fields,
-            flatten_field: fields.fields.iter().find(|f| f.flatten),
             allow_unknown_fields,
         }
     }
@@ -37,22 +35,11 @@ impl<'a> FieldsGen<'a> {
     /// Generate the loop which walks meta items looking for property matches.
     pub(in crate::codegen) fn core_loop(&self) -> TokenStream {
         let arms = self.fields.as_ref().map(Field::as_match);
-
-        let (flatten_buffer, flatten_declaration) = if let Some(flatten_field) = self.flatten_field
-        {
-            (
-                quote! { let mut __flatten = vec![]; },
-                Some(flatten_field.as_flatten_initializer(self.field_names().collect())),
-            )
-        } else {
-            (quote!(), None)
-        };
-
         // If there is a flatten field, buffer the unknown field so it can be passed
         // to the flatten function with all other unknown fields.
-        let handle_unknown = if self.flatten_field.is_some() {
+        let handle_unknown = if self.fields.iter().any(|f| f.flatten) {
             quote! {
-                __flatten.push(__inner);
+                __flatten.push(::darling::ast::NestedMeta::Meta(__inner.clone()));
             }
         }
         // If we're allowing unknown fields, then handling one is a no-op.
@@ -77,8 +64,6 @@ impl<'a> FieldsGen<'a> {
         let arms = arms.iter();
 
         quote!(
-            #flatten_buffer
-
             for __item in __items {
                 match *__item {
                     ::darling::export::NestedMeta::Meta(ref __inner) => {
@@ -94,8 +79,6 @@ impl<'a> FieldsGen<'a> {
                     }
                 }
             }
-
-            #flatten_declaration
         )
     }
 
@@ -118,9 +101,5 @@ impl<'a> FieldsGen<'a> {
         let inits = inits.iter();
 
         quote!(#(#inits),*)
-    }
-
-    fn field_names(&self) -> impl Iterator<Item = &str> {
-        self.fields.iter().filter_map(Field::as_name)
     }
 }
