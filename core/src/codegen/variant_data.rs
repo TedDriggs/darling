@@ -7,12 +7,14 @@ use crate::codegen::Field;
 pub struct FieldsGen<'a> {
     fields: &'a Fields<Field<'a>>,
     allow_unknown_fields: bool,
+    flatten_field: Option<&'a Field<'a>>,
 }
 
 impl<'a> FieldsGen<'a> {
     pub fn new(fields: &'a Fields<Field<'a>>, allow_unknown_fields: bool) -> Self {
         Self {
             fields,
+            flatten_field: fields.fields.iter().find(|f| f.flatten),
             allow_unknown_fields,
         }
     }
@@ -36,11 +38,29 @@ impl<'a> FieldsGen<'a> {
     pub(in crate::codegen) fn core_loop(&self) -> TokenStream {
         let arms = self.fields.as_ref().map(Field::as_match);
 
-        // If we're allowing unknown fields, then handling one is a no-op.
-        // Otherwise, we're going to push a new spanned error pointing at the field.
-        let handle_unknown = if self.allow_unknown_fields {
-            quote!()
+        let (flatten_buffer, flatten_declaration) = if let Some(flatten_field) = self.flatten_field
+        {
+            (
+                quote! { let mut __flatten = vec![]; },
+                Some(flatten_field.as_flatten_initializer()),
+            )
         } else {
+            (quote!(), None)
+        };
+
+        // If there is a flatten field, buffer the unknown field so it can be passed
+        // to the flatten function with all other unknown fields.
+        let handle_unknown = if self.flatten_field.is_some() {
+            quote! {
+                __flatten.push(__inner);
+            }
+        }
+        // If we're allowing unknown fields, then handling one is a no-op.
+        else if self.allow_unknown_fields {
+            quote!()
+        }
+        // Otherwise, we're going to push a new spanned error pointing at the field.
+        else {
             let mut names = self.fields.iter().filter_map(Field::as_name).peekable();
             // We can't call `unknown_field_with_alts` with an empty slice, or else it fails to
             // infer the type of the slice item.
@@ -57,6 +77,8 @@ impl<'a> FieldsGen<'a> {
         let arms = arms.iter();
 
         quote!(
+            #flatten_buffer
+
             for __item in __items {
                 match *__item {
                     ::darling::export::NestedMeta::Meta(ref __inner) => {
@@ -72,6 +94,8 @@ impl<'a> FieldsGen<'a> {
                     }
                 }
             }
+
+            #flatten_declaration
         )
     }
 
