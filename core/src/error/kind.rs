@@ -142,6 +142,24 @@ impl ErrorUnknownField {
         ErrorUnknownField::new(field, did_you_mean(field, alternates))
     }
 
+    /// Add more alternate field names to the error, updating the `did_you_mean` suggestion
+    /// if a closer match to the unknown field's name is found.
+    pub fn add_alts<'a, T, I>(&mut self, alternates: I)
+    where
+        T: AsRef<str> + 'a,
+        I: IntoIterator<Item = &'a T>,
+    {
+        if let Some(bna) = did_you_mean(&self.name, alternates) {
+            if let Some(current) = &self.did_you_mean {
+                if bna.0 > current.0 {
+                    self.did_you_mean = Some(bna);
+                }
+            } else {
+                self.did_you_mean = Some(bna);
+            }
+        }
+    }
+
     #[cfg(feature = "diagnostics")]
     pub fn into_diagnostic(self, span: Option<::proc_macro2::Span>) -> ::proc_macro::Diagnostic {
         let base = span

@@ -389,6 +389,51 @@ impl Error {
         self.kind.len()
     }
 
+    /// Consider additional field names as "did you mean" suggestions for
+    /// unknown field errors **if and only if** the caller appears to be operating
+    /// at error's origin (meaning no calls to [`Self::at`] have yet taken place).
+    ///
+    /// # Usage
+    /// `flatten` fields in derived trait implementations rely on this method to offer correct
+    /// "did you mean" suggestions in errors.
+    ///
+    /// Because the `flatten` field receives _all_ unknown fields, if a user mistypes a field name
+    /// that is present on the outer struct but not the flattened struct, they would get an incomplete
+    /// or inferior suggestion unless this method was invoked.
+    pub fn add_sibling_alts_for_unknown_field<'a, T, I>(mut self, alternates: I) -> Self
+    where
+        T: AsRef<str> + 'a,
+        I: IntoIterator<Item = &'a T>,
+    {
+        // The error may have bubbled up before this method was called,
+        // and in those cases adding alternates would be incorrect.
+        if !self.locations.is_empty() {
+            return self;
+        }
+
+        if let ErrorKind::UnknownField(unknown_field) = &mut self.kind {
+            unknown_field.add_alts(alternates);
+        } else if let ErrorKind::Multiple(errors) = self.kind {
+            let alternates = alternates.into_iter().collect::<Vec<_>>();
+            self.kind = ErrorKind::Multiple(
+                errors
+                    .into_iter()
+                    .map(|err| {
+                        err.add_sibling_alts_for_unknown_field(
+                            // This clone seems like it shouldn't be necessary.
+                            // Attempting to borrow alternates here leads to the following compiler error:
+                            //
+                            // error: reached the recursion limit while instantiating `darling::Error::add_sibling_alts_for_unknown_field::<'_, &&&&..., ...>`
+                            alternates.clone(),
+                        )
+                    })
+                    .collect(),
+            )
+        }
+
+        self
+    }
+
     /// Adds a location chain to the head of the error's existing locations.
     fn prepend_at(mut self, mut locations: Vec<String>) -> Self {
         if !locations.is_empty() {

@@ -48,8 +48,14 @@ impl<'a> Field<'a> {
         Declaration(self)
     }
 
-    pub fn as_flatten_initializer(&'a self) -> FlattenInitializer<'a> {
-        FlattenInitializer(self)
+    pub fn as_flatten_initializer(
+        &'a self,
+        parent_field_names: Vec<&'a str>,
+    ) -> FlattenInitializer<'a> {
+        FlattenInitializer {
+            field: self,
+            parent_field_names,
+        }
     }
 
     pub fn as_match(&'a self) -> MatchArm<'a> {
@@ -93,15 +99,39 @@ impl<'a> ToTokens for Declaration<'a> {
     }
 }
 
-pub struct FlattenInitializer<'a>(&'a Field<'a>);
+pub struct FlattenInitializer<'a> {
+    field: &'a Field<'a>,
+    parent_field_names: Vec<&'a str>,
+}
 
 impl<'a> ToTokens for FlattenInitializer<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let field = self.0;
+        let Self {
+            field,
+            parent_field_names,
+        } = self;
         let ident = field.ident;
 
+        let add_parent_fields = if parent_field_names.is_empty() {
+            None
+        } else {
+            Some(quote! {
+                .map_err(|e| e.add_sibling_alts_for_unknown_field(&[#(#parent_field_names),*]))
+            })
+        };
+
         tokens.append_all(quote! {
-            #ident = (true, __errors.handle(::darling::FromMeta::from_list(__flatten.into_iter().cloned().map(::darling::ast::NestedMeta::Meta).collect::<Vec<_>>().as_slice())));
+            #ident = (true,
+                __errors.handle(
+                    ::darling::FromMeta::from_list(
+                        __flatten
+                            .into_iter()
+                            .cloned()
+                            .map(::darling::ast::NestedMeta::Meta)
+                            .collect::<Vec<_>>().as_slice()
+                        ) #add_parent_fields
+                    )
+                );
         });
     }
 }
