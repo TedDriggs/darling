@@ -96,6 +96,17 @@ impl<'a> ToTokens for Declaration<'a> {
         } else {
             quote!(let mut #ident: (bool, ::darling::export::Option<#ty>) = (false, None);)
         });
+
+        // The flatten field additionally needs a place to buffer meta items
+        // until attribute walking is done, so declare that now.
+        //
+        // We expect there can only be one field marked `flatten`, so it shouldn't
+        // be possible for this to shadow another declaration.
+        if field.flatten {
+            tokens.append_all(quote! {
+                let mut __flatten: Vec<::darling::ast::NestedMeta> = vec![];
+            });
+        }
     }
 }
 
@@ -123,13 +134,7 @@ impl<'a> ToTokens for FlattenInitializer<'a> {
         tokens.append_all(quote! {
             #ident = (true,
                 __errors.handle(
-                    ::darling::FromMeta::from_list(
-                        __flatten
-                            .into_iter()
-                            .cloned()
-                            .map(::darling::ast::NestedMeta::Meta)
-                            .collect::<Vec<_>>().as_slice()
-                        ) #add_parent_fields
+                    ::darling::FromMeta::from_list(&__flatten) #add_parent_fields
                     )
                 );
         });
