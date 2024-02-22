@@ -42,7 +42,7 @@ impl<'a> FieldsGen<'a> {
         {
             (
                 quote! { let mut __flatten = vec![]; },
-                Some(flatten_field.as_flatten_initializer()),
+                Some(flatten_field.as_flatten_initializer(self.field_names().collect())),
             )
         } else {
             (quote!(), None)
@@ -118,5 +118,9 @@ impl<'a> FieldsGen<'a> {
         let inits = inits.iter();
 
         quote!(#(#inits),*)
+    }
+
+    fn field_names(&self) -> impl Iterator<Item = &str> {
+        self.fields.iter().filter_map(Field::as_name)
     }
 }

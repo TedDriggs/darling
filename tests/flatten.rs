@@ -119,3 +119,63 @@ fn flattening_into_hashmap() {
     assert_eq!(parsed.volume, 10);
     assert_eq!(parsed.others.len(), 2);
 }
+
+#[derive(FromMeta)]
+#[allow(dead_code)]
+struct Person {
+    first: String,
+    last: String,
+    parent: Option<Box<Person>>,
+}
+
+#[derive(FromDeriveInput)]
+#[darling(attributes(v))]
+#[allow(dead_code)]
+struct Outer {
+    #[darling(flatten)]
+    owner: Person,
+    #[darling(default)]
+    blast: bool,
+}
+
+/// This test makes sure that field names from parent structs are not inappropriately
+/// offered as alternates for unknown field errors in child structs.
+///
+/// A naive implementation that tried to offer all the flattened fields for "did you mean"
+/// could inspect all errors returned by the flattened field's `from_list` call and add the
+/// parent's field names as alternates to all unknown field errors.
+///
+/// THIS WOULD BE INCORRECT. Those unknown field errors may have already come from
+/// child fields within the flattened struct, where the parent's field names are not valid.
+#[test]
+fn do_not_suggest_invalid_alts() {
+    let errors = Outer::from_derive_input(&parse_quote! {
+        #[v(first = "Hello", last = "World", parent(first = "Hi", last = "Earth", blasts = "off"))]
+        struct Demo;
+    })
+    .map(|_| "Should have failed")
+    .unwrap_err()
+    .to_string();
+
+    assert!(
+        !errors.contains("`blast`"),
+        "Should not contain `blast`: {}",
+        errors
+    );
+}
+
+#[test]
+fn suggest_valid_parent_alts() {
+    let errors = Outer::from_derive_input(&parse_quote! {
+        #[v(first = "Hello", bladt = false, last = "World", parent(first = "Hi", last = "Earth"))]
+        struct Demo;
+    })
+    .map(|_| "Should have failed")
+    .unwrap_err()
+    .to_string();
+    assert!(
+        errors.contains("`blast`"),
+        "Should contain `blast` as did-you-mean suggestion: {}",
+        errors
+    );
+}
