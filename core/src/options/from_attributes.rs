@@ -62,6 +62,7 @@ impl<'a> From<&'a FromAttributesOptions> for FromAttributesImpl<'a> {
         FromAttributesImpl {
             base: (&v.base.container).into(),
             attr_names: &v.base.attr_names,
+            forward_attrs: Default::default(),
         }
     }
 }

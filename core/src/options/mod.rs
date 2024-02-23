@@ -19,7 +19,7 @@ mod outer_from;
 mod shape;
 
 pub use self::core::Core;
-pub use self::forward_attrs::ForwardAttrs;
+pub use self::forward_attrs::{AttrsField, ForwardAttrsFilter};
 pub use self::from_attributes::FromAttributesOptions;
 pub use self::from_derive::FdiOptions;
 pub use self::from_field::FromFieldOptions;

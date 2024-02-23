@@ -84,8 +84,7 @@ impl<'a> From<&'a FdiOptions> for FromDeriveInputImpl<'a> {
             vis: v.vis.as_ref(),
             data: v.data.as_ref(),
             generics: v.generics.as_ref(),
-            attrs: v.base.attrs.as_ref(),
-            forward_attrs: v.base.forward_attrs.as_ref(),
+            forward_attrs: v.base.as_forward_attrs(),
             supports: v.supports.as_ref(),
         }
     }

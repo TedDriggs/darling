@@ -60,11 +60,10 @@ impl<'a> From<&'a FromTypeParamOptions> for FromTypeParamImpl<'a> {
         FromTypeParamImpl {
             base: (&v.base.container).into(),
             ident: v.base.ident.as_ref(),
-            attrs: v.base.attrs.as_ref(),
             bounds: v.bounds.as_ref(),
             default: v.default.as_ref(),
             attr_names: &v.base.attr_names,
-            forward_attrs: v.base.forward_attrs.as_ref(),
+            forward_attrs: v.base.as_forward_attrs(),
             from_ident: v.base.from_ident,
         }
     }

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+-  Add `#[darling(with = ...)]` support to `attrs` magic field to allow using custom receiver types for `attrs` [#273](https://github.com/TedDriggs/darling/issues/273)
+
 ## v0.20.7 (February 22, 2024)
 
 -  Add `#[darling(flatten)]` to allow forwarding unknown fields to another struct [#146](https://github.com/TedDriggs/darling/issues/146)

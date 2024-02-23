@@ -36,9 +36,8 @@ impl<'a> From<&'a FromVariantOptions> for FromVariantImpl<'a> {
             ident: v.base.ident.as_ref(),
             discriminant: v.discriminant.as_ref(),
             fields: v.fields.as_ref(),
-            attrs: v.base.attrs.as_ref(),
             attr_names: &v.base.attr_names,
-            forward_attrs: v.base.forward_attrs.as_ref(),
+            forward_attrs: v.base.as_forward_attrs(),
             from_ident: v.base.from_ident,
             supports: v.supports.as_ref(),
         }
