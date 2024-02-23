@@ -1,6 +1,6 @@
 [package]
 name = "darling_core"
-version = "0.20.7"
+version = "0.20.8"
 authors = ["Ted Driggs <ted.driggs@outlook.com>"]
 repository = "https://github.com/TedDriggs/darling"
 description = """

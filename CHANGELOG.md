@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.20.8 (February 23, 2024)
 
 -  Add `#[darling(with = ...)]` support to `attrs` magic field to allow using custom receiver types for `attrs` [#273](https://github.com/TedDriggs/darling/issues/273)
 
