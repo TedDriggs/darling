@@ -125,6 +125,17 @@ impl Error {
         Error::new(ErrorUnknownField::with_alts(field, alternates).into())
     }
 
+    /// Creates a new error for a field name that appears in the input but does not correspond to
+    /// a known attribute. The second argument is the list of known attributes; if a similar name
+    /// is found that will be shown in the emitted error message.
+    pub fn unknown_field_path_with_alts<'a, T, I>(field: &Path, alternates: I) -> Self
+    where
+        T: AsRef<str> + 'a,
+        I: IntoIterator<Item = &'a T>,
+    {
+        Error::new(ErrorUnknownField::with_alts(&path_to_string(field), alternates).into())
+    }
+
     /// Creates a new error for a struct or variant that does not adhere to the supported shape.
     pub fn unsupported_shape(shape: &str) -> Self {
         Error::new(ErrorKind::UnsupportedShape {
