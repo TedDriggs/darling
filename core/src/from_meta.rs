@@ -596,25 +596,33 @@ impl<T: FromMeta> FromMeta for Option<T> {
     }
 }
 
-impl<T: FromMeta> FromMeta for Box<T> {
-    fn from_none() -> Option<Self> {
-        T::from_none().map(Box::new)
-    }
+/// Create an impl that forwards to an inner type `T` for parsing.
+macro_rules! smart_pointer_t {
+    ($ty:path, $map_fn:path) => {
+        impl<T: FromMeta> FromMeta for $ty {
+            fn from_none() -> Option<Self> {
+                T::from_none().map($map_fn)
+            }
 
-    fn from_meta(item: &Meta) -> Result<Self> {
-        FromMeta::from_meta(item).map(Box::new)
-    }
+            // `#[darling(flatten)]` forwards directly to this method, so it's
+            // necessary to declare it to avoid getting an unsupported format
+            // error if it's invoked directly.
+            fn from_list(items: &[NestedMeta]) -> Result<Self> {
+                FromMeta::from_list(items).map($map_fn)
+            }
+
+            fn from_meta(item: &Meta) -> Result<Self> {
+                FromMeta::from_meta(item).map($map_fn)
+            }
+        }
+    };
 }
 
-impl<T: FromMeta> FromMeta for Result<T> {
-    fn from_none() -> Option<Self> {
-        T::from_none().map(Ok)
-    }
-
-    fn from_meta(item: &Meta) -> Result<Self> {
-        Ok(FromMeta::from_meta(item))
-    }
-}
+smart_pointer_t!(Result<T>, Ok);
+smart_pointer_t!(Box<T>, Box::new);
+smart_pointer_t!(Rc<T>, Rc::new);
+smart_pointer_t!(Arc<T>, Arc::new);
+smart_pointer_t!(RefCell<T>, RefCell::new);
 
 /// Parses the meta-item, and in case of error preserves a copy of the input for
 /// later analysis.
@@ -623,36 +631,6 @@ impl<T: FromMeta> FromMeta for ::std::result::Result<T, Meta> {
         T::from_meta(item)
             .map(Ok)
             .or_else(|_| Ok(Err(item.clone())))
-    }
-}
-
-impl<T: FromMeta> FromMeta for Rc<T> {
-    fn from_none() -> Option<Self> {
-        T::from_none().map(Rc::new)
-    }
-
-    fn from_meta(item: &Meta) -> Result<Self> {
-        FromMeta::from_meta(item).map(Rc::new)
-    }
-}
-
-impl<T: FromMeta> FromMeta for Arc<T> {
-    fn from_none() -> Option<Self> {
-        T::from_none().map(Arc::new)
-    }
-
-    fn from_meta(item: &Meta) -> Result<Self> {
-        FromMeta::from_meta(item).map(Arc::new)
-    }
-}
-
-impl<T: FromMeta> FromMeta for RefCell<T> {
-    fn from_none() -> Option<Self> {
-        T::from_none().map(RefCell::new)
-    }
-
-    fn from_meta(item: &Meta) -> Result<Self> {
-        FromMeta::from_meta(item).map(RefCell::new)
     }
 }
 
