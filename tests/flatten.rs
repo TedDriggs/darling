@@ -179,3 +179,26 @@ fn suggest_valid_parent_alts() {
         errors
     );
 }
+
+/// Make sure that flatten works with smart pointer types, e.g. `Box`.
+///
+/// The generated `flatten` impl directly calls `FromMeta::from_list`
+/// rather than calling `from_meta`, and the default impl of `from_list`
+/// will return an unsupported format error; this test ensures that the
+/// smart pointer type is properly forwarding the `from_list` call.
+#[test]
+fn flattening_to_box() {
+    #[derive(FromDeriveInput)]
+    #[darling(attributes(v))]
+    struct Example {
+        #[darling(flatten)]
+        items: Box<Vis>,
+    }
+
+    let when_omitted = Example::from_derive_input(&parse_quote! {
+        struct Demo;
+    })
+    .unwrap();
+
+    assert!(!when_omitted.items.public.is_present());
+}
