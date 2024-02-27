@@ -2,7 +2,7 @@
 
 [![Build Status](https://github.com/TedDriggs/darling/workflows/CI/badge.svg)](https://github.com/TedDriggs/darling/actions)
 [![Latest Version](https://img.shields.io/crates/v/darling.svg)](https://crates.io/crates/darling)
-[![Rustc Version 1.56+](https://img.shields.io/badge/rustc-1.56+-lightgray.svg)]
+![Rustc Version 1.56+](https://img.shields.io/badge/rustc-1.56+-lightgray.svg)
 
 `darling` is a crate for proc macro authors, which enables parsing attributes into structs. It is heavily inspired by `serde` both in its internals and in its API.
 
