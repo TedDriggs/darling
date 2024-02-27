@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+-  Allow word-form for newtype enum variants whose only field produces a value when `from_none` is called on their type [#249](https://github.com/TedDriggs/darling/issues/249)
+
 ## v0.20.8 (February 23, 2024)
 
 -  Add `#[darling(with = ...)]` support to `attrs` magic field to allow using custom receiver types for `attrs` [#273](https://github.com/TedDriggs/darling/issues/273)
