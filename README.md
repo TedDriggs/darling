@@ -25,14 +25,12 @@
 
 -   `darling::ast` provides generic types for representing the AST.
 -   `darling::usage` provides traits and functions for determining where type parameters and lifetimes are used in a struct or enum.
--   `darling::util` provides helper types with special `FromMeta` implementations, such as `IdentList`.
+-   `darling::util` provides helper types with special `FromMeta` implementations, such as `PathList`.
 
 # Example
 
 ```rust,ignore
-#[macro_use]
-extern crate darling;
-extern crate syn;
+use darling::{FromDeriveInput, FromMeta};
 
 #[derive(Default, FromMeta)]
 #[darling(default)]
@@ -63,7 +61,7 @@ pub struct ConsumingType;
 # Attribute Macros
 
 Non-derive attribute macros are supported.
-To parse arguments for attribute macros, derive `FromMeta` on the argument receiver type, then pass `&syn::AttributeArgs` to the `from_list` method.
+To parse arguments for attribute macros, derive `FromMeta` on the argument receiver type, then use `darling::ast::NestedMeta::parse_meta_list` to convert the arguments `TokenStream` to a `Vec<NestedMeta>`, then pass that to the derived `from_list` method on your argument receiver type.
 This will produce a normal `darling::Result<T>` that can be used the same as a result from parsing a `DeriveInput`.
 
 ## Macro Code
