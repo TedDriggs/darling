@@ -40,3 +40,20 @@ pub use self::from_variant::FromVariant;
 pub use quote::ToTokens;
 #[doc(hidden)]
 pub use syn;
+
+#[macro_export]
+macro_rules! parse_attr_into {
+    ($attr:ident as $ty:ty) => {
+        match $crate::ast::NestedMeta::parse_meta_list($attr.into()) {
+            Ok(v) => match <$ty as $crate::FromMeta>::from_list(&v) {
+                Ok(v) => v,
+                Err(e) => {
+                    return TokenStream::from(e.write_errors());
+                }
+            },
+            Err(e) => {
+                return TokenStream::from($crate::Error::from(e).write_errors());
+            }
+        }
+    };
+}
