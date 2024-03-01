@@ -41,29 +41,23 @@ pub use quote::ToTokens;
 #[doc(hidden)]
 pub use syn;
 
-/// Parse the attr TokenStream of a macro, triggering a compile error if the tokens fail to parse.
-/// # Example
-/// ```
-/// # extern crate proc_macro;
-/// # use proc_macro::TokenStream;
-/// # use darling::FromMeta;
-/// # use darling::parse_meta;
+/// Parse a `proc_macro::TokenStream` into a type that implements [`FromMeta`],
+/// immediately returning a compile error if the tokens fail to parse.
 ///
+/// # Example
+/// ```rust,ignore
 /// #[derive(Debug, Default, FromMeta)]
 /// #[darling(default)]
-/// pub struct Attr {
+/// pub struct Receiver {
 ///     pub default: bool,
 /// }
 ///
-/// # const IGNORE: &str = stringify! {
 /// #[proc_macro_attribute]
-/// # };
 /// pub fn parse_attr(attr: TokenStream, input: TokenStream) -> TokenStream {
-///     let _attr = parse_meta!(attr as Attr);
+///     let options = parse_meta!(attr as Receiver);
 ///     input
 /// }
 /// ```
-
 #[macro_export]
 macro_rules! parse_meta {
     ($attr:ident as $ty:ty) => {
