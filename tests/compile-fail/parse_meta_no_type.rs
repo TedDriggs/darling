@@ -11,10 +11,10 @@ struct MacroArgs {
 }
 
 pub fn your_attr(args: TokenStream, input: TokenStream) -> TokenStream {
-    let _args = parse_meta!(args as MacroArgs);
+    let args = parse_meta!(args);
     let _input = syn::parse_macro_input!(input as ItemFn);
 
-    // do things with `args`
+    println!("{:?}", args.timeout_ms);
     unimplemented!()
 }
 

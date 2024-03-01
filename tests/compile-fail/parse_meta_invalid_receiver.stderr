@@ -1,0 +1,17 @@
+error[E0277]: the trait bound `NotMacroArgs: FromMeta` is not satisfied
+ --> tests/compile-fail/parse_meta_invalid_receiver.rs:8:16
+  |
+8 |     let args = parse_meta!(args as NotMacroArgs);
+  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `FromMeta` is not implemented for `NotMacroArgs`
+  |
+  = help: the following other types implement trait `FromMeta`:
+            ()
+            Arc<T>
+            AtomicBool
+            ExprArray
+            ExprPath
+            Flag
+            HashMap<proc_macro2::Ident, V, S>
+            HashMap<std::string::String, V, S>
+          and $N others
+  = note: this error originates in the macro `parse_meta` (in Nightly builds, run with -Z macro-backtrace for more info)

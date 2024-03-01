@@ -1,0 +1,13 @@
+error[E0282]: type annotations needed
+  --> tests/compile-fail/parse_meta_no_type.rs:14:9
+   |
+14 |     let args = parse_meta!(args);
+   |         ^^^^
+...
+17 |     println!("{:?}", args.timeout_ms);
+   |                      ---- type must be known at this point
+   |
+help: consider giving `args` an explicit type
+   |
+14 |     let args: _ = parse_meta!(args);
+   |             +++
