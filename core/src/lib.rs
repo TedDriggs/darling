@@ -41,19 +41,45 @@ pub use quote::ToTokens;
 #[doc(hidden)]
 pub use syn;
 
+/// Parse the attr TokenStream of a macro, triggering a compile error if the tokens fail to parse.
+/// # Example
+/// ```
+/// # extern crate proc_macro;
+/// # use proc_macro::TokenStream;
+/// # use darling::FromMeta;
+/// # use darling::parse_meta;
+///
+/// #[derive(Debug, Default, FromMeta)]
+/// #[darling(default)]
+/// pub struct Attr {
+///     pub default: bool,
+/// }
+///
+/// # const IGNORE: &str = stringify! {
+/// #[proc_macro_attribute]
+/// # };
+/// pub fn parse_attr(attr: TokenStream, input: TokenStream) -> TokenStream {
+///     let _attr = parse_meta!(attr as Attr);
+///     input
+/// }
+/// ```
+
 #[macro_export]
-macro_rules! parse_attr_into {
+macro_rules! parse_meta {
     ($attr:ident as $ty:ty) => {
         match $crate::ast::NestedMeta::parse_meta_list($attr.into()) {
             Ok(v) => match <$ty as $crate::FromMeta>::from_list(&v) {
                 Ok(v) => v,
                 Err(e) => {
-                    return TokenStream::from(e.write_errors());
+                    return proc_macro::TokenStream::from(e.write_errors());
                 }
             },
             Err(e) => {
-                return TokenStream::from($crate::Error::from(e).write_errors());
+                return proc_macro::TokenStream::from($crate::Error::from(e).write_errors());
             }
         }
+    };
+    ($attr:ident) => {
+        $crate::parse_meta!($attr as _)
     };
 }
