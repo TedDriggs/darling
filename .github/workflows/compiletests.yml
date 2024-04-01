@@ -12,7 +12,7 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
-            - uses: dtolnay/rust-toolchain@1.65.0
+            - uses: dtolnay/rust-toolchain@1.77
             - name: main crate
               run: |
                   cargo build --verbose
