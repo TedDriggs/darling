@@ -10,7 +10,7 @@ implementing custom derives.
 """
 license = "MIT"
 readme = "README.md"
-edition = "2018"
+edition = "2021"
 exclude = ["/.travis.yml", "/publish.sh", "/.github/**"]
 
 [badges]
