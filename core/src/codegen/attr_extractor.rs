@@ -13,7 +13,7 @@ pub trait ExtractAttribute {
     /// Gets the list of attribute names that should be parsed by the extractor.
     fn attr_names(&self) -> &PathList;
 
-    fn forward_attrs(&self) -> &ForwardAttrs;
+    fn forward_attrs(&self) -> &ForwardAttrs<'_>;
 
     /// Gets the name used by the generated impl to return to the `syn` item passed as input.
     fn param_name(&self) -> TokenStream;

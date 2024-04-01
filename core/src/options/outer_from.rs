@@ -43,7 +43,7 @@ impl OuterFrom {
         })
     }
 
-    pub fn as_forward_attrs(&self) -> ForwardAttrs {
+    pub fn as_forward_attrs(&self) -> ForwardAttrs<'_> {
         ForwardAttrs {
             field: self.attrs.as_ref(),
             filter: self.forward_attrs.as_ref(),

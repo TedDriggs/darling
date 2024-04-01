@@ -21,23 +21,23 @@ impl ForwardAttrs<'_> {
     }
 
     /// Get the field declarations to support attribute forwarding
-    pub fn as_declaration(&self) -> Option<Declaration> {
+    pub fn as_declaration(&self) -> Option<Declaration<'_>> {
         self.field.map(Declaration)
     }
 
     /// Get the match arms for attribute matching
-    pub fn as_match_arms(&self) -> MatchArms {
+    pub fn as_match_arms(&self) -> MatchArms<'_> {
         MatchArms(self)
     }
 
     /// Get the statement that will try to transform forwarded attributes into
     /// the result expected by the receiver field.
-    pub fn as_value_populator(&self) -> Option<ValuePopulator> {
+    pub fn as_value_populator(&self) -> Option<ValuePopulator<'_>> {
         self.field.map(ValuePopulator)
     }
 
     /// Get the field initializer for use when building the deriving struct.
-    pub fn as_initializer(&self) -> Option<Initializer> {
+    pub fn as_initializer(&self) -> Option<Initializer<'_>> {
         self.field.map(Initializer)
     }
 }

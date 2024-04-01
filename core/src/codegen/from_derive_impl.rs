@@ -116,7 +116,7 @@ impl<'a> ExtractAttribute for FromDeriveInputImpl<'a> {
         self.attr_names
     }
 
-    fn forward_attrs(&self) -> &ForwardAttrs {
+    fn forward_attrs(&self) -> &ForwardAttrs<'_> {
         &self.forward_attrs
     }
 
