@@ -64,7 +64,7 @@ impl ErrorKind {
 }
 
 impl fmt::Display for ErrorKind {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use self::ErrorKind::*;
 
         match *self {
@@ -191,7 +191,7 @@ impl<'a> From<&'a str> for ErrorUnknownField {
 }
 
 impl fmt::Display for ErrorUnknownField {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Unknown field: `{}`", self.name)?;
 
         if let Some((_, ref did_you_mean)) = self.did_you_mean {

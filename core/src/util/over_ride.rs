@@ -126,7 +126,7 @@ impl<T> From<Option<T>> for Override<T> {
 }
 
 impl<T: fmt::Display> fmt::Display for Override<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             Inherit => write!(f, "Inherit"),
             Explicit(ref val) => write!(f, "Explicit `{}`", val),

@@ -38,8 +38,8 @@ impl<'a> TraitImpl<'a> {
 
     fn type_params_matching<F, V>(&self, field_filter: F, variant_filter: V) -> IdentSet
     where
-        F: Fn(&&Field) -> bool,
-        V: Fn(&&Variant) -> bool,
+        F: Fn(&&Field<'_>) -> bool,
+        V: Fn(&&Variant<'_>) -> bool,
     {
         let declared = self.declared_type_params();
         match self.data {
@@ -67,7 +67,7 @@ impl<'a> TraitImpl<'a> {
         declared: &IdentSet,
     ) -> IdentSet
     where
-        F: Fn(&&'b Field) -> bool,
+        F: Fn(&&'b Field<'_>) -> bool,
     {
         fields
             .iter()
@@ -83,7 +83,7 @@ impl<'a> TraitImpl<'a> {
     }
 
     /// Gets the check which performs an early return if errors occurred during parsing.
-    pub fn check_errors(&self) -> ErrorCheck {
+    pub fn check_errors(&self) -> ErrorCheck<'_> {
         ErrorCheck::default()
     }
 

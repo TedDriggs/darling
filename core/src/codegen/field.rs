@@ -86,7 +86,7 @@ pub struct Declaration<'a>(&'a Field<'a>);
 
 impl<'a> ToTokens for Declaration<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let field: &Field = self.0;
+        let field = self.0;
         let ident = field.ident;
         let ty = field.ty;
 
@@ -146,7 +146,7 @@ pub struct MatchArm<'a>(&'a Field<'a>);
 
 impl<'a> ToTokens for MatchArm<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let field: &Field = self.0;
+        let field = self.0;
 
         // Skipped and flattened fields cannot be populated by a meta
         // with their name, so they do not have a match arm.
@@ -211,7 +211,7 @@ pub struct Initializer<'a>(&'a Field<'a>);
 
 impl<'a> ToTokens for Initializer<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let field: &Field = self.0;
+        let field = self.0;
         let ident = field.ident;
         tokens.append_all(if field.multiple {
             if let Some(ref expr) = field.default_expression {

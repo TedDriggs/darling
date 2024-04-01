@@ -63,8 +63,7 @@
 //! |`discriminant`|`Option<syn::Expr>`|For a variant such as `Example = 2`, the `2`|
 //! |`fields`|`darling::ast::Fields<T> where T: FromField`|The fields associated with the variant|
 //! |`attrs`|`Vec<syn::Attribute>` (or anything, using `#[darling(with = ...)]`)|The forwarded attributes from the passed in variant. These are controlled using the `forward_attrs` attribute.|
-
-extern crate core;
+#![warn(rust_2018_idioms)]
 
 #[allow(unused_imports)]
 #[macro_use]
