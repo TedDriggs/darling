@@ -165,7 +165,7 @@ fn do_not_suggest_invalid_alts() {
 }
 
 #[test]
-#[cfg(features = "suggestions")]
+#[cfg(feature = "suggestions")]
 fn suggest_valid_parent_alts() {
     let errors = Outer::from_derive_input(&parse_quote! {
         #[v(first = "Hello", bladt = false, last = "World", parent(first = "Hi", last = "Earth"))]
