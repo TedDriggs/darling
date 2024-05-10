@@ -3,6 +3,10 @@ use std::cell::RefCell;
 use std::collections::hash_map::HashMap;
 use std::collections::HashSet;
 use std::hash::BuildHasher;
+use std::num::{
+    NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize, NonZeroU128,
+    NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize,
+};
 use std::rc::Rc;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
@@ -249,6 +253,18 @@ from_meta_num!(i32);
 from_meta_num!(i64);
 from_meta_num!(i128);
 from_meta_num!(isize);
+from_meta_num!(NonZeroU8);
+from_meta_num!(NonZeroU16);
+from_meta_num!(NonZeroU32);
+from_meta_num!(NonZeroU64);
+from_meta_num!(NonZeroU128);
+from_meta_num!(NonZeroUsize);
+from_meta_num!(NonZeroI8);
+from_meta_num!(NonZeroI16);
+from_meta_num!(NonZeroI32);
+from_meta_num!(NonZeroI64);
+from_meta_num!(NonZeroI128);
+from_meta_num!(NonZeroIsize);
 
 /// Generate an impl of `FromMeta` that will accept strings which parse to floats or
 /// float literals.
@@ -781,6 +797,8 @@ hash_map!(syn::Path);
 /// it should not be considered by the parsing.
 #[cfg(test)]
 mod tests {
+    use std::num::{NonZeroU32, NonZeroU64};
+
     use proc_macro2::TokenStream;
     use quote::quote;
     use syn::parse_quote;
@@ -795,8 +813,12 @@ mod tests {
 
     #[track_caller]
     fn fm<T: FromMeta>(tokens: TokenStream) -> T {
+        try_fm(tokens).expect("Tests should pass valid input")
+    }
+
+    #[track_caller]
+    fn try_fm<T: FromMeta>(tokens: TokenStream) -> Result<T> {
         FromMeta::from_meta(&pm(tokens).expect("Tests should pass well-formed input"))
-            .expect("Tests should pass valid input")
     }
 
     #[test]
@@ -851,6 +873,22 @@ mod tests {
         assert_eq!(fm::<u8>(quote!(ignore = "2")), 2u8);
         assert_eq!(fm::<i16>(quote!(ignore = "-25")), -25i16);
         assert_eq!(fm::<f64>(quote!(ignore = "1.4e10")), 1.4e10);
+    }
+
+    #[test]
+    fn nonzero_number_fails() {
+        assert_eq!(
+            try_fm::<NonZeroU64>(quote!(ignore = "0")),
+            Err(Error::unknown_value("0"))
+        );
+    }
+
+    #[test]
+    fn nonzero_number_succeeds() {
+        assert_eq!(
+            fm::<NonZeroU32>(quote!(ignore = "2")),
+            NonZeroU32::new(2).unwrap()
+        );
     }
 
     #[test]
