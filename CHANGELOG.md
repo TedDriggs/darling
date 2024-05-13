@@ -3,6 +3,8 @@
 ## Unreleased
 
 -  Allow word-form for newtype enum variants whose only field produces a value when `from_none` is called on their type [#249](https://github.com/TedDriggs/darling/issues/249)
+-  Add `FromMeta` impls for the `std::num::NonZero*` types [#288](https://github.com/TedDriggs/darling/pull/288)
+-  Fix panic in number `FromMeta` impls when the parsed value is too large for the receiver type [#289](https://github.com/TedDriggs/darling/issues/289)
 
 ## v0.20.8 (February 23, 2024)
 
