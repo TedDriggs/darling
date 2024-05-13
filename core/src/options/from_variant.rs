@@ -59,11 +59,11 @@ impl ParseData for FromVariantOptions {
     fn parse_field(&mut self, field: &Field) -> Result<()> {
         match field.ident.as_ref().map(|v| v.to_string()).as_deref() {
             Some("discriminant") => {
-                self.discriminant = field.ident.clone();
+                self.discriminant.clone_from(&field.ident);
                 Ok(())
             }
             Some("fields") => {
-                self.fields = field.ident.clone();
+                self.fields.clone_from(&field.ident);
                 Ok(())
             }
             _ => self.base.parse_field(field),
