@@ -813,12 +813,8 @@ mod tests {
 
     #[track_caller]
     fn fm<T: FromMeta>(tokens: TokenStream) -> T {
-        try_fm(tokens).expect("Tests should pass valid input")
-    }
-
-    #[track_caller]
-    fn try_fm<T: FromMeta>(tokens: TokenStream) -> Result<T> {
         FromMeta::from_meta(&pm(tokens).expect("Tests should pass well-formed input"))
+            .expect("Tests should pass valid input")
     }
 
     #[test]
@@ -875,12 +871,10 @@ mod tests {
         assert_eq!(fm::<f64>(quote!(ignore = "1.4e10")), 1.4e10);
     }
 
+    #[should_panic(expected = "UnknownValue(\"0\")")]
     #[test]
     fn nonzero_number_fails() {
-        assert_eq!(
-            try_fm::<NonZeroU64>(quote!(ignore = "0")),
-            Err(Error::unknown_value("0"))
-        );
+        fm::<NonZeroU64>(quote!(ignore = "0"));
     }
 
     #[test]
