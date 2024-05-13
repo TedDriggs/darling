@@ -3,10 +3,7 @@ use std::cell::RefCell;
 use std::collections::hash_map::HashMap;
 use std::collections::HashSet;
 use std::hash::BuildHasher;
-use std::num::{
-    NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize, NonZeroU128,
-    NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize,
-};
+use std::num;
 use std::rc::Rc;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
@@ -223,7 +220,7 @@ impl FromMeta for std::path::PathBuf {
 /// Generate an impl of `FromMeta` that will accept strings which parse to numbers or
 /// integer literals.
 macro_rules! from_meta_num {
-    ($ty:ident) => {
+    ($ty:path) => {
         impl FromMeta for $ty {
             fn from_string(s: &str) -> Result<Self> {
                 s.parse().map_err(|_| Error::unknown_value(s))
@@ -253,18 +250,18 @@ from_meta_num!(i32);
 from_meta_num!(i64);
 from_meta_num!(i128);
 from_meta_num!(isize);
-from_meta_num!(NonZeroU8);
-from_meta_num!(NonZeroU16);
-from_meta_num!(NonZeroU32);
-from_meta_num!(NonZeroU64);
-from_meta_num!(NonZeroU128);
-from_meta_num!(NonZeroUsize);
-from_meta_num!(NonZeroI8);
-from_meta_num!(NonZeroI16);
-from_meta_num!(NonZeroI32);
-from_meta_num!(NonZeroI64);
-from_meta_num!(NonZeroI128);
-from_meta_num!(NonZeroIsize);
+from_meta_num!(num::NonZeroU8);
+from_meta_num!(num::NonZeroU16);
+from_meta_num!(num::NonZeroU32);
+from_meta_num!(num::NonZeroU64);
+from_meta_num!(num::NonZeroU128);
+from_meta_num!(num::NonZeroUsize);
+from_meta_num!(num::NonZeroI8);
+from_meta_num!(num::NonZeroI16);
+from_meta_num!(num::NonZeroI32);
+from_meta_num!(num::NonZeroI64);
+from_meta_num!(num::NonZeroI128);
+from_meta_num!(num::NonZeroIsize);
 
 /// Generate an impl of `FromMeta` that will accept strings which parse to floats or
 /// float literals.
