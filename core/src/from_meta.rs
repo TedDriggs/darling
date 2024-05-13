@@ -232,7 +232,7 @@ macro_rules! from_meta_num {
             fn from_value(value: &Lit) -> Result<Self> {
                 (match *value {
                     Lit::Str(ref s) => Self::from_string(&s.value()),
-                    Lit::Int(ref s) => Ok(s.base10_parse::<$ty>().unwrap()),
+                    Lit::Int(ref s) => s.base10_parse::<$ty>().map_err(Error::from),
                     _ => Err(Error::unexpected_lit_type(value)),
                 })
                 .map_err(|e| e.with_span(value))
@@ -278,7 +278,7 @@ macro_rules! from_meta_float {
             fn from_value(value: &Lit) -> Result<Self> {
                 (match *value {
                     Lit::Str(ref s) => Self::from_string(&s.value()),
-                    Lit::Float(ref s) => Ok(s.base10_parse::<$ty>().unwrap()),
+                    Lit::Float(ref s) => s.base10_parse::<$ty>().map_err(Error::from),
                     _ => Err(Error::unexpected_lit_type(value)),
                 })
                 .map_err(|e| e.with_span(value))
@@ -907,6 +907,11 @@ mod tests {
         assert_eq!(fm::<f32>(quote!(ignore = 2.)), 2.0f32);
         assert_eq!(fm::<f32>(quote!(ignore = 2.0)), 2.0f32);
         assert_eq!(fm::<f64>(quote!(ignore = 1.4e10)), 1.4e10f64);
+    }
+
+    #[test]
+    fn too_large_int_produces_error() {
+        assert!(fm::<Result<u8>>(quote!(ignore = 2000)).is_err());
     }
 
     #[test]
