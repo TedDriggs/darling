@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.20.9 (May 15, 2024)
 
 -  Allow word-form for newtype enum variants whose only field produces a value when `from_none` is called on their type [#249](https://github.com/TedDriggs/darling/issues/249)
 -  Add `FromMeta` impls for the `std::num::NonZero*` types [#288](https://github.com/TedDriggs/darling/pull/288)
