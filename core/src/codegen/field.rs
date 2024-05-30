@@ -224,11 +224,13 @@ impl<'a> ToTokens for Initializer<'a> {
                 quote!(#ident: #ident)
             }
         } else if let Some(ref expr) = field.default_expression {
-            quote_spanned!(expr.span()=> #ident: if let Some(__val) = #ident.1 {
-                __val
-            } else {
-                #expr
-            })
+            quote_spanned!(expr.span()=> #[allow(clippy::manual_unwrap_or_default)]
+                #ident: if let Some(__val) = #ident.1 {
+                    __val
+                } else {
+                    #expr
+                }
+            )
         } else {
             quote!(#ident: #ident.1.expect("Uninitialized fields without defaults were already checked"))
         });
