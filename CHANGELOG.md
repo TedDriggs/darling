@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.20.10 (July 9, 2024)
+
+-  Add `#[allow(clippy::manual_unwrap_or_default)]` to all generated impls to avoid causing clippy fails in crates using `darling` [#296](https://github.com/TedDriggs/darling/pull/296)
+-  Properly initialize `attrs` magic field in derived `FromAttributes` impls [#297](https://github.com/TedDriggs/darling/pull/297)
+
 ## v0.20.9 (May 15, 2024)
 
 -  Allow word-form for newtype enum variants whose only field produces a value when `from_none` is called on their type [#249](https://github.com/TedDriggs/darling/issues/249)
