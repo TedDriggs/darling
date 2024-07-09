@@ -38,6 +38,7 @@ impl ToTokens for FromAttributesImpl<'_> {
             }
         }
 
+        let passed_attrs = self.forward_attrs.as_initializer();
         let inits = self.base.initializers();
         let default = self.base.fallback_decl();
 
@@ -61,6 +62,7 @@ impl ToTokens for FromAttributesImpl<'_> {
                     #default
 
                     ::darling::export::Ok(#ty_ident {
+                        #passed_attrs
                         #inits
                     }) #post_transform
                 }
