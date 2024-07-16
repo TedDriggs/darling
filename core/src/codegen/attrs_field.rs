@@ -1,12 +1,12 @@
 use quote::{quote, quote_spanned, ToTokens, TokenStreamExt};
 use syn::spanned::Spanned;
 
-use crate::options::{AttrsField, ForwardAttrsFilter};
+use crate::options::{ForwardAttrsFilter, ForwardedField};
 
 #[derive(Default)]
 pub struct ForwardAttrs<'a> {
     pub filter: Option<&'a ForwardAttrsFilter>,
-    pub field: Option<&'a AttrsField>,
+    pub field: Option<&'a ForwardedField>,
 }
 
 impl ForwardAttrs<'_> {
@@ -42,7 +42,7 @@ impl ForwardAttrs<'_> {
     }
 }
 
-pub struct Declaration<'a>(pub &'a AttrsField);
+pub struct Declaration<'a>(pub &'a ForwardedField);
 
 impl ToTokens for Declaration<'_> {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
@@ -54,11 +54,11 @@ impl ToTokens for Declaration<'_> {
     }
 }
 
-pub struct ValuePopulator<'a>(pub &'a AttrsField);
+pub struct ValuePopulator<'a>(pub &'a ForwardedField);
 
 impl ToTokens for ValuePopulator<'_> {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let AttrsField { ident, with } = self.0;
+        let ForwardedField { ident, with } = self.0;
         let initializer_expr = match with {
             Some(with) => quote_spanned!(with.span()=> __errors.handle(#with(__fwd_attrs))),
             None => quote!(::darling::export::Some(__fwd_attrs)),
@@ -67,7 +67,7 @@ impl ToTokens for ValuePopulator<'_> {
     }
 }
 
-pub struct Initializer<'a>(pub &'a AttrsField);
+pub struct Initializer<'a>(pub &'a ForwardedField);
 
 impl ToTokens for Initializer<'_> {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {

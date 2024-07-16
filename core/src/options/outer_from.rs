@@ -3,7 +3,7 @@ use syn::{Field, Ident, Meta};
 
 use crate::codegen::ForwardAttrs;
 use crate::options::{
-    AttrsField, Core, DefaultExpression, ForwardAttrsFilter, ParseAttribute, ParseData,
+    Core, DefaultExpression, ForwardAttrsFilter, ForwardedField, ParseAttribute, ParseData,
 };
 use crate::util::PathList;
 use crate::{FromField, FromMeta, Result};
@@ -16,7 +16,7 @@ pub struct OuterFrom {
     pub ident: Option<Ident>,
 
     /// The field on the target struct which should receive the type attributes, if any.
-    pub attrs: Option<AttrsField>,
+    pub attrs: Option<ForwardedField>,
 
     pub container: Core,
 
@@ -82,7 +82,7 @@ impl ParseData for OuterFrom {
                 Ok(())
             }
             Some("attrs") => {
-                self.attrs = AttrsField::from_field(field).map(Some)?;
+                self.attrs = ForwardedField::from_field(field).map(Some)?;
                 Ok(())
             }
             _ => self.container.parse_field(field),
