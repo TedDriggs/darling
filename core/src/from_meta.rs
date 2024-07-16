@@ -719,7 +719,7 @@ macro_rules! map {
     };
 
     (btree_map, $key:ty, $nested:ident) => {
-        impl<V: FromMeta + Ord> FromMeta for BTreeMap<$key, V> {
+        impl<V: FromMeta> FromMeta for BTreeMap<$key, V> {
             map!(BTreeMap::new(), $key, $nested);
         }
     };
@@ -1109,6 +1109,25 @@ mod tests {
             FromMeta::from_meta(&pm(quote!(ignore(first, the::second))).unwrap());
 
         err.unwrap_err();
+    }
+
+    #[test]
+    fn btree_map_expr_values_succeed() {
+        use std::collections::BTreeMap;
+        use syn::parse_quote;
+
+        let comparison: BTreeMap<String, syn::Expr> = vec![
+            ("hello", parse_quote!(2 + 2)),
+            ("world", parse_quote!(x.foo())),
+        ]
+        .into_iter()
+        .map(|(k, v)| (k.to_string(), v))
+        .collect();
+
+        assert_eq!(
+            fm::<BTreeMap<String, syn::Expr>>(quote!(ignore(hello = 2 + 2, world = x.foo()))),
+            comparison
+        );
     }
 
     /// Tests that fallible parsing will always produce an outer `Ok` (from `fm`),
