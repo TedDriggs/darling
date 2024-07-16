@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+-  Support `#[darling(with = ...)]` on the `data` field when deriving `FromDeriveInput`. This allows the use of simpler receiver types, such as a `Vec` of enum variants.
+
 ## v0.20.10 (July 9, 2024)
 
 -  Add `#[allow(clippy::manual_unwrap_or_default)]` to all generated impls to avoid causing clippy fails in crates using `darling` [#296](https://github.com/TedDriggs/darling/pull/296)
