@@ -1,11 +1,11 @@
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::Ident;
 
 use crate::{
     ast::Data,
     codegen::{ExtractAttribute, OuterFromImpl, TraitImpl},
-    options::DeriveInputShapeSet,
+    options::{DeriveInputShapeSet, ForwardedField},
     util::PathList,
 };
 
@@ -15,7 +15,7 @@ pub struct FromDeriveInputImpl<'a> {
     pub ident: Option<&'a Ident>,
     pub generics: Option<&'a Ident>,
     pub vis: Option<&'a Ident>,
-    pub data: Option<&'a Ident>,
+    pub data: Option<&'a ForwardedField>,
     pub base: TraitImpl<'a>,
     pub attr_names: &'a PathList,
     pub forward_attrs: ForwardAttrs<'a>,
@@ -56,10 +56,14 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
             .as_ref()
             .map(|i| quote!(#i: ::darling::FromGenerics::from_generics(&#input.generics)?,));
         let passed_attrs = self.forward_attrs.as_initializer();
-        let passed_body = self
-            .data
-            .as_ref()
-            .map(|i| quote!(#i: ::darling::ast::Data::try_from(&#input.data)?,));
+        let passed_body = self.data.as_ref().map(|i| {
+            let ForwardedField { ident, with } = i;
+            let path = match with {
+                Some(p) => quote!(#p),
+                None => quote_spanned!(ident.span()=> ::darling::ast::Data::try_from),
+            };
+            quote_spanned!(ident.span()=> #ident: #path(&#input.data)?,)
+        });
 
         let supports = self.supports.map(|i| {
             quote! {
