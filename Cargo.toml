@@ -37,3 +37,6 @@ suggestions = ["darling_core/suggestions"]
 
 [workspace]
 members = ["macro", "core"]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(compiletests)'] }
