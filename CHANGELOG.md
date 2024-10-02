@@ -3,6 +3,7 @@
 ## Unreleased
 
 -  Support `#[darling(with = ...)]` on the `data` field when deriving `FromDeriveInput`. This allows the use of simpler receiver types, such as a `Vec` of enum variants.
+-  Bump version of `proc-macro2` to 1.0.86.
 
 ## v0.20.10 (July 9, 2024)
 
