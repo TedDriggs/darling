@@ -22,6 +22,9 @@ pub struct Field<'a> {
     /// The type of the field in the input.
     pub ty: &'a Type,
     pub default_expression: Option<DefaultExpression<'a>>,
+    /// Initial declaration for `with`; this is used if `with` was a closure,
+    /// to assign the closure to a local variable.
+    pub with_initializer: Option<syn::Stmt>,
     pub with_path: Cow<'a, Path>,
     pub post_transform: Option<&'a PostfixTransform>,
     pub skip: bool,
@@ -106,6 +109,10 @@ impl<'a> ToTokens for Declaration<'a> {
             tokens.append_all(quote! {
                 let mut __flatten: Vec<::darling::ast::NestedMeta> = vec![];
             });
+        }
+
+        if let Some(stmt) = &self.0.with_initializer {
+            stmt.to_tokens(tokens);
         }
     }
 }
