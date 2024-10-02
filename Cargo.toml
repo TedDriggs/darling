@@ -22,7 +22,7 @@ darling_core = { version = "=0.20.10", path = "core" }
 darling_macro = { version = "=0.20.10", path = "macro" }
 
 [dev-dependencies]
-proc-macro2 = "1.0.37"
+proc-macro2 = "1.0.86"
 quote = "1.0.18"
 syn = "2.0.15"
 

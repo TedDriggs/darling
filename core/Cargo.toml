@@ -17,7 +17,7 @@ suggestions = ["strsim"]
 
 [dependencies]
 ident_case = "1.0.1"
-proc-macro2 = "1.0.37"
+proc-macro2 = "1.0.86"
 quote = "1.0.18"
 syn = { version = "2.0.15", features = ["full", "extra-traits"] }
 fnv = "1.0.7"
