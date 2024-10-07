@@ -13,7 +13,7 @@ pub struct InputField {
     pub attr_name: Option<String>,
     pub ty: syn::Type,
     pub default: Option<DefaultExpression>,
-    pub with: Option<syn::Path>,
+    pub with: Option<With>,
 
     /// If `true`, generated code will not look for this field in the input meta item,
     /// instead always falling back to either `InputField::default` or `Default::default`.
@@ -34,7 +34,7 @@ impl InputField {
                 .map_or_else(|| Cow::Owned(self.ident.to_string()), Cow::Borrowed),
             ty: &self.ty,
             default_expression: self.as_codegen_default(),
-            with_path: self.with.as_ref().map_or_else(
+            with_callable: self.with.as_ref().map(|w| &w.call).map_or_else(
                 || {
                     Cow::Owned(
                         parse_quote_spanned!(self.ty.span()=> ::darling::FromMeta::from_meta),
@@ -149,7 +149,7 @@ impl ParseAttribute for InputField {
                 return Err(Error::duplicate_field_path(path).with_span(mi));
             }
 
-            self.with = Some(FromMeta::from_meta(mi)?);
+            self.with = Some(With::from_meta(mi)?);
 
             if self.flatten.is_present() {
                 return Err(
@@ -237,5 +237,26 @@ impl ParseAttribute for InputField {
         }
 
         Ok(())
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct With {
+    /// The callable
+    call: syn::Expr,
+}
+
+impl With {
+    pub fn from_meta(meta: &syn::Meta) -> Result<Self> {
+        if let syn::Meta::NameValue(nv) = meta {
+            match &nv.value {
+                syn::Expr::Path(_) | syn::Expr::Closure(_) => Ok(Self {
+                    call: nv.value.clone(),
+                }),
+                _ => Err(Error::unexpected_expr_type(&nv.value)),
+            }
+        } else {
+            Err(Error::unsupported_format("non-value"))
+        }
     }
 }

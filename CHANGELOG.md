@@ -4,6 +4,7 @@
 
 -  Support `#[darling(with = ...)]` on the `data` field when deriving `FromDeriveInput`. This allows the use of simpler receiver types, such as a `Vec` of enum variants.
 -  Bump version of `proc-macro2` to 1.0.86.
+-  Accept closures for `#[darling(with = ...)]` on fields in `FromDeriveInput`, `FromMeta`, `FromField`, etc. [#309](https://github.com/TedDriggs/darling/issues/309)
 
 ## v0.20.10 (July 9, 2024)
 
