@@ -27,4 +27,4 @@ help: the return type of this call is `{closure@$DIR/tests/compile-fail/with_clo
 15 | |         ),
    | |_________- this argument influences the return type of `{{root}}`
 note: function defined here
-  --> /rustc/aedd173a2c086e558c2b66d3743b344f977621a7/library/core/src/convert/mod.rs:104:14
+  --> $RUST/core/src/convert/mod.rs
