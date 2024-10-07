@@ -94,7 +94,7 @@ pub use darling_core::ToTokens;
 /// of the referenced types.
 #[doc(hidden)]
 pub mod export {
-    pub use core::convert::From;
+    pub use core::convert::{identity, From};
     pub use core::default::Default;
     pub use core::option::Option::{self, None, Some};
     pub use core::result::Result::{self, Err, Ok};

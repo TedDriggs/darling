@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens, TokenStreamExt};
-use syn::{spanned::Spanned, Ident, Path, Type};
+use syn::{spanned::Spanned, Ident, Type};
 
 use crate::codegen::{DefaultExpression, PostfixTransform};
 use crate::usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
@@ -22,10 +22,10 @@ pub struct Field<'a> {
     /// The type of the field in the input.
     pub ty: &'a Type,
     pub default_expression: Option<DefaultExpression<'a>>,
-    /// Initial declaration for `with`; this is used if `with` was a closure,
-    /// to assign the closure to a local variable.
-    pub with_initializer: Option<syn::Stmt>,
-    pub with_path: Cow<'a, Path>,
+    /// An expression that will be wrapped in a call to [`core::convert::identity`] and
+    /// then used for converting a provided value into the field value _before_ postfix
+    /// transforms are called.
+    pub with_callable: Cow<'a, syn::Expr>,
     pub post_transform: Option<&'a PostfixTransform>,
     pub skip: bool,
     pub multiple: bool,
@@ -110,10 +110,6 @@ impl<'a> ToTokens for Declaration<'a> {
                 let mut __flatten: Vec<::darling::ast::NestedMeta> = vec![];
             });
         }
-
-        if let Some(stmt) = &self.0.with_initializer {
-            stmt.to_tokens(tokens);
-        }
     }
 }
 
@@ -163,7 +159,7 @@ impl<'a> ToTokens for MatchArm<'a> {
 
         let name_str = &field.name_in_attr;
         let ident = field.ident;
-        let with_path = &field.with_path;
+        let with_callable = &field.with_callable;
         let post_transform = field.post_transform.as_ref();
 
         // Errors include the location of the bad input, so we compute that here.
@@ -178,7 +174,7 @@ impl<'a> ToTokens for MatchArm<'a> {
             quote!(#name_str)
         };
 
-        // Give darling's generated code the span of the `with_path` so that if the target
+        // Give darling's generated code the span of the `with_callable` so that if the target
         // type doesn't impl FromMeta, darling's immediate user gets a properly-spanned error.
         //
         // Within the generated code, add the span immediately on extraction failure, so that it's
@@ -186,7 +182,11 @@ impl<'a> ToTokens for MatchArm<'a> {
         // The behavior of `with_span` makes this safe to do; if the child applied an
         // even-more-specific span, our attempt here will not overwrite that and will only cost
         // us one `if` check.
-        let extractor = quote_spanned!(with_path.span()=>#with_path(__inner)#post_transform.map_err(|e| e.with_span(&__inner).at(#location)));
+        let extractor = quote_spanned!(with_callable.span()=>
+        ::darling::export::identity::<fn(&::syn::Meta) -> ::darling::Result<_>>(#with_callable)(__inner)
+            #post_transform
+            .map_err(|e| e.with_span(&__inner).at(#location))
+        );
 
         tokens.append_all(if field.multiple {
                 quote!(

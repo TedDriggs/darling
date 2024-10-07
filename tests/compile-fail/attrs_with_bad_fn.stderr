@@ -15,6 +15,6 @@ note: method defined here
    |     pub fn handle<T>(&mut self, result: Result<T>) -> Option<T> {
    |            ^^^^^^
 help: try wrapping the expression in `Ok`
-   |
-11 |     #[darling(with = Ok(bad_converter))]
-   |                      +++             +
+    |
+11  |     #[darling(with = Ok(bad_converter))]
+    |                      +++             +

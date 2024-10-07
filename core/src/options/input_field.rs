@@ -1,6 +1,5 @@
 use std::borrow::Cow;
 
-use quote::format_ident;
 use syn::{parse_quote_spanned, spanned::Spanned};
 
 use crate::codegen;
@@ -35,8 +34,7 @@ impl InputField {
                 .map_or_else(|| Cow::Owned(self.ident.to_string()), Cow::Borrowed),
             ty: &self.ty,
             default_expression: self.as_codegen_default(),
-            with_initializer: self.with.as_ref().and_then(With::to_closure_declaration),
-            with_path: self.with.as_ref().map(|w| &w.path).map_or_else(
+            with_callable: self.with.as_ref().map(|w| &w.call).map_or_else(
                 || {
                     Cow::Owned(
                         parse_quote_spanned!(self.ty.span()=> ::darling::FromMeta::from_meta),
@@ -151,7 +149,7 @@ impl ParseAttribute for InputField {
                 return Err(Error::duplicate_field_path(path).with_span(mi));
             }
 
-            self.with = Some(With::from_meta(&self.ident, mi)?);
+            self.with = Some(With::from_meta(mi)?);
 
             if self.flatten.is_present() {
                 return Err(
@@ -244,53 +242,21 @@ impl ParseAttribute for InputField {
 
 #[derive(Debug, Clone)]
 pub struct With {
-    /// The path that generated code should use when calling this.
-    path: syn::Path,
-    /// If set, the closure that should be assigned to `path` locally.
-    closure: Option<syn::ExprClosure>,
+    /// The callable
+    call: syn::Expr,
 }
 
 impl With {
-    pub fn from_meta(field_name: &syn::Ident, meta: &syn::Meta) -> Result<Self> {
+    pub fn from_meta(meta: &syn::Meta) -> Result<Self> {
         if let syn::Meta::NameValue(nv) = meta {
             match &nv.value {
-                syn::Expr::Path(path) => Ok(Self::from(path.path.clone())),
-                syn::Expr::Closure(closure) => Ok(Self {
-                    path: format_ident!("__with_closure_for_{}", field_name).into(),
-                    closure: Some(closure.clone()),
+                syn::Expr::Path(_) | syn::Expr::Closure(_) => Ok(Self {
+                    call: nv.value.clone(),
                 }),
                 _ => Err(Error::unexpected_expr_type(&nv.value)),
             }
         } else {
             Err(Error::unsupported_format("non-value"))
-        }
-    }
-
-    /// Create the statement that declares the closure as a function pointer.
-    fn to_closure_declaration(&self) -> Option<syn::Stmt> {
-        self.closure.as_ref().map(|c| {
-            let path = &self.path;
-            // An explicit annotation that the input is borrowed is needed here,
-            // or attempting to pass a closure will fail with an issue about a temporary
-            // value being dropped while still borrowed in the extractor loop.
-            //
-            // Making the parameter type explicit here avoids errors if the closure doesn't
-            // do enough to make the type clear to the compiler.
-            //
-            // The explicit return type is needed, or else using `Ok` and `?` in the closure
-            // body will produce an error about needing type annotations due to uncertainty
-            // about the error variant's type. `T` is left undefined so that postfix transforms
-            // still work as expected
-            parse_quote_spanned!(c.span()=> let #path: fn(&::syn::Meta) -> ::darling::Result<_> = #c;)
-        })
-    }
-}
-
-impl From<syn::Path> for With {
-    fn from(path: syn::Path) -> Self {
-        Self {
-            path,
-            closure: None,
         }
     }
 }
