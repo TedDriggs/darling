@@ -28,7 +28,7 @@ syn = "2.0.15"
 
 [target.'cfg(compiletests)'.dev-dependencies]
 rustversion = "1.0.9"
-trybuild = "1.0.99"
+trybuild = "1.0.89"
 
 [features]
 default = ["suggestions"]
