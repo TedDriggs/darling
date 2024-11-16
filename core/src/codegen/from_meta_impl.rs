@@ -54,6 +54,14 @@ impl<'a> ToTokens for FromMetaImpl<'a> {
                 let default = base.fallback_decl();
                 let post_transform = base.post_transform_call();
 
+                let word_impl = base.default.as_ref().and_then(|_| {
+                    Some(quote! {
+                        fn from_word() -> ::darling::Result<Self> {
+                            Ok(::darling::export::Default::default())
+                        }
+                    })
+                });
+
                 quote!(
                     fn from_list(__items: &[::darling::export::NestedMeta]) -> ::darling::Result<Self> {
 
@@ -73,6 +81,8 @@ impl<'a> ToTokens for FromMetaImpl<'a> {
                             #(#inits),*
                         }) #post_transform
                     }
+
+                    #word_impl
                 )
             }
             Data::Enum(ref variants) => {
