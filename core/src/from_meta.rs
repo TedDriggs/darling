@@ -562,12 +562,49 @@ macro_rules! from_meta_lit {
 
 from_meta_lit!(syn::LitInt, Lit::Int);
 from_meta_lit!(syn::LitFloat, Lit::Float);
-from_meta_lit!(syn::LitStr, Lit::Str);
 from_meta_lit!(syn::LitByte, Lit::Byte);
 from_meta_lit!(syn::LitByteStr, Lit::ByteStr);
 from_meta_lit!(syn::LitChar, Lit::Char);
 from_meta_lit!(syn::LitBool, Lit::Bool);
 from_meta_lit!(proc_macro2::Literal, Lit::Verbatim);
+
+impl FromMeta for syn::LitStr {
+    fn from_value(value: &syn::Lit) -> Result<Self> {
+        if let syn::Lit::Str(ref value) = *value {
+            Ok(value.clone())
+        } else {
+            Err(Error::unexpected_lit_type(value))
+        }
+    }
+    fn from_string(value: &str) -> Result<Self> {
+        Ok(syn::LitStr::new(&value, proc_macro2::Span::call_site()))
+    }
+}
+
+impl FromMeta for Vec<syn::LitStr> {
+    fn from_list(items: &[NestedMeta]) -> Result<Self> {
+        items
+            .iter()
+            .map(<syn::LitStr as FromMeta>::from_nested_meta)
+            .collect()
+    }
+    fn from_value(value: &Lit) -> Result<Self> {
+        let expr_array = syn::ExprArray::from_value(value)?;
+        Self::from_expr(&syn::Expr::Array(expr_array))
+    }
+    fn from_expr(expr: &Expr) -> Result<Self> {
+        match expr {
+            syn::Expr::Array(expr_array) => expr_array
+                .elems
+                .iter()
+                .map(<syn::LitStr as FromMeta>::from_expr)
+                .collect::<Result<Vec<_>>>(),
+            syn::Expr::Lit(expr_lit) => Self::from_value(&expr_lit.lit),
+            syn::Expr::Group(g) => Self::from_expr(&g.expr),
+            _ => Err(Error::unexpected_expr_type(expr)),
+        }
+    }
+}
 
 impl FromMeta for syn::Meta {
     fn from_meta(value: &syn::Meta) -> Result<Self> {
