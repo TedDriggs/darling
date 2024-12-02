@@ -72,7 +72,7 @@ impl ToTokens for FromAttributesImpl<'_> {
     }
 }
 
-impl<'a> ExtractAttribute for FromAttributesImpl<'a> {
+impl ExtractAttribute for FromAttributesImpl<'_> {
     fn local_declarations(&self) -> TokenStream {
         self.base.local_declarations()
     }

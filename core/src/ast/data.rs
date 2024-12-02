@@ -403,7 +403,7 @@ impl From<syn::Fields> for Style {
     }
 }
 
-impl<'a> From<&'a syn::Fields> for Style {
+impl From<&syn::Fields> for Style {
     fn from(vd: &syn::Fields) -> Self {
         match *vd {
             syn::Fields::Named(_) => Style::Struct,

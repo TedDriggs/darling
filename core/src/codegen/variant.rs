@@ -47,7 +47,7 @@ impl<'a> Variant<'a> {
     }
 }
 
-impl<'a> UsesTypeParams for Variant<'a> {
+impl UsesTypeParams for Variant<'_> {
     fn uses_type_params<'b>(
         &self,
         options: &usage::Options,
@@ -57,7 +57,7 @@ impl<'a> UsesTypeParams for Variant<'a> {
     }
 }
 
-impl<'a> ToTokens for Variant<'a> {
+impl ToTokens for Variant<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         if self.data.is_unit() {
             self.as_unit_match_arm().to_tokens(tokens);
@@ -72,9 +72,9 @@ impl<'a> ToTokens for Variant<'a> {
 /// Value-carrying variants wrapped in this type will emit code to produce an "unsupported format" error.
 pub struct UnitMatchArm<'a>(&'a Variant<'a>);
 
-impl<'a> ToTokens for UnitMatchArm<'a> {
+impl ToTokens for UnitMatchArm<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let val: &Variant<'a> = self.0;
+        let val: &Variant<'_> = self.0;
 
         if val.skip {
             return;
@@ -128,9 +128,9 @@ impl<'a> ToTokens for UnitMatchArm<'a> {
 /// Unit variants wrapped in this type will emit code to produce an "unsupported format" error.
 pub struct DataMatchArm<'a>(&'a Variant<'a>);
 
-impl<'a> ToTokens for DataMatchArm<'a> {
+impl ToTokens for DataMatchArm<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let val: &Variant<'a> = self.0;
+        let val: &Variant<'_> = self.0;
 
         if val.skip {
             return;

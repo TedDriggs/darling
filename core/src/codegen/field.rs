@@ -74,7 +74,7 @@ impl<'a> Field<'a> {
     }
 }
 
-impl<'a> UsesTypeParams for Field<'a> {
+impl UsesTypeParams for Field<'_> {
     fn uses_type_params<'b>(
         &self,
         options: &usage::Options,
@@ -87,7 +87,7 @@ impl<'a> UsesTypeParams for Field<'a> {
 /// An individual field during variable declaration in the generated parsing method.
 pub struct Declaration<'a>(&'a Field<'a>);
 
-impl<'a> ToTokens for Declaration<'a> {
+impl ToTokens for Declaration<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let field = self.0;
         let ident = field.ident;
@@ -118,7 +118,7 @@ pub struct FlattenInitializer<'a> {
     parent_field_names: Vec<&'a str>,
 }
 
-impl<'a> ToTokens for FlattenInitializer<'a> {
+impl ToTokens for FlattenInitializer<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let Self {
             field,
@@ -147,7 +147,7 @@ impl<'a> ToTokens for FlattenInitializer<'a> {
 /// Represents an individual field in the match.
 pub struct MatchArm<'a>(&'a Field<'a>);
 
-impl<'a> ToTokens for MatchArm<'a> {
+impl ToTokens for MatchArm<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let field = self.0;
 
@@ -216,7 +216,7 @@ impl<'a> ToTokens for MatchArm<'a> {
 /// Wrapper to generate initialization code for a field.
 pub struct Initializer<'a>(&'a Field<'a>);
 
-impl<'a> ToTokens for Initializer<'a> {
+impl ToTokens for Initializer<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let field = self.0;
         let ident = field.ident;
@@ -245,7 +245,7 @@ impl<'a> ToTokens for Initializer<'a> {
 /// Creates an error if a field has no value and no default.
 pub struct CheckMissing<'a>(&'a Field<'a>);
 
-impl<'a> ToTokens for CheckMissing<'a> {
+impl ToTokens for CheckMissing<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         if !self.0.multiple && self.0.default_expression.is_none() {
             let ident = self.0.ident;

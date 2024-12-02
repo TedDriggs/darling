@@ -99,7 +99,7 @@ impl PartialEq<String> for IdentString {
     }
 }
 
-impl<'a> PartialEq<&'a str> for IdentString {
+impl PartialEq<&str> for IdentString {
     fn eq(&self, rhs: &&str) -> bool {
         self.as_str() == *rhs
     }

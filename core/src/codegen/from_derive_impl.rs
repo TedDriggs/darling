@@ -23,7 +23,7 @@ pub struct FromDeriveInputImpl<'a> {
     pub supports: Option<&'a DeriveInputShapeSet>,
 }
 
-impl<'a> ToTokens for FromDeriveInputImpl<'a> {
+impl ToTokens for FromDeriveInputImpl<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let ty_ident = self.base.ident;
         let input = self.param_name();
@@ -115,7 +115,7 @@ impl<'a> ToTokens for FromDeriveInputImpl<'a> {
     }
 }
 
-impl<'a> ExtractAttribute for FromDeriveInputImpl<'a> {
+impl ExtractAttribute for FromDeriveInputImpl<'_> {
     fn attr_names(&self) -> &PathList {
         self.attr_names
     }

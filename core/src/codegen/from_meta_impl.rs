@@ -8,7 +8,7 @@ pub struct FromMetaImpl<'a> {
     pub base: TraitImpl<'a>,
 }
 
-impl<'a> ToTokens for FromMetaImpl<'a> {
+impl ToTokens for FromMetaImpl<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let base = &self.base;
 

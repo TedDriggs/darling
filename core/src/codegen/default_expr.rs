@@ -23,7 +23,7 @@ impl<'a> DefaultExpression<'a> {
     }
 }
 
-impl<'a> ToTokens for DefaultExpression<'a> {
+impl ToTokens for DefaultExpression<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         tokens.append_all(match *self {
             DefaultExpression::Inherit(ident) => {
@@ -44,7 +44,7 @@ impl<'a> ToTokens for DefaultExpression<'a> {
 /// Used only by containers, this wrapper type generates code to declare the fallback instance.
 pub struct DefaultDeclaration<'a>(&'a DefaultExpression<'a>);
 
-impl<'a> ToTokens for DefaultDeclaration<'a> {
+impl ToTokens for DefaultDeclaration<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let name = Ident::new(DEFAULT_STRUCT_NAME, ::proc_macro2::Span::call_site());
         let expr = self.0;

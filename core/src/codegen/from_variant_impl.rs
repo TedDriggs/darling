@@ -31,7 +31,7 @@ pub struct FromVariantImpl<'a> {
     pub supports: Option<&'a DataShape>,
 }
 
-impl<'a> ToTokens for FromVariantImpl<'a> {
+impl ToTokens for FromVariantImpl<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let input = self.param_name();
         let extractor = self.extractor();
@@ -97,7 +97,7 @@ impl<'a> ToTokens for FromVariantImpl<'a> {
     }
 }
 
-impl<'a> ExtractAttribute for FromVariantImpl<'a> {
+impl ExtractAttribute for FromVariantImpl<'_> {
     fn local_declarations(&self) -> TokenStream {
         self.base.local_declarations()
     }
