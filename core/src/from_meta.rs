@@ -426,6 +426,7 @@ macro_rules! from_syn_expr_type {
 
 from_syn_expr_type!(syn::ExprArray, Array);
 from_syn_expr_type!(syn::ExprPath, Path);
+from_syn_expr_type!(syn::ExprRange, Range);
 
 /// Adapter from `syn::parse::Parse` to `FromMeta` for items that cannot
 /// be expressed in a [`syn::MetaNameValue`].
