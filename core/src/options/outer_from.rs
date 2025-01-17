@@ -1,12 +1,13 @@
 use syn::spanned::Spanned;
 use syn::{Field, Ident, Meta};
 
+use crate::ast::Data;
 use crate::codegen::ForwardAttrs;
 use crate::options::{
     Core, DefaultExpression, ForwardAttrsFilter, ForwardedField, ParseAttribute, ParseData,
 };
 use crate::util::PathList;
-use crate::{FromField, FromMeta, Result};
+use crate::{Error, FromField, FromMeta, Result};
 
 /// Reusable base for `FromDeriveInput`, `FromVariant`, `FromField`, and other top-level
 /// `From*` traits.
@@ -91,5 +92,20 @@ impl ParseData for OuterFrom {
 
     fn validate_body(&self, errors: &mut crate::error::Accumulator) {
         self.container.validate_body(errors);
+        if let Some(attrs) = &self.attrs {
+            if self.forward_attrs.is_none() {
+                let container_name = match &self.container.data {
+                    Data::Enum(_) => "enum",
+                    Data::Struct(_) => "struct",
+                };
+                errors.push(
+                    Error::custom(format!(
+                        "field will not be populated because `forward_attrs` is not set on the {}",
+                        container_name
+                    ))
+                    .with_span(&attrs.ident),
+                );
+            }
+        }
     }
 }
