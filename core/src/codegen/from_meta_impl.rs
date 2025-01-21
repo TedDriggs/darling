@@ -106,6 +106,8 @@ impl ToTokens for FromMetaImpl<'_> {
                         ))
                     });
 
+                let data_variants = variants.iter().map(Variant::as_data_match_arm);
+
                 quote!(
                     fn from_list(__outer: &[::darling::export::NestedMeta]) -> ::darling::Result<Self> {
                         // An enum must have exactly one value inside the parentheses if it's not a unit
@@ -115,7 +117,7 @@ impl ToTokens for FromMetaImpl<'_> {
                             1 => {
                                 if let ::darling::export::NestedMeta::Meta(ref __nested) = __outer[0] {
                                     match ::darling::util::path_to_string(__nested.path()).as_ref() {
-                                        #(#variants)*
+                                        #(#data_variants)*
                                         __other => ::darling::export::Err(::darling::Error::#unknown_variant_err.with_span(__nested))
                                     }
                                 } else {
