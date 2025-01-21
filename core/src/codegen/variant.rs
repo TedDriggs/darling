@@ -57,16 +57,6 @@ impl UsesTypeParams for Variant<'_> {
     }
 }
 
-impl ToTokens for Variant<'_> {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        if self.data.is_unit() {
-            self.as_unit_match_arm().to_tokens(tokens);
-        } else {
-            self.as_data_match_arm().to_tokens(tokens)
-        }
-    }
-}
-
 /// Code generator for an enum variant in a unit match position.
 /// This is placed in generated `from_string` calls for the parent enum.
 /// Value-carrying variants wrapped in this type will emit code to produce an "unsupported format" error.
@@ -141,8 +131,16 @@ impl ToTokens for DataMatchArm<'_> {
         let ty_ident = val.ty_ident;
 
         if val.data.is_unit() {
+            // Allow unit variants to match a list item if it's just a path with no associated
+            // value, e.g. `volume(shout)` is allowed.
             tokens.append_all(quote!(
-                #name_in_attr => ::darling::export::Err(::darling::Error::unsupported_format("list")),
+                #name_in_attr => {
+                    if let ::darling::export::syn::Meta::Path(_) = *__nested {
+                        ::darling::export::Ok(#ty_ident::#variant_ident)
+                    } else {
+                        ::darling::export::Err(::darling::Error::unsupported_format("non-path"))
+                    }
+                },
             ));
 
             return;
