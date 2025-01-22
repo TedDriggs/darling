@@ -24,6 +24,22 @@ impl AsRef<syn::Expr> for Callable {
     }
 }
 
+impl From<syn::ExprPath> for Callable {
+    fn from(value: syn::ExprPath) -> Self {
+        Self {
+            call: syn::Expr::Path(value),
+        }
+    }
+}
+
+impl From<syn::ExprClosure> for Callable {
+    fn from(value: syn::ExprClosure) -> Self {
+        Self {
+            call: syn::Expr::Closure(value),
+        }
+    }
+}
+
 impl From<Callable> for syn::Expr {
     fn from(value: Callable) -> Self {
         value.call

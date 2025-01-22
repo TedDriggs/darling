@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::spanned::Spanned;
@@ -8,7 +10,7 @@ use crate::util::Callable;
 
 pub struct FromMetaImpl<'a> {
     pub base: TraitImpl<'a>,
-    pub from_word: Option<&'a Callable>,
+    pub from_word: Option<Cow<'a, Callable>>,
     pub from_none: Option<&'a Callable>,
 }
 
@@ -16,7 +18,7 @@ impl ToTokens for FromMetaImpl<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let base = &self.base;
 
-        let from_word = self.from_word.map(|body| {
+        let from_word = self.from_word.as_ref().map(|body| {
             quote_spanned! {body.span()=>
                 fn from_word() -> ::darling::Result<Self> {
                     ::darling::export::identity::<fn() -> ::darling::Result<Self>>(#body)()
@@ -113,23 +115,6 @@ impl ToTokens for FromMetaImpl<'_> {
                     }
                 };
 
-                let from_word_method = variants
-                    .iter()
-                    .find_map(|variant| {
-                        if variant.word {
-                            let ty_ident = variant.ty_ident;
-                            let variant_ident = variant.variant_ident;
-                            Some(quote! {
-                                fn from_word() -> ::darling::Result<Self> {
-                                    ::darling::export::Ok(#ty_ident::#variant_ident)
-                                }
-                            })
-                        } else {
-                            None
-                        }
-                    })
-                    .or(from_word);
-
                 let data_variants = variants.iter().map(Variant::as_data_match_arm);
 
                 quote!(
@@ -159,7 +144,7 @@ impl ToTokens for FromMetaImpl<'_> {
                         }
                     }
 
-                    #from_word_method
+                    #from_word
 
                     #from_none
                 )

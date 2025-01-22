@@ -8,7 +8,7 @@ use crate::{Error, FromMeta, Result};
 
 #[derive(Debug, Clone)]
 pub struct InputVariant {
-    ident: syn::Ident,
+    pub ident: syn::Ident,
     attr_name: Option<String>,
     data: Fields<InputField>,
     skip: Option<bool>,
@@ -30,7 +30,6 @@ impl InputVariant {
                 .map_or_else(|| Cow::Owned(self.ident.to_string()), Cow::Borrowed),
             data: self.data.as_ref().map(InputField::as_codegen_field),
             skip: self.skip.unwrap_or_default(),
-            word: *self.word.unwrap_or_default(),
             allow_unknown_fields: self.allow_unknown_fields.unwrap_or_default(),
         }
     }
