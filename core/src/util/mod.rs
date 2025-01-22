@@ -1,5 +1,6 @@
 //! Utility types for attribute parsing.
 
+mod callable;
 mod flag;
 mod ident_string;
 mod ignored;
@@ -12,6 +13,7 @@ mod shape;
 mod spanned_value;
 mod with_original;
 
+pub use self::callable::Callable;
 pub use self::flag::Flag;
 pub use self::ident_string::IdentString;
 pub use self::ignored::Ignored;
