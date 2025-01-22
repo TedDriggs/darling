@@ -22,6 +22,14 @@
 //!   in values not specified by the caller.
 //! * **Skipped fields**: You can skip a variant or field using `#[darling(skip)]`. Fields marked with this will fall back to
 //!   `Default::default()` for their value, but you can override that with an explicit default or a value from the type-level default.
+//! * **Custom shorthand**: Use `#[darling(from_word = ...)]` on a struct or enum to override how a simple word is interpreted.
+//!   By default, it is an error for your macro's user to fail to specify the fields of your struct, but with this you can choose to
+//!   instead produce a set of default values. This takes either a path or a closure whose signature matches `FromMeta::from_word`.
+//! * **Custom handling for missing fields**: When a field is not present and `#[darling(default)]` is not used, derived impls will
+//!   call `FromMeta::from_none` on that field's type to try and get the fallback value for the field. Usually, there is not a fallback
+//!   value, so a missing field error is generated. `Option<T: FromMeta>` uses this to make options optional without requiring
+//!   `#[darling(default)]` declarations, and structs and enums can use this themselves with `#[darling(from_none = ...)]`.
+//!   This takes either a path or a closure whose signature matches `FromMeta::from_none`.
 //!
 //! ## Forwarded Fields
 //! All derivable traits except `FromMeta` support forwarding some fields from the input AST to the derived struct.
