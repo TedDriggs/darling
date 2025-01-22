@@ -107,3 +107,198 @@ mod enum_impl {
         assert_eq!(err.to_string(), Error::too_many_items(1).to_string());
     }
 }
+
+mod from_none_struct_closure {
+    use darling::FromMeta;
+    use syn::parse_quote;
+
+    #[derive(Debug, FromMeta)]
+    struct Outer {
+        // Do NOT add `darling(default)` here; this is testing the `from_none` fallback
+        // invoked when a field is not declared and no `default` is specified.
+        speech: Example,
+    }
+
+    #[derive(Debug, FromMeta)]
+    #[darling(from_none = || Some(Default::default()))]
+    struct Example {
+        max_volume: u32,
+    }
+
+    impl Default for Example {
+        fn default() -> Self {
+            Example { max_volume: 3 }
+        }
+    }
+
+    #[test]
+    fn absent_gets_from_none() {
+        let thing = Outer::from_list(&[]).unwrap();
+        assert_eq!(thing.speech.max_volume, 3);
+    }
+
+    #[test]
+    fn word_errors() {
+        let error = Outer::from_list(&[parse_quote!(speech)])
+            .expect_err("speech should require its fields if declared");
+        assert_eq!(error.len(), 1);
+    }
+
+    #[test]
+    fn list_sets_field() {
+        let thing = Outer::from_list(&[parse_quote!(speech(max_volume = 5))]).unwrap();
+        assert_eq!(thing.speech.max_volume, 5);
+    }
+}
+
+mod from_none_struct_path {
+    use darling::FromMeta;
+    use syn::parse_quote;
+
+    #[derive(Debug, FromMeta)]
+    struct Outer {
+        // Do NOT add `darling(default)` here; this is testing the `from_none` fallback
+        // invoked when a field is not declared and no `default` is specified.
+        speech: Example,
+    }
+
+    fn from_none_fallback() -> Option<Example> {
+        Some(Example { max_volume: 3 })
+    }
+
+    #[derive(Debug, FromMeta)]
+    #[darling(from_none = from_none_fallback)]
+    struct Example {
+        max_volume: u32,
+    }
+
+    #[test]
+    fn absent_gets_from_none() {
+        let thing = Outer::from_list(&[]).unwrap();
+        assert_eq!(thing.speech.max_volume, 3);
+    }
+
+    #[test]
+    fn word_errors() {
+        let error = Outer::from_list(&[parse_quote!(speech)])
+            .expect_err("speech should require its fields if declared");
+        assert_eq!(error.len(), 1);
+    }
+
+    #[test]
+    fn list_sets_field() {
+        let thing = Outer::from_list(&[parse_quote!(speech(max_volume = 5))]).unwrap();
+        assert_eq!(thing.speech.max_volume, 5);
+    }
+}
+
+mod from_word_struct_closure {
+    use darling::FromMeta;
+    use syn::parse_quote;
+
+    #[derive(FromMeta)]
+    struct Outer {
+        #[darling(default)]
+        speech: Example,
+    }
+
+    #[derive(FromMeta, Default)]
+    #[darling(from_word = || Ok(Example { max_volume: 10 }))]
+    struct Example {
+        max_volume: u32,
+    }
+
+    #[test]
+    fn absent_gets_default() {
+        let thing = Outer::from_list(&[]).unwrap();
+        assert_eq!(thing.speech.max_volume, 0);
+    }
+
+    #[test]
+    fn word_gets_value() {
+        let thing = Outer::from_list(&[parse_quote!(speech)]).unwrap();
+        assert_eq!(thing.speech.max_volume, 10);
+    }
+
+    #[test]
+    fn list_sets_field() {
+        let thing = Outer::from_list(&[parse_quote!(speech(max_volume = 5))]).unwrap();
+        assert_eq!(thing.speech.max_volume, 5);
+    }
+}
+
+mod from_word_struct_path {
+    use darling::FromMeta;
+    use syn::parse_quote;
+
+    #[derive(FromMeta)]
+    struct Outer {
+        #[darling(default)]
+        speech: Example,
+    }
+
+    fn max_volume_10() -> darling::Result<Example> {
+        Ok(Example { max_volume: 10 })
+    }
+
+    #[derive(FromMeta, Default)]
+    #[darling(from_word = max_volume_10)]
+    struct Example {
+        max_volume: u32,
+    }
+
+    #[test]
+    fn absent_gets_default() {
+        let thing = Outer::from_list(&[]).unwrap();
+        assert_eq!(thing.speech.max_volume, 0);
+    }
+
+    #[test]
+    fn word_gets_value() {
+        let thing = Outer::from_list(&[parse_quote!(speech)]).unwrap();
+        assert_eq!(thing.speech.max_volume, 10);
+    }
+
+    #[test]
+    fn list_sets_field() {
+        let thing = Outer::from_list(&[parse_quote!(speech(max_volume = 5))]).unwrap();
+        assert_eq!(thing.speech.max_volume, 5);
+    }
+}
+
+mod from_word_enum_closure {
+    use darling::FromMeta;
+    use syn::parse_quote;
+
+    #[derive(Debug, FromMeta)]
+    struct Outer {
+        speech: Example,
+    }
+
+    #[derive(Debug, FromMeta, PartialEq, Eq)]
+    #[darling(from_word = || Ok(Example::Left { max_volume: 10 }))]
+    enum Example {
+        Left { max_volume: u32 },
+        Right { speed: u32 },
+    }
+
+    #[test]
+    fn word_gets_value() {
+        let thing = Outer::from_list(&[parse_quote!(speech)]).unwrap();
+        assert_eq!(thing.speech, Example::Left { max_volume: 10 });
+    }
+
+    #[test]
+    fn list_sets_field() {
+        let thing = Outer::from_list(&[parse_quote!(speech(left(max_volume = 5)))]).unwrap();
+        assert_eq!(thing.speech, Example::Left { max_volume: 5 });
+    }
+
+    #[test]
+    fn variant_word_fails() {
+        let thing = Outer::from_list(&[parse_quote!(speech(left))]).expect_err(
+            "A variant word is an error because from_word applies at the all-up enum level",
+        );
+        assert_eq!(thing.len(), 1);
+    }
+}

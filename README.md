@@ -123,6 +123,8 @@ Darling's features are built to work well for real-world projects.
 -   **Span access**: Use `darling::util::SpannedValue` in a struct to get access to that meta item's source code span. This can be used to emit warnings that point at a specific field from your proc macro. In addition, you can use `darling::Error::write_errors` to automatically get precise error location details in most cases.
 -   **"Did you mean" suggestions**: Compile errors from derived darling trait impls include suggestions for misspelled fields.
 -   **Struct flattening**: Use `#[darling(flatten)]` to remove one level of structure when presenting your meta item to users. Fields that are not known to the parent struct will be forwarded to the `flatten` field.
+-   **Custom shorthand**: Use `#[darling(from_word = ...)]` on a struct or enum to override how a simple word is interpreted. By default, it is an error for your macro's user to fail to specify the fields of your struct, but with this you can choose to instead produce a set of default values. This takes either a path or a closure whose signature matches `FromMeta::from_word`.
+-   **Custom handling for missing fields**: When a field is not present and `#[darling(default)]` is not used, derived impls will call `FromMeta::from_none` on that field's type to try and get the fallback value for the field. Usually, there is not a fallback value, so a missing field error is generated. `Option<T: FromMeta>` uses this to make options optional without requiring `#[darling(default)]` declarations, and structs and enums can use this themselves with `#[darling(from_none = ...)]`. This takes either a path or a closure whose signature matches `FromMeta::from_none`.
 
 ## Shape Validation
 
