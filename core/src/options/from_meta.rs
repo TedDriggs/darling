@@ -1,5 +1,8 @@
+use std::borrow::Cow;
+
 use proc_macro2::TokenStream;
 use quote::ToTokens;
+use syn::parse_quote;
 
 use crate::ast::Data;
 use crate::codegen::FromMetaImpl;
@@ -25,6 +28,34 @@ impl FromMetaOptions {
         })
         .parse_attributes(&di.attrs)?
         .parse_body(&di.data)
+    }
+
+    /// Get the `from_word` method body, if one exists. This can come from direct use of
+    /// `#[darling(from_word = ...)]` on the container or from use of `#[darling(word)]` on
+    /// a unit variant.
+    #[allow(
+        clippy::wrong_self_convention,
+        // The reason is commented out due to MSRV issues.
+        // reason = "This matches the name of the input option and output method"
+    )]
+    fn from_word(&self) -> Option<Cow<'_, Callable>> {
+        self.from_word.as_ref().map(Cow::Borrowed).or_else(|| {
+            if let Data::Enum(ref variants) = self.base.data {
+                // The first variant which has `word` set to `true`.
+                // This assumes that validation has prevented multiple variants
+                // from claiming `word`.
+                let variant = variants
+                    .iter()
+                    .find(|v| v.word.map(|x| *x).unwrap_or_default())?;
+                let variant_ident = &variant.ident;
+                let closure: syn::ExprClosure = parse_quote! {
+                    || ::darling::export::Ok(Self::#variant_ident)
+                };
+                Some(Cow::Owned(Callable::from(closure)))
+            } else {
+                None
+            }
+        })
     }
 }
 
@@ -109,7 +140,7 @@ impl<'a> From<&'a FromMetaOptions> for FromMetaImpl<'a> {
     fn from(v: &'a FromMetaOptions) -> Self {
         FromMetaImpl {
             base: (&v.base).into(),
-            from_word: v.from_word.as_ref(),
+            from_word: v.from_word(),
             from_none: v.from_none.as_ref(),
         }
     }

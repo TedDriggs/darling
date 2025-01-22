@@ -26,10 +26,6 @@ pub struct Variant<'a> {
     /// Whether or not the variant should be skipped in the generated code.
     pub skip: bool,
 
-    /// Whether or not the variant should be used to create an instance for
-    /// `FromMeta::from_word`.
-    pub word: bool,
-
     pub allow_unknown_fields: bool,
 }
 
