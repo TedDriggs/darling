@@ -426,6 +426,7 @@ macro_rules! from_syn_expr_type {
 
 from_syn_expr_type!(syn::ExprArray, Array);
 from_syn_expr_type!(syn::ExprPath, Path);
+from_syn_expr_type!(syn::ExprRange, Range);
 
 /// Adapter from `syn::parse::Parse` to `FromMeta` for items that cannot
 /// be expressed in a [`syn::MetaNameValue`].
@@ -1223,5 +1224,13 @@ mod tests {
         fm::<Vec<syn::LitStr>>(quote!(ignore = "[]"));
         fm::<Vec<syn::LitStr>>(quote!(ignore = []));
         fm::<Vec<syn::LitBool>>(quote!(ignore = [true, false]));
+    }
+
+    #[test]
+    fn expr_range_without_quotes() {
+        fm::<syn::ExprRange>(quote!(ignore = 0..5));
+        fm::<syn::ExprRange>(quote!(ignore = 0..=5));
+        fm::<syn::ExprRange>(quote!(ignore = ..5));
+        fm::<syn::ExprRange>(quote!(ignore = ..(x + y)));
     }
 }
