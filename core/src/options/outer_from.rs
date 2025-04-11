@@ -1,3 +1,4 @@
+use quote::ToTokens;
 use syn::spanned::Spanned;
 use syn::{Field, Ident, Meta};
 
@@ -107,5 +108,17 @@ impl ParseData for OuterFrom {
                 );
             }
         }
+
+        if let Some(ForwardAttrsFilter::Only(fwd)) = &self.forward_attrs {
+            for path in fwd.intersection(&self.attr_names) {
+                errors.push(
+                    Error::custom(format!(
+                        "attribute path `{}` will not be forwarded because it is also listed in `attributes`",
+                        path.to_token_stream()
+                    ))
+                    .with_span(path),
+                );
+            }
+        };
     }
 }

@@ -31,6 +31,20 @@ impl PathList {
     pub fn to_strings(&self) -> Vec<String> {
         self.0.iter().map(path_to_string).collect()
     }
+
+    /// Visits the values representing the intersection, i.e., the values that are both in `self` and `other`.
+    ///
+    /// Values will be returned in the order they appear in `self`.
+    ///
+    /// Values that are present multiple times in `self` and present at least once in `other` will be returned multiple times.
+    ///
+    /// # Performance
+    /// This function runs in `O(n * m)` time.
+    /// It is believed that path lists are usually short enough that this is better than allocating a set containing the values
+    /// of `other` or adding a conditional solution.
+    pub fn intersection<'a>(&'a self, other: &'a PathList) -> impl Iterator<Item = &'a Path> {
+        self.0.iter().filter(|path| other.0.contains(path))
+    }
 }
 
 impl Deref for PathList {
@@ -101,5 +115,15 @@ mod tests {
         let input = PathList::from_meta(&pm(quote!(ignore(Debug, Clone = false))).unwrap());
         let err = input.unwrap_err();
         assert!(err.has_span());
+    }
+
+    #[test]
+    fn intersection() {
+        let left = fm::<PathList>(quote!(ignore(Debug, Clone, Eq)));
+        let right = fm::<PathList>(quote!(ignore(Clone, Eq, Clone)));
+        assert_eq!(
+            left.intersection(&right).cloned().collect::<Vec<_>>(),
+            vec![parse_quote!(Clone), parse_quote!(Eq)],
+        );
     }
 }

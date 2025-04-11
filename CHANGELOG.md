@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+-  Potentially breaking: Emit error when an attribute path is present in both `attributes` and `forward_attrs`. [#336](https://github.com/TedDriggs/darling/issues/336)
+
 ## v0.20.11 (March 28, 2025)
 
 -   Support `#[darling(with = ...)]` on the `data` field when deriving `FromDeriveInput`. This allows the use of simpler receiver types, such as a `Vec` of enum variants.
