@@ -18,8 +18,8 @@ exclude = ["/.travis.yml", "/publish.sh", "/.github/**"]
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-darling_core = { version = "=0.20.11", path = "core" }
-darling_macro = { version = "=0.20.11", path = "macro" }
+darling_core = { path = "core" }
+darling_macro = { path = "macro" }
 
 [dev-dependencies]
 proc-macro2 = "1.0.86"

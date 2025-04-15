@@ -49,7 +49,21 @@ impl From<Callable> for syn::Expr {
 impl FromMeta for Callable {
     fn from_expr(expr: &syn::Expr) -> Result<Self> {
         match expr {
-            syn::Expr::Path(_) | syn::Expr::Closure(_) => Ok(Self { call: expr.clone() }),
+            syn::Expr::Path(_) | syn::Expr::Closure(_) => {
+                Ok(Self { call: expr.clone() })
+            }
+            syn::Expr::Lit(syn::ExprLit { lit: syn::Lit::Str(s), .. }) => {
+                let parsed_path: syn::Path = syn::parse_str(&s.value())
+                    .map_err(|e| Error::custom(format!("Invalid path string in `with`: {}", e)))?;
+                let expr_path = syn::ExprPath {
+                    attrs: vec![],
+                    qself: None,
+                    path: parsed_path,
+                };
+                Ok(Self {
+                    call: syn::Expr::Path(expr_path),
+                })
+            }
             _ => Err(Error::unexpected_expr_type(expr)),
         }
     }
