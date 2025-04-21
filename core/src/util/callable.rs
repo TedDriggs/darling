@@ -26,12 +26,11 @@ impl AsRef<syn::Expr> for Callable {
 
 impl From<syn::Path> for Callable {
     fn from(path: syn::Path) -> Self {
-        let expr_path = syn::ExprPath {
+        Self::from(syn::ExprPath {
             attrs: vec![],
             qself: None,
             path,
-        };
-        Self::from(expr_path)
+        })
     }
 }
 
@@ -64,12 +63,12 @@ impl FromMeta for Callable {
             syn::Expr::Lit(syn::ExprLit {
                 lit: syn::Lit::Str(s),
                 ..
-            }) => {
-                let parsed_path: syn::Path = syn::parse_str(&s.value()).map_err(|e| {
-                    Error::custom(format!("Invalid path string in `with`: {}", e)).with_span(s)
-                })?;
-                Ok(Self::from(parsed_path))
-            }
+            }) => syn::parse_str::<syn::Path>(&s.value())
+                .map_err(|e| {
+                    Error::custom(format!("`with` must be a path if it's a string: {}", e))
+                        .with_span(s)
+                })
+                .map(Self::from),
             _ => Err(Error::unexpected_expr_type(expr)),
         }
     }
