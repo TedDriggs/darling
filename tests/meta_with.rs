@@ -17,12 +17,28 @@ pub struct Receiver {
     // inferred from usage within the closure.
     #[darling(with = |m| Ok(m.path().clone()))]
     example3: syn::Path,
+    #[darling(with = "example4_parser")]
+    example4: String,
+}
+
+// the custom parser function referred to by string
+fn example4_parser(meta: &syn::Meta) -> darling::Result<String> {
+    match meta {
+        syn::Meta::NameValue(nv) => match &nv.value {
+            syn::Expr::Lit(syn::ExprLit {
+                lit: syn::Lit::Str(s),
+                ..
+            }) => Ok(s.value()),
+            other => Err(darling::Error::unexpected_expr_type(other)),
+        },
+        _ => Err(darling::Error::unexpected_type("name-value")),
+    }
 }
 
 #[test]
 fn handles_all_cases() {
     let input = Receiver::from_derive_input(&parse_quote! {
-        #[demo(example1 = test::path, example2 = "hello", example3)]
+        #[demo(example1 = test::path, example2 = "hello", example3, example4 = "world")]
         struct Example;
     })
     .unwrap();
@@ -30,4 +46,5 @@ fn handles_all_cases() {
     assert_eq!(input.example1, Some(parse_quote!(test::path)));
     assert_eq!(input.example2, Some("HELLO".to_string()));
     assert_eq!(input.example3, parse_quote!(example3));
+    assert_eq!(input.example4, "world".to_string());
 }

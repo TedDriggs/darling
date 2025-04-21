@@ -24,6 +24,16 @@ impl AsRef<syn::Expr> for Callable {
     }
 }
 
+impl From<syn::Path> for Callable {
+    fn from(path: syn::Path) -> Self {
+        Self::from(syn::ExprPath {
+            attrs: vec![],
+            qself: None,
+            path,
+        })
+    }
+}
+
 impl From<syn::ExprPath> for Callable {
     fn from(value: syn::ExprPath) -> Self {
         Self {
@@ -50,6 +60,15 @@ impl FromMeta for Callable {
     fn from_expr(expr: &syn::Expr) -> Result<Self> {
         match expr {
             syn::Expr::Path(_) | syn::Expr::Closure(_) => Ok(Self { call: expr.clone() }),
+            syn::Expr::Lit(syn::ExprLit {
+                lit: syn::Lit::Str(s),
+                ..
+            }) => syn::parse_str::<syn::Path>(&s.value())
+                .map_err(|e| {
+                    Error::custom(format!("`with` must be a path if it's a string: {}", e))
+                        .with_span(s)
+                })
+                .map(Self::from),
             _ => Err(Error::unexpected_expr_type(expr)),
         }
     }
