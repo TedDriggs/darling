@@ -14,7 +14,7 @@ rust-version = "1.56"
 [features]
 diagnostics = []
 suggestions = ["strsim"]
-serde = ["dep:serde"]
+serde = ["serde"]
 
 [dependencies]
 ident_case = "1.0.1"
