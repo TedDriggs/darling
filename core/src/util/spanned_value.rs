@@ -39,6 +39,11 @@ impl<T> SpannedValue<T> {
     pub fn map_ref<U>(&self, map_fn: impl FnOnce(&T) -> U) -> SpannedValue<U> {
         SpannedValue::new(map_fn(&self.value), self.span)
     }
+
+    /// Gets the inner value, consuming `self` in the process.
+    pub fn into_inner(self) -> T {
+        self.value
+    }
 }
 
 impl<T: Default> Default for SpannedValue<T> {
