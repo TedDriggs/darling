@@ -26,7 +26,7 @@ impl InputVariant {
             variant_ident: &self.ident,
             name_in_attr: self
                 .attr_name
-                .as_ref()
+                .as_deref()
                 .map_or_else(|| Cow::Owned(self.ident.to_string()), Cow::Borrowed),
             data: self.data.as_ref().map(InputField::as_codegen_field),
             skip: self.skip.unwrap_or_default(),

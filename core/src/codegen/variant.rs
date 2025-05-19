@@ -13,7 +13,7 @@ use crate::usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
 #[derive(Debug, Clone)]
 pub struct Variant<'a> {
     /// The name which will appear in code passed to the `FromMeta` input.
-    pub name_in_attr: Cow<'a, String>,
+    pub name_in_attr: Cow<'a, str>,
 
     /// The name of the variant which will be returned for a given `name_in_attr`.
     pub variant_ident: &'a Ident,

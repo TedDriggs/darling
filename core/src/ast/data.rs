@@ -414,6 +414,8 @@ impl From<&syn::Fields> for Style {
 }
 
 #[derive(Debug, Clone)]
+// Addressing this would break many users of the crate.
+#[allow(clippy::large_enum_variant)]
 pub enum NestedMeta {
     Meta(syn::Meta),
     Lit(syn::Lit),
