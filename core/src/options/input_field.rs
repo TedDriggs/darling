@@ -30,7 +30,7 @@ impl InputField {
             ident: &self.ident,
             name_in_attr: self
                 .attr_name
-                .as_ref()
+                .as_deref()
                 .map_or_else(|| Cow::Owned(self.ident.to_string()), Cow::Borrowed),
             ty: &self.ty,
             default_expression: self.as_codegen_default(),

@@ -13,7 +13,7 @@ use crate::usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
 pub struct Field<'a> {
     /// The name presented to the user of the library. This will appear
     /// in error messages and will be looked when parsing names.
-    pub name_in_attr: Cow<'a, String>,
+    pub name_in_attr: Cow<'a, str>,
 
     /// The name presented to the author of the library. This will appear
     /// in the setters or temporary variables which contain the values.
