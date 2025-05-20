@@ -1,4 +1,3 @@
-use proc_macro2::Span;
 use syn::Ident;
 
 use crate::util::IdentString;
@@ -25,7 +24,8 @@ impl<'de> serde::de::Visitor<'de> for IdentStringVisitor {
     where
         E: serde::de::Error,
     {
-        Ok(IdentString::new(Ident::new(v, Span::call_site())))
+        let ident: Ident = syn::parse_str(v).map_err(serde::de::Error::custom)?;
+        Ok(IdentString::new(ident))
     }
 }
 
