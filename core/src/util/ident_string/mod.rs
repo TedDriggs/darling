@@ -7,6 +7,9 @@ use syn::{Ident, Meta};
 
 use crate::{FromMeta, Result};
 
+#[cfg(feature = "serde")]
+mod serde;
+
 /// A wrapper for an `Ident` which also keeps the value as a string.
 ///
 /// This struct can be used to perform string comparisons and operations.

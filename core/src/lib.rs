@@ -5,9 +5,6 @@
 #[cfg(feature = "diagnostics")]
 extern crate proc_macro;
 
-#[cfg(feature = "serde")]
-mod serde;
-
 #[macro_use]
 mod macros_private;
 #[macro_use]
