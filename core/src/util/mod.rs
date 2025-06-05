@@ -9,10 +9,10 @@ mod parse_attribute;
 pub mod parse_expr;
 mod path_list;
 mod path_to_string;
+mod preserved_str_expr;
 mod shape;
 mod spanned_value;
 mod with_original;
-mod preserved_str_expr;
 
 pub use self::callable::Callable;
 pub use self::flag::Flag;
