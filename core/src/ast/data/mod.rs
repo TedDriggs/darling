@@ -12,6 +12,10 @@ use crate::usage::{
 };
 use crate::{Error, FromField, FromVariant, Result};
 
+pub use nested_meta::NestedMeta;
+
+mod nested_meta;
+
 /// A struct or enum body.
 ///
 /// `V` is the type which receives any encountered variants, and `F` receives struct fields.
@@ -409,45 +413,6 @@ impl From<&syn::Fields> for Style {
             syn::Fields::Named(_) => Style::Struct,
             syn::Fields::Unnamed(_) => Style::Tuple,
             syn::Fields::Unit => Style::Unit,
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-// Addressing this would break many users of the crate.
-#[allow(clippy::large_enum_variant)]
-pub enum NestedMeta {
-    Meta(syn::Meta),
-    Lit(syn::Lit),
-}
-
-impl NestedMeta {
-    pub fn parse_meta_list(tokens: TokenStream) -> syn::Result<Vec<Self>> {
-        syn::punctuated::Punctuated::<NestedMeta, Token![,]>::parse_terminated
-            .parse2(tokens)
-            .map(|punctuated| punctuated.into_iter().collect())
-    }
-}
-
-impl syn::parse::Parse for NestedMeta {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
-        if input.peek(syn::Lit) && !(input.peek(syn::LitBool) && input.peek2(Token![=])) {
-            input.parse().map(NestedMeta::Lit)
-        } else if input.peek(syn::Ident::peek_any)
-            || input.peek(Token![::]) && input.peek3(syn::Ident::peek_any)
-        {
-            input.parse().map(NestedMeta::Meta)
-        } else {
-            Err(input.error("expected identifier or literal"))
-        }
-    }
-}
-
-impl ToTokens for NestedMeta {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        match self {
-            NestedMeta::Meta(meta) => meta.to_tokens(tokens),
-            NestedMeta::Lit(lit) => lit.to_tokens(tokens),
         }
     }
 }

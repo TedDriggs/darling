@@ -108,6 +108,51 @@ mod enum_impl {
     }
 }
 
+mod keyword {
+    use darling::FromMeta;
+    use quote::quote;
+    use syn::{parse2, parse_quote, Path, Type};
+
+    #[derive(Debug, FromMeta)]
+    struct Keyword {
+        #[darling(rename = "type")]
+        ty: Type,
+        #[darling(rename = "fn")]
+        func: Path,
+    }
+
+    #[derive(Debug, FromMeta)]
+    struct FlattenKeyword {
+        #[darling(rename = "ref")]
+        reference: Type,
+        #[darling(flatten)]
+        keyword: Keyword,
+    }
+
+    #[test]
+    fn keywords() {
+        let meta = quote! {
+            outer(type = "u32", fn = foo)
+        };
+
+        let keyword = Keyword::from_meta(&parse2(meta).unwrap()).unwrap();
+        assert_eq!(keyword.ty, parse_quote!(u32));
+        assert_eq!(keyword.func, parse_quote!(foo));
+    }
+
+    #[test]
+    fn flatten_keywords() {
+        let meta = quote! {
+            outer(ref = "u32", type = "i32", fn = bar)
+        };
+
+        let keyword = FlattenKeyword::from_meta(&parse2(meta).unwrap()).unwrap();
+        assert_eq!(keyword.reference, parse_quote!(u32));
+        assert_eq!(keyword.keyword.ty, parse_quote!(i32));
+        assert_eq!(keyword.keyword.func, parse_quote!(bar));
+    }
+}
+
 mod from_none_struct_closure {
     use darling::FromMeta;
     use syn::parse_quote;
