@@ -15,6 +15,7 @@ fn parse_meta_path<'a>(input: ParseStream<'a>) -> syn::Result<Path> {
         segments: {
             let mut segments = Punctuated::new();
             loop {
+                // Allow all identifiers, including keywords.
                 if !input.peek(Ident::peek_any) {
                     break;
                 }
@@ -114,6 +115,22 @@ impl NestedMeta {
 
 impl syn::parse::Parse for NestedMeta {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        // The difference from `syn::Meta` and `NestedMeta`:
+        // 1. `syn::Meta` requires a path, named value, or meta list only.
+        //   1. `outer(path)`
+        //   2. `outer(key = "value")`, the identifier of the key cannot be strict keywords in rust, like `self`, `super`, `crate`, etc.
+        //   3. `outer(inner(..))`, the identifier of the inner meta cannot be strict keywords in rust, like `self`, `super`, `crate`, etc.
+        // 2. `NestedMeta` allows a literal, which is useful for attributes like `#[outer("foo")]`.
+        //   1. `outer("foo")`
+        //   2. `outer(42)`
+        //   3. `outer(key = "value")`, the identifier of the key can be strict keywords in rust, like `self`, `super`, `crate`, etc.
+        //     1. `outer(self = "value")`
+        //     2. `outer(type = "Foo")`
+        //     3. `outer(crate = "bar")`
+        //   4. `outer(inner(..))`, the identifier of the inner meta can be strict keywords in rust, like `self`, `super`, `crate`, etc.
+        //     1. `outer(self(..))`
+        //     2. `outer(super(..))`
+        //     3. `outer(crate(..))`
         if input.peek(syn::Lit) && !(input.peek(syn::LitBool) && input.peek2(syn::Token![=])) {
             input.parse().map(Self::Lit)
         } else if input.peek(syn::Ident::peek_any) {
