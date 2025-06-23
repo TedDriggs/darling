@@ -2,10 +2,7 @@ use std::{slice, vec};
 
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
-use syn::ext::IdentExt;
-use syn::parse::Parser;
 use syn::spanned::Spanned;
-use syn::Token;
 
 use crate::usage::{
     self, IdentRefSet, IdentSet, LifetimeRefSet, LifetimeSet, UsesLifetimes, UsesTypeParams,
