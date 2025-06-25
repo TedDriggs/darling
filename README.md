@@ -81,7 +81,10 @@ struct MacroArgs {
 
 #[proc_macro_attribute]
 pub fn your_attr(args: TokenStream, input: TokenStream) -> TokenStream {
-    let _args: MacroArgs = syn::parse2(args.into())?;
+    let _args: MacroArgs = match syn::parse2(args.into()) {
+        Ok(v) => v,
+        Err(e) => { return e.to_compile_error().into(); }
+    };
     let _input = syn::parse_macro_input!(input as ItemFn);
 
     // do things with `args`
