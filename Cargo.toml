@@ -34,6 +34,7 @@ trybuild = "1.0.89"
 default = ["suggestions"]
 diagnostics = ["darling_core/diagnostics"]
 suggestions = ["darling_core/suggestions"]
+serde = ["darling_core/serde"]
 
 [workspace]
 members = ["macro", "core"]
