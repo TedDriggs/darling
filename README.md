@@ -81,10 +81,7 @@ struct MacroArgs {
 
 #[proc_macro_attribute]
 pub fn your_attr(args: TokenStream, input: TokenStream) -> TokenStream {
-    let attr_args = match NestedMeta::parse_meta_list(args.into()) {
-        Ok(v) => v,
-        Err(e) => { return TokenStream::from(Error::from(e).write_errors()); }
-    };
+    let attr_args: MacroArgs = syn::parse2(args.into())?;
     let _input = syn::parse_macro_input!(input as ItemFn);
 
     let _args = match MacroArgs::from_list(&attr_args) {

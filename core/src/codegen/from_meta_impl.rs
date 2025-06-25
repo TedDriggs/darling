@@ -1,10 +1,11 @@
 use std::borrow::Cow;
 
 use proc_macro2::TokenStream;
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{quote, quote_spanned, ToTokens, TokenStreamExt as _};
 use syn::spanned::Spanned;
 
 use crate::ast::{Data, Fields, Style};
+use crate::codegen::outer_from_impl::compute_impl_bounds;
 use crate::codegen::{Field, OuterFromImpl, TraitImpl, Variant};
 use crate::util::Callable;
 
@@ -162,5 +163,40 @@ impl<'a> OuterFromImpl<'a> for FromMetaImpl<'a> {
 
     fn base(&'a self) -> &'a TraitImpl<'a> {
         &self.base
+    }
+
+    fn wrap<T: ToTokens>(&'a self, body: T, tokens: &mut TokenStream) {
+        let base = self.base();
+        let trayt = self.trait_path();
+        let ty_ident = base.ident;
+        // The type parameters used in non-skipped, non-magic fields.
+        // These must impl `FromMeta` unless they have custom bounds.
+        let used = base.used_type_params();
+        let generics = compute_impl_bounds(self.trait_bound(), base.generics.clone(), &used);
+        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+
+        tokens.append_all(quote!(
+            #[automatically_derived]
+            #[allow(clippy::manual_unwrap_or_default)]
+            impl #impl_generics #trayt for #ty_ident #ty_generics
+                #where_clause
+            {
+                #body
+            }
+
+            #[automatically_derived]
+            impl #impl_generics ::darling::export::syn::parse::Parse for #ty_ident #ty_generics
+                #where_clause
+            {
+                fn parse(input: ::darling::export::syn::parse::ParseStream<'_>) -> ::darling::export::syn::Result<Self> {
+                    use ::core::iter::IntoIterator;
+
+                    let items = ::darling::export::syn::punctuated::Punctuated::<::darling::export::NestedMeta, ::darling::export::syn::Token![,]>::parse_terminated(input)?
+                        .into_iter()
+                        .collect::<::darling::export::Vec<_>>();
+                    <Self as #trayt>::from_list(&items).map_err(::core::convert::Into::into)
+                }
+            }
+        ));
     }
 }

@@ -38,7 +38,11 @@ pub trait OuterFromImpl<'a> {
     }
 }
 
-fn compute_impl_bounds(bound: Path, mut generics: Generics, applies_to: &IdentSet) -> Generics {
+pub(super) fn compute_impl_bounds(
+    bound: Path,
+    mut generics: Generics,
+    applies_to: &IdentSet,
+) -> Generics {
     if generics.params.is_empty() {
         return generics;
     }

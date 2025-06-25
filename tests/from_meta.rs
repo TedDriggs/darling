@@ -65,6 +65,17 @@ fn nested_meta_lit_bool_errors() {
     );
 }
 
+#[test]
+fn parse_impl() {
+    let meta = parse_quote! {
+        meta1 = "thefeature",
+        meta2
+    };
+    let parsed_meta: Meta = syn::parse2(meta).unwrap();
+    assert_eq!(parsed_meta.meta1, Some("thefeature".to_string()));
+    assert!(parsed_meta.meta2);
+}
+
 /// Tests behavior of FromMeta implementation for enums.
 mod enum_impl {
     use darling::{Error, FromMeta};
