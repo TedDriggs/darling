@@ -4,6 +4,7 @@
 
 -  Potentially breaking: Emit error when an attribute path is present in both `attributes` and `forward_attrs`. [#336](https://github.com/TedDriggs/darling/issues/336)
 -  Add `SpannedValue::into_inner` [#342](https://github.com/TedDriggs/darling/issues/342)
+-  Add `#[darling(derive_syn_parse)]` to also impl `syn::parse::Parse` when deriving `FromMeta` [#285](https://github.com/TedDriggs/darling/issues/285)
 
 ## v0.20.11 (March 28, 2025)
 

@@ -2,6 +2,7 @@ use darling::{Error, FromMeta};
 use syn::parse_quote;
 
 #[derive(Debug, FromMeta)]
+#[darling(derive_syn_parse)]
 struct Meta {
     #[darling(default)]
     meta1: Option<String>,
@@ -63,6 +64,17 @@ fn nested_meta_lit_bool_errors() {
         err.to_string(),
         Error::unsupported_format("literal").to_string()
     );
+}
+
+#[test]
+fn parse_impl() {
+    let meta = parse_quote! {
+        meta1 = "thefeature",
+        meta2
+    };
+    let parsed_meta: Meta = syn::parse2(meta).unwrap();
+    assert_eq!(parsed_meta.meta1, Some("thefeature".to_string()));
+    assert!(parsed_meta.meta2);
 }
 
 /// Tests behavior of FromMeta implementation for enums.
