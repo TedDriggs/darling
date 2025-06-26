@@ -73,6 +73,7 @@ use syn::ItemFn;
 use proc_macro::TokenStream;
 
 #[derive(Debug, FromMeta)]
+#[darling(derive_syn_parse)]
 struct MacroArgs {
     #[darling(default)]
     timeout_ms: Option<u16>,
@@ -120,6 +121,7 @@ Darling's features are built to work well for real-world projects.
 -   **Struct flattening**: Use `#[darling(flatten)]` to remove one level of structure when presenting your meta item to users. Fields that are not known to the parent struct will be forwarded to the `flatten` field.
 -   **Custom shorthand**: Use `#[darling(from_word = ...)]` on a struct or enum to override how a simple word is interpreted. By default, it is an error for your macro's user to fail to specify the fields of your struct, but with this you can choose to instead produce a set of default values. This takes either a path or a closure whose signature matches `FromMeta::from_word`.
 -   **Custom handling for missing fields**: When a field is not present and `#[darling(default)]` is not used, derived impls will call `FromMeta::from_none` on that field's type to try and get the fallback value for the field. Usually, there is not a fallback value, so a missing field error is generated. `Option<T: FromMeta>` uses this to make options optional without requiring `#[darling(default)]` declarations, and structs and enums can use this themselves with `#[darling(from_none = ...)]`. This takes either a path or a closure whose signature matches `FromMeta::from_none`.
+-   **Generate `syn::parse::Parse` impl**: When deriving `FromMeta`, add `#[darling(derive_syn_parse)]` to also generate an impl of the `Parse` trait.
 
 ## Shape Validation
 

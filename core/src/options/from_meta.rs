@@ -18,8 +18,6 @@ pub struct FromMetaOptions {
     /// Override for the default [`FromMeta::from_none`] method.
     from_none: Option<Callable>,
     /// Whether or not to derive [`syn::parse::Parse`] in addition to deriving [`FromMeta`].
-    ///
-    /// This defaults to `true` if not set.
     derive_syn_parse: Option<bool>,
 }
 
@@ -153,7 +151,7 @@ impl<'a> From<&'a FromMetaOptions> for FromMetaImpl<'a> {
             base: (&v.base).into(),
             from_word: v.from_word(),
             from_none: v.from_none.as_ref(),
-            derive_syn_parse: v.derive_syn_parse.unwrap_or(true),
+            derive_syn_parse: v.derive_syn_parse.unwrap_or_default(),
         }
     }
 }

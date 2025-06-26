@@ -2,6 +2,7 @@ use darling::{Error, FromMeta};
 use syn::parse_quote;
 
 #[derive(Debug, FromMeta)]
+#[darling(derive_syn_parse)]
 struct Meta {
     #[darling(default)]
     meta1: Option<String>,
