@@ -17,6 +17,10 @@ pub struct FromMetaOptions {
     from_word: Option<Callable>,
     /// Override for the default [`FromMeta::from_none`] method.
     from_none: Option<Callable>,
+    /// Whether or not to derive [`syn::parse::Parse`] in addition to deriving [`FromMeta`].
+    ///
+    /// This defaults to `true` if not set.
+    derive_syn_parse: Option<bool>,
 }
 
 impl FromMetaOptions {
@@ -25,6 +29,7 @@ impl FromMetaOptions {
             base: Core::start(di)?,
             from_word: None,
             from_none: None,
+            derive_syn_parse: None,
         })
         .parse_attributes(&di.attrs)?
         .parse_body(&di.data)
@@ -75,6 +80,12 @@ impl ParseAttribute for FromMetaOptions {
             }
 
             self.from_none = FromMeta::from_meta(mi).map(Some)?;
+        } else if path.is_ident("derive_syn_parse") {
+            if self.derive_syn_parse.is_some() {
+                return Err(Error::duplicate_field_path(path).with_span(path));
+            }
+
+            self.derive_syn_parse = FromMeta::from_meta(mi).map(Some)?;
         } else {
             self.base.parse_nested(mi)?;
         }
@@ -142,6 +153,7 @@ impl<'a> From<&'a FromMetaOptions> for FromMetaImpl<'a> {
             base: (&v.base).into(),
             from_word: v.from_word(),
             from_none: v.from_none.as_ref(),
+            derive_syn_parse: v.derive_syn_parse.unwrap_or(true),
         }
     }
 }

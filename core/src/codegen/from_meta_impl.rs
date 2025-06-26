@@ -12,6 +12,7 @@ pub struct FromMetaImpl<'a> {
     pub base: TraitImpl<'a>,
     pub from_word: Option<Cow<'a, Callable>>,
     pub from_none: Option<&'a Callable>,
+    pub derive_syn_parse: bool,
 }
 
 impl ToTokens for FromMetaImpl<'_> {
@@ -152,7 +153,9 @@ impl ToTokens for FromMetaImpl<'_> {
         };
 
         self.wrap(impl_block, tokens);
-        ParseImpl(self).to_tokens(tokens);
+        if self.derive_syn_parse {
+            ParseImpl(self).to_tokens(tokens);
+        }
     }
 }
 
