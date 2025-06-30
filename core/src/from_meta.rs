@@ -474,7 +474,7 @@ impl FromMeta for syn::TypePath {
     /// Supports both quote-wrapped and bare values.
     fn from_expr(expr: &Expr) -> Result<Self> {
         match expr {
-            syn::Expr::Path(body) => {
+            Expr::Path(body) => {
                 if body.attrs.is_empty() {
                     Ok(syn::TypePath {
                         qself: body.qself.clone(),
@@ -484,8 +484,8 @@ impl FromMeta for syn::TypePath {
                     Err(Error::custom("attributes are not allowed").with_span(body))
                 }
             }
-            syn::Expr::Lit(expr_lit) => Self::from_value(&expr_lit.lit),
-            syn::Expr::Group(group) => Self::from_expr(&group.expr),
+            Expr::Lit(expr_lit) => Self::from_value(&expr_lit.lit),
+            Expr::Group(group) => Self::from_expr(&group.expr),
             _ => Err(Error::unexpected_expr_type(expr)),
         }
     }
@@ -494,8 +494,8 @@ impl FromMeta for syn::TypePath {
         syn::parse_str(value).map_err(|_| Error::unknown_value(value))
     }
 
-    fn from_value(value: &::syn::Lit) -> Result<Self> {
-        if let ::syn::Lit::Str(ref v) = *value {
+    fn from_value(value: &Lit) -> Result<Self> {
+        if let Lit::Str(ref v) = *value {
             v.parse().map_err(|_| Error::unknown_lit_str_value(v))
         } else {
             Err(Error::unexpected_lit_type(value))
