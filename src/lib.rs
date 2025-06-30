@@ -30,6 +30,8 @@
 //!   value, so a missing field error is generated. `Option<T: FromMeta>` uses this to make options optional without requiring
 //!   `#[darling(default)]` declarations, and structs and enums can use this themselves with `#[darling(from_none = ...)]`.
 //!   This takes either a path or a closure whose signature matches `FromMeta::from_none`.
+//! * **Generate `syn::parse::Parse` impl**: When deriving `FromMeta`, add `#[darling(derive_syn_parse)]` to also generate an impl
+//!   of the `Parse` trait.
 //!
 //! ## Forwarded Fields
 //! All derivable traits except `FromMeta` support forwarding some fields from the input AST to the derived struct.
@@ -102,8 +104,9 @@ pub use darling_core::ToTokens;
 /// of the referenced types.
 #[doc(hidden)]
 pub mod export {
-    pub use core::convert::{identity, From};
+    pub use core::convert::{identity, From, Into};
     pub use core::default::Default;
+    pub use core::iter::IntoIterator;
     pub use core::option::Option::{self, None, Some};
     pub use core::result::Result::{self, Err, Ok};
     pub use darling_core::syn;

@@ -12,6 +12,7 @@ pub struct FromMetaImpl<'a> {
     pub base: TraitImpl<'a>,
     pub from_word: Option<Cow<'a, Callable>>,
     pub from_none: Option<&'a Callable>,
+    pub derive_syn_parse: bool,
 }
 
 impl ToTokens for FromMetaImpl<'_> {
@@ -152,6 +153,9 @@ impl ToTokens for FromMetaImpl<'_> {
         };
 
         self.wrap(impl_block, tokens);
+        if self.derive_syn_parse {
+            ParseImpl(self).to_tokens(tokens);
+        }
     }
 }
 
@@ -162,5 +166,41 @@ impl<'a> OuterFromImpl<'a> for FromMetaImpl<'a> {
 
     fn base(&'a self) -> &'a TraitImpl<'a> {
         &self.base
+    }
+}
+
+struct ParseImpl<'a>(&'a FromMetaImpl<'a>);
+
+impl<'a> OuterFromImpl<'a> for ParseImpl<'a> {
+    fn trait_path(&self) -> syn::Path {
+        path!(::darling::export::syn::parse::Parse)
+    }
+
+    fn base(&'a self) -> &'a TraitImpl<'a> {
+        &self.0.base
+    }
+
+    fn trait_bound(&self) -> syn::Path {
+        // Since the Parse impl delegates to FromMeta, that's the
+        // trait bound we need to apply.
+        self.0.trait_path()
+    }
+}
+
+impl ToTokens for ParseImpl<'_> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let from_meta = self.0.trait_path();
+        let impl_block = quote! {
+            fn parse(input: ::darling::export::syn::parse::ParseStream<'_>) -> ::darling::export::syn::Result<Self> {
+                use ::darling::export::IntoIterator;
+
+                let items = ::darling::export::syn::punctuated::Punctuated::<::darling::export::NestedMeta, ::darling::export::syn::Token![,]>::parse_terminated(input)?
+                    .into_iter()
+                    .collect::<::darling::export::Vec<_>>();
+                <Self as #from_meta>::from_list(&items).map_err(::darling::export::Into::into)
+            }
+        };
+
+        self.wrap(impl_block, tokens);
     }
 }
