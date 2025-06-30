@@ -462,7 +462,6 @@ from_syn_parse!(syn::TypeMacro);
 from_syn_parse!(syn::TypeNever);
 from_syn_parse!(syn::TypeParam);
 from_syn_parse!(syn::TypeParen);
-from_syn_parse!(syn::TypePath);
 from_syn_parse!(syn::TypePtr);
 from_syn_parse!(syn::TypeReference);
 from_syn_parse!(syn::TypeSlice);
@@ -470,6 +469,39 @@ from_syn_parse!(syn::TypeTraitObject);
 from_syn_parse!(syn::TypeTuple);
 from_syn_parse!(syn::Visibility);
 from_syn_parse!(syn::WhereClause);
+
+impl FromMeta for syn::TypePath {
+    /// Supports both quote-wrapped and bare values.
+    fn from_expr(expr: &Expr) -> Result<Self> {
+        match expr {
+            Expr::Path(body) => {
+                if body.attrs.is_empty() {
+                    Ok(syn::TypePath {
+                        qself: body.qself.clone(),
+                        path: body.path.clone(),
+                    })
+                } else {
+                    Err(Error::custom("attributes are not allowed").with_span(body))
+                }
+            }
+            Expr::Lit(expr_lit) => Self::from_value(&expr_lit.lit),
+            Expr::Group(group) => Self::from_expr(&group.expr),
+            _ => Err(Error::unexpected_expr_type(expr)),
+        }
+    }
+
+    fn from_string(value: &str) -> Result<Self> {
+        syn::parse_str(value).map_err(|_| Error::unknown_value(value))
+    }
+
+    fn from_value(value: &Lit) -> Result<Self> {
+        if let Lit::Str(ref v) = *value {
+            v.parse().map_err(|_| Error::unknown_lit_str_value(v))
+        } else {
+            Err(Error::unexpected_lit_type(value))
+        }
+    }
+}
 
 macro_rules! from_numeric_array {
     ($ty:ident) => {
