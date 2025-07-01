@@ -876,6 +876,13 @@ mod tests {
     #[test]
     fn unit_succeeds() {
         fm::<()>(quote!(ignore));
+        fm::<()>(quote!(ignore()));
+    }
+
+    #[test]
+    #[should_panic]
+    fn unit_fails() {
+        fm::<()>(quote!(ignore(foo = "bar")));
     }
 
     #[test]
