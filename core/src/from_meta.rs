@@ -162,6 +162,14 @@ impl FromMeta for () {
     fn from_word() -> Result<Self> {
         Ok(())
     }
+
+    fn from_list(items: &[NestedMeta]) -> Result<Self> {
+        if items.is_empty() {
+            Ok(())
+        } else {
+            Err(Error::too_many_items(0))
+        }
+    }
 }
 
 impl FromMeta for bool {
