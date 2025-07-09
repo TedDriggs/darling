@@ -164,6 +164,19 @@ fn do_not_suggest_invalid_alts() {
     );
 }
 
+#[cfg(feature = "suggestions")]
+#[track_caller]
+fn assert_error_has_suggestion(error: &darling::Error, field: &str) {
+    let error = error.to_string();
+    let backtick_field = format!("`{}`", field);
+    assert!(
+        error.contains(&backtick_field),
+        "Should contain {} as did-you-mean suggestion: {}",
+        backtick_field,
+        error
+    );
+}
+
 #[test]
 #[cfg(feature = "suggestions")]
 fn suggest_valid_parent_alts() {
@@ -172,12 +185,31 @@ fn suggest_valid_parent_alts() {
         struct Demo;
     })
     .map(|_| "Should have failed")
-    .unwrap_err()
-    .to_string();
-    assert!(
-        errors.contains("`blast`"),
-        "Should contain `blast` as did-you-mean suggestion: {}",
-        errors
+    .unwrap_err();
+    assert_error_has_suggestion(&errors, "blast");
+}
+
+#[test]
+#[cfg(feature = "suggestions")]
+fn suggest_alts_for_multiple_errors() {
+    let errors = Example::from_derive_input(&parse_quote! {
+        #[sample(label = "Hello", republic, lab)]
+        struct Demo {}
+    })
+    .map(|_| "Should have failed")
+    .unwrap_err();
+
+    assert_eq!(errors.len(), 2);
+    let mut errors = errors.into_iter();
+    assert_error_has_suggestion(
+        &errors.next().expect("length is 2, so first `next` returns"),
+        "public",
+    );
+    assert_error_has_suggestion(
+        &errors
+            .next()
+            .expect("length is 2, so second `next` returns"),
+        "label",
     );
 }
 
