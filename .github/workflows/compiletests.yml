@@ -2,6 +2,10 @@ name: Compile Test
 
 on: [push, pull_request]
 
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
     compiletest:
         runs-on: ubuntu-latest
