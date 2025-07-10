@@ -174,7 +174,14 @@ impl FromMeta for () {
                 // The accumulator is used to ensure all these errors are returned at once, rather than
                 // only producing an error on the first unexpected field in the flattened list.
                 NestedMeta::Meta(meta) => Error::unknown_field_path(meta.path()).with_span(meta),
-                NestedMeta::Lit(lit) => Error::unexpected_expr_type(lit.into()).with_span(lit),
+                NestedMeta::Lit(lit) => Error::unexpected_expr_type(
+                    &(syn::ExprLit {
+                        attrs: vec![],
+                        lit: lit.clone(),
+                    }
+                    .into()),
+                )
+                .with_span(lit),
             });
         }
 
