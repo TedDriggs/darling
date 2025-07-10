@@ -3,8 +3,13 @@
 ## Unreleased
 
 -  Potentially breaking: Emit error when an attribute path is present in both `attributes` and `forward_attrs`. [#336](https://github.com/TedDriggs/darling/issues/336)
+-  Support parsing attributes which contain keywords [#238](https://github.com/TedDriggs/darling/issues/238)
 -  Add `SpannedValue::into_inner` [#342](https://github.com/TedDriggs/darling/issues/342)
 -  Add `#[darling(derive_syn_parse)]` to also impl `syn::parse::Parse` when deriving `FromMeta` [#285](https://github.com/TedDriggs/darling/issues/285)
+-  Make `impl FromMeta for syn::TypePath` support both quote-wrapped and bare values [#351](https://github.com/TedDriggs/darling/issues/351)
+-  Add `util::PreservedStrExpr` [#346](https://github.com/TedDriggs/darling/pull/346)
+-  Impl `UsesTypeParams` and `UsesLifetimes` for `WithOriginal` [#215](https://github.com/TedDriggs/darling/issues/215)
+
 
 ## v0.20.11 (March 28, 2025)
 
