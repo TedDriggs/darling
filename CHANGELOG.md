@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.21.0 (July 10, 2025)
 
 -  Potentially breaking: Emit error when an attribute path is present in both `attributes` and `forward_attrs`. [#336](https://github.com/TedDriggs/darling/issues/336)
 -  Support parsing attributes which contain keywords [#238](https://github.com/TedDriggs/darling/issues/238)
