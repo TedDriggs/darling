@@ -162,6 +162,31 @@ impl FromMeta for () {
     fn from_word() -> Result<Self> {
         Ok(())
     }
+
+    fn from_list(items: &[NestedMeta]) -> Result<Self> {
+        let mut errors = Error::accumulator();
+        for item in items {
+            errors.push(match item {
+                // Use `unknown_field_path` rather than `too_many_items` so that when this is used with
+                // `flatten` the resulting error message will include the valid fields rather than a confusing
+                // message about having only expected zero items.
+                //
+                // The accumulator is used to ensure all these errors are returned at once, rather than
+                // only producing an error on the first unexpected field in the flattened list.
+                NestedMeta::Meta(meta) => Error::unknown_field_path(meta.path()).with_span(meta),
+                NestedMeta::Lit(lit) => Error::unexpected_expr_type(
+                    &(syn::ExprLit {
+                        attrs: vec![],
+                        lit: lit.clone(),
+                    }
+                    .into()),
+                )
+                .with_span(lit),
+            });
+        }
+
+        errors.finish()
+    }
 }
 
 impl FromMeta for bool {
@@ -868,6 +893,13 @@ mod tests {
     #[test]
     fn unit_succeeds() {
         fm::<()>(quote!(ignore));
+        fm::<()>(quote!(ignore()));
+    }
+
+    #[test]
+    #[should_panic(expected = "UnknownField")]
+    fn unit_fails() {
+        fm::<()>(quote!(ignore(foo = "bar")));
     }
 
     #[test]
