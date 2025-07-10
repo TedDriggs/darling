@@ -9,6 +9,7 @@
 -  Make `impl FromMeta for syn::TypePath` support both quote-wrapped and bare values [#351](https://github.com/TedDriggs/darling/issues/351)
 -  Add `util::PreservedStrExpr` [#346](https://github.com/TedDriggs/darling/pull/346)
 -  Impl `UsesTypeParams` and `UsesLifetimes` for `WithOriginal` [#215](https://github.com/TedDriggs/darling/issues/215)
+-  Update error message emitted by `<() as FromMeta>::from_list` to allow use of `()` as a `#[darling(flatten)]` target [#353](https://github.com/TedDriggs/darling/issues/353)
 
 
 ## v0.20.11 (March 28, 2025)
