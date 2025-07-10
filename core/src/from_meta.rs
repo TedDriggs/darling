@@ -897,7 +897,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "UnknownField")]
     fn unit_fails() {
         fm::<()>(quote!(ignore(foo = "bar")));
     }
