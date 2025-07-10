@@ -164,11 +164,21 @@ impl FromMeta for () {
     }
 
     fn from_list(items: &[NestedMeta]) -> Result<Self> {
-        if items.is_empty() {
-            Ok(())
-        } else {
-            Err(Error::too_many_items(0))
+        let mut errors = Error::accumulator();
+        for item in items {
+            errors.push(match item {
+                // Use `unknown_field_path` rather than `too_many_items` so that when this is used with
+                // `flatten` the resulting error message will include the valid fields rather than a confusing
+                // message about having only expected zero items.
+                //
+                // The accumulator is used to ensure all these errors are returned at once, rather than
+                // only producing an error on the first unexpected field in the flattened list.
+                NestedMeta::Meta(meta) => Error::unknown_field_path(meta.path()).with_span(meta),
+                NestedMeta::Lit(lit) => Error::unexpected_expr_type(lit.into()).with_span(lit),
+            });
         }
+
+        errors.finish()
     }
 }
 
