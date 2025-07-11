@@ -422,22 +422,46 @@ impl Error {
             return self;
         }
 
+        // This is a callback because we don't want to use the iterator
+        // if we don't need to.
+        let collect_alts = || {
+            alternates
+                .into_iter()
+                .map(|s| s.as_ref())
+                .collect::<Vec<_>>()
+        };
+
         if let ErrorKind::UnknownField(unknown_field) = &mut self.kind {
-            unknown_field.add_alts(alternates);
+            unknown_field.add_alts(&collect_alts());
         } else if let ErrorKind::Multiple(errors) = self.kind {
-            let alternates = alternates.into_iter().collect::<Vec<_>>();
+            // Gather up the alternates to avoid unnecessary allocations
+            // on a per-contained-error basis.
+            let alts = collect_alts();
             self.kind = ErrorKind::Multiple(
                 errors
                     .into_iter()
-                    .map(|err| {
-                        err.add_sibling_alts_for_unknown_field(
-                            // This clone seems like it shouldn't be necessary.
-                            // Attempting to borrow alternates here leads to the following compiler error:
-                            //
-                            // error: reached the recursion limit while instantiating `darling::Error::add_sibling_alts_for_unknown_field::<'_, &&&&..., ...>`
-                            alternates.clone(),
-                        )
-                    })
+                    .map(|err| err.add_sibling_alts_for_unknown_field_internal(&alts))
+                    .collect(),
+            )
+        }
+
+        self
+    }
+
+    fn add_sibling_alts_for_unknown_field_internal(mut self, alternates: &[&str]) -> Self {
+        // The error may have bubbled up before this method was called,
+        // and in those cases adding alternates would be incorrect.
+        if !self.locations.is_empty() {
+            return self;
+        }
+
+        if let ErrorKind::UnknownField(unknown_field) = &mut self.kind {
+            unknown_field.add_alts(alternates);
+        } else if let ErrorKind::Multiple(errors) = self.kind {
+            self.kind = ErrorKind::Multiple(
+                errors
+                    .into_iter()
+                    .map(|err| err.add_sibling_alts_for_unknown_field_internal(alternates))
                     .collect(),
             )
         }
