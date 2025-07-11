@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{collections::BTreeSet, fmt};
 
 use crate::error::Error;
 
@@ -123,7 +123,15 @@ impl From<ErrorUnknownField> for ErrorKind {
 #[cfg_attr(test, derive(PartialEq))]
 pub(in crate::error) struct ErrorUnknownField {
     name: String,
+    /// The best suggestion of what field the caller could have meant, along with
+    /// the similarity score between that best option and the actual caller-provided
+    /// field name.
     did_you_mean: Option<(f64, String)>,
+    /// Set of all known valid field names.
+    ///
+    /// This is a `BTreeSet` so that names will be displayed in alphabetical order
+    /// without needing display-time sorting.
+    alts: BTreeSet<String>,
 }
 
 impl ErrorUnknownField {
@@ -131,6 +139,7 @@ impl ErrorUnknownField {
         ErrorUnknownField {
             name: name.into(),
             did_you_mean,
+            alts: BTreeSet::new(),
         }
     }
 
@@ -139,7 +148,15 @@ impl ErrorUnknownField {
         T: AsRef<str> + 'a,
         I: IntoIterator<Item = &'a T>,
     {
-        ErrorUnknownField::new(field, did_you_mean(field, alternates))
+        let alts = alternates
+            .into_iter()
+            .map(|s| s.as_ref().to_string())
+            .collect();
+        Self {
+            name: field.into(),
+            did_you_mean: did_you_mean(field, &alts),
+            alts,
+        }
     }
 
     /// Add more alternate field names to the error, updating the `did_you_mean` suggestion
@@ -149,7 +166,10 @@ impl ErrorUnknownField {
         T: AsRef<str> + 'a,
         I: IntoIterator<Item = &'a T>,
     {
-        if let Some(bna) = did_you_mean(&self.name, alternates) {
+        let alts = alternates.into_iter().collect::<Vec<_>>();
+        self.alts
+            .extend(alts.iter().map(|s| s.as_ref().to_string()));
+        if let Some(bna) = did_you_mean(&self.name, alts) {
             if let Some(current) = &self.did_you_mean {
                 if bna.0 > current.0 {
                     self.did_you_mean = Some(bna);
