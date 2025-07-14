@@ -18,6 +18,7 @@ use syn::{Expr, Lit, LitStr, Path};
 #[cfg(feature = "diagnostics")]
 mod child;
 mod kind;
+mod util;
 
 use crate::util::path_to_string;
 
