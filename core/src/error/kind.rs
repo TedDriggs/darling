@@ -1,6 +1,9 @@
 use std::{collections::BTreeSet, fmt};
 
-use crate::error::Error;
+use crate::error::{
+    util::{write_delimited, Quoted},
+    Error,
+};
 
 type DeriveInputShape = String;
 type FieldName = String;
@@ -91,17 +94,7 @@ impl fmt::Display for ErrorKind {
             Multiple(ref items) if items.len() == 1 => items[0].fmt(f),
             Multiple(ref items) => {
                 write!(f, "Multiple errors: (")?;
-                let mut first = true;
-                for item in items {
-                    if !first {
-                        write!(f, ", ")?;
-                    } else {
-                        first = false;
-                    }
-
-                    item.fmt(f)?;
-                }
-
+                write_delimited(f, items, ", ")?;
                 write!(f, ")")
             }
             __NonExhaustive => unreachable!(),
@@ -182,14 +175,26 @@ impl ErrorUnknownField {
 
     #[cfg(feature = "diagnostics")]
     pub fn into_diagnostic(self, span: Option<::proc_macro2::Span>) -> ::proc_macro::Diagnostic {
-        let base = span
+        let mut diag = span
             .unwrap_or_else(::proc_macro2::Span::call_site)
             .unwrap()
             .error(self.top_line());
-        match self.did_you_mean {
-            Some((_, alt_name)) => base.help(format!("did you mean `{}`?", alt_name)),
-            None => base,
+
+        if let Some((_, alt_name)) = self.did_you_mean {
+            diag = diag.help(format!("did you mean `{}`?", alt_name));
         }
+
+        if !self.alts.is_empty() {
+            let mut alts = String::new();
+
+            // Per documentation, formatting is infallible unless underlying stream closes
+            // https://doc.rust-lang.org/std/fmt/struct.Error.html
+            write_delimited(&mut alts, self.alts.iter().map(Quoted::backticks), ", ")
+                .expect("writing to a string never fails");
+            diag = diag.help(format!("available fields: {}", alts));
+        }
+
+        diag
     }
 
     #[cfg(feature = "diagnostics")]
@@ -216,6 +221,9 @@ impl fmt::Display for ErrorUnknownField {
 
         if let Some((_, ref did_you_mean)) = self.did_you_mean {
             write!(f, ". Did you mean `{}`?", did_you_mean)?;
+        } else if !self.alts.is_empty() && self.alts.len() < 10 {
+            write!(f, ". Available fields: ")?;
+            write_delimited(f, self.alts.iter().map(Quoted::backticks), ", ")?;
         }
 
         Ok(())
@@ -246,4 +254,23 @@ where
     I: IntoIterator<Item = &'a T>,
 {
     None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ErrorUnknownField;
+
+    /// Make sure that an unknown field error with no alts or suggestions has
+    /// only the relevant information and no fragments of other sentences.
+    #[test]
+    fn present_no_alts() {
+        let err = ErrorUnknownField::new("hello", None);
+        assert_eq!(&err.to_string(), "Unknown field: `hello`");
+    }
+
+    #[test]
+    fn present_few_alts() {
+        let err = ErrorUnknownField::with_alts("hello", &["world", "friend"]);
+        assert!(err.to_string().contains("`friend`"));
+    }
 }
