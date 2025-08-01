@@ -22,7 +22,7 @@ mod util;
 
 use crate::util::path_to_string;
 
-use self::kind::{ErrorKind, ErrorUnknownValue};
+use self::kind::{ErrorKind, ErrorUnknownValue, UnknownValuePosition};
 
 /// An alias of `Result` specific to attribute parsing.
 pub type Result<T> = ::std::result::Result<T, Error>;
@@ -106,9 +106,7 @@ impl Error {
     /// Creates a new error for a field name that appears in the input but does not correspond
     /// to a known field.
     pub fn unknown_field(name: &str) -> Self {
-        Error::new(ErrorKind::UnknownField(ErrorUnknownValue::new(
-            "field", name,
-        )))
+        Error::new(ErrorUnknownValue::new(UnknownValuePosition::Field, name).into())
     }
 
     /// Creates a new error for a field name that appears in the input but does not correspond
@@ -125,9 +123,9 @@ impl Error {
         T: AsRef<str> + 'a,
         I: IntoIterator<Item = &'a T>,
     {
-        Error::new(ErrorKind::UnknownField(ErrorUnknownValue::with_alts(
-            "field", field, alternates,
-        )))
+        Error::new(
+            ErrorUnknownValue::with_alts(UnknownValuePosition::Field, field, alternates).into(),
+        )
     }
 
     /// Creates a new error for a field name that appears in the input but does not correspond to
@@ -138,11 +136,14 @@ impl Error {
         T: AsRef<str> + 'a,
         I: IntoIterator<Item = &'a T>,
     {
-        Error::new(ErrorKind::UnknownField(ErrorUnknownValue::with_alts(
-            "field",
-            &path_to_string(field),
-            alternates,
-        )))
+        Error::new(ErrorKind::UnknownField(
+            ErrorUnknownValue::with_alts(
+                UnknownValuePosition::Field,
+                &path_to_string(field),
+                alternates,
+            )
+            .into(),
+        ))
     }
 
     /// Creates a new error for a struct or variant that does not adhere to the supported shape.
@@ -263,7 +264,17 @@ impl Error {
 
     /// Creates a new error for a value which doesn't match a set of expected literals.
     pub fn unknown_value(value: &str) -> Self {
-        Error::new(ErrorKind::UnknownValue(value.into()))
+        Error::new(ErrorUnknownValue::new(UnknownValuePosition::Value, value).into())
+    }
+
+    pub fn unknown_value_with_alts<'a, T, I>(value: &str, alternates: I) -> Self
+    where
+        T: AsRef<str> + 'a,
+        I: IntoIterator<Item = &'a T>,
+    {
+        Error::new(
+            ErrorUnknownValue::with_alts(UnknownValuePosition::Value, value, alternates).into(),
+        )
     }
 
     /// Creates a new error for a list which did not get enough items to proceed.
@@ -536,6 +547,7 @@ impl Error {
         // since it's redundant and not consistent with native compiler diagnostics.
         let diagnostic = match self.kind {
             ErrorKind::UnknownField(euf) => euf.into_diagnostic(self.span),
+            ErrorKind::UnknownValue(euv) => euv.into_diagnostic(self.span),
             _ => match self.span {
                 Some(span) => span.unwrap().error(self.kind.to_string()),
                 None => Diagnostic::new(Level::Error, self.to_string()),
@@ -657,10 +669,6 @@ impl Error {
 }
 
 impl StdError for Error {
-    fn description(&self) -> &str {
-        self.kind.description()
-    }
-
     fn cause(&self) -> Option<&dyn StdError> {
         None
     }

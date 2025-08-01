@@ -951,7 +951,7 @@ mod tests {
         assert_eq!(fm::<f64>(quote!(ignore = "1.4e10")), 1.4e10);
     }
 
-    #[should_panic(expected = "UnknownValue(\"0\")")]
+    #[should_panic(expected = "UnknownValue")]
     #[test]
     fn nonzero_number_fails() {
         fm::<NonZeroU64>(quote!(ignore = "0"));
