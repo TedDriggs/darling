@@ -22,7 +22,7 @@ mod util;
 
 use crate::util::path_to_string;
 
-use self::kind::{ErrorKind, ErrorUnknownField};
+use self::kind::{ErrorKind, ErrorUnknownValue};
 
 /// An alias of `Result` specific to attribute parsing.
 pub type Result<T> = ::std::result::Result<T, Error>;
@@ -106,7 +106,9 @@ impl Error {
     /// Creates a new error for a field name that appears in the input but does not correspond
     /// to a known field.
     pub fn unknown_field(name: &str) -> Self {
-        Error::new(ErrorKind::UnknownField(name.into()))
+        Error::new(ErrorKind::UnknownField(ErrorUnknownValue::new(
+            "field", name, None,
+        )))
     }
 
     /// Creates a new error for a field name that appears in the input but does not correspond
@@ -123,7 +125,9 @@ impl Error {
         T: AsRef<str> + 'a,
         I: IntoIterator<Item = &'a T>,
     {
-        Error::new(ErrorUnknownField::with_alts(field, alternates).into())
+        Error::new(ErrorKind::UnknownField(ErrorUnknownValue::with_alts(
+            "field", field, alternates,
+        )))
     }
 
     /// Creates a new error for a field name that appears in the input but does not correspond to
@@ -134,7 +138,11 @@ impl Error {
         T: AsRef<str> + 'a,
         I: IntoIterator<Item = &'a T>,
     {
-        Error::new(ErrorUnknownField::with_alts(&path_to_string(field), alternates).into())
+        Error::new(ErrorKind::UnknownField(ErrorUnknownValue::with_alts(
+            "field",
+            &path_to_string(field),
+            alternates,
+        )))
     }
 
     /// Creates a new error for a struct or variant that does not adhere to the supported shape.
