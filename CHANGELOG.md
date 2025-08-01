@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+-  Track all alternate field names, and show them in error message if there aren't too many. [#325](https://github.com/TedDriggs/darling/issues/325)
+-  Track all alternate values for enum variants, and show them in error messages if there aren't too many. [#362](https://github.com/TedDriggs/darling/issues/362)
+
+
 ## v0.21.0 (July 10, 2025)
 
 -  Potentially breaking: Emit error when an attribute path is present in both `attributes` and `forward_attrs`. [#336](https://github.com/TedDriggs/darling/issues/336)
