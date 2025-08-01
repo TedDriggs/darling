@@ -105,15 +105,24 @@ impl ToTokens for FromMetaImpl<'_> {
             Data::Enum(ref variants) => {
                 let unit_arms = variants.iter().map(Variant::as_unit_match_arm);
 
-                let unknown_variant_err = if !variants.is_empty() {
+                let (unknown_variant_err, unknown_unit_variant_err) = if !variants.is_empty() {
                     let names = variants.iter().map(Variant::as_name);
-                    quote! {
-                        unknown_field_with_alts(__other, &[#(#names),*])
-                    }
+                    let names = quote!(&[#(#names),*]);
+                    (
+                        quote! {
+                            unknown_field_with_alts(__other, #names)
+                        },
+                        quote! {
+                            unknown_value_with_alts(__other, #names)
+                        },
+                    )
                 } else {
-                    quote! {
-                        unknown_field(__other)
-                    }
+                    (
+                        quote! {
+                            unknown_field(__other)
+                        },
+                        quote!(unknown_value(__other)),
+                    )
                 };
 
                 let data_variants = variants.iter().map(Variant::as_data_match_arm);
@@ -141,7 +150,7 @@ impl ToTokens for FromMetaImpl<'_> {
                     fn from_string(lit: &str) -> ::darling::Result<Self> {
                         match lit {
                             #(#unit_arms)*
-                            __other => ::darling::export::Err(::darling::Error::unknown_value(__other))
+                            __other => ::darling::export::Err(::darling::Error::#unknown_unit_variant_err)
                         }
                     }
 

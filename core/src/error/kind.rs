@@ -22,10 +22,10 @@ pub(in crate::error) enum ErrorKind {
         observed: DeriveInputShape,
         expected: Option<String>,
     },
-    UnknownField(ErrorUnknownValue),
+    UnknownField(Box<ErrorUnknownValue>),
     UnexpectedFormat(MetaFormat),
     UnexpectedType(String),
-    UnknownValue(String),
+    UnknownValue(Box<ErrorUnknownValue>),
     TooFewItems(usize),
     TooManyItems(usize),
     /// A set of errors.
@@ -37,25 +37,6 @@ pub(in crate::error) enum ErrorKind {
 }
 
 impl ErrorKind {
-    pub fn description(&self) -> &str {
-        use self::ErrorKind::*;
-
-        match *self {
-            Custom(ref s) => s,
-            DuplicateField(_) => "Duplicate field",
-            MissingField(_) => "Missing field",
-            UnknownField(_) => "Unexpected field",
-            UnsupportedShape { .. } => "Unsupported shape",
-            UnexpectedFormat(_) => "Unexpected meta-item format",
-            UnexpectedType(_) => "Unexpected type",
-            UnknownValue(_) => "Unknown literal value",
-            TooFewItems(_) => "Too few items",
-            TooManyItems(_) => "Too many items",
-            Multiple(_) => "Multiple errors",
-            __NonExhaustive => unreachable!(),
-        }
-    }
-
     /// Deeply counts the number of errors this item represents.
     pub fn len(&self) -> usize {
         if let ErrorKind::Multiple(ref items) = *self {
@@ -88,7 +69,7 @@ impl fmt::Display for ErrorKind {
             }
             UnexpectedFormat(ref format) => write!(f, "Unexpected meta-item format `{}`", format),
             UnexpectedType(ref ty) => write!(f, "Unexpected type `{}`", ty),
-            UnknownValue(ref val) => write!(f, "Unknown literal value `{}`", val),
+            UnknownValue(ref val) => val.fmt(f),
             TooFewItems(ref min) => write!(f, "Too few items: Expected at least {}", min),
             TooManyItems(ref max) => write!(f, "Too many items: Expected no more than {}", max),
             Multiple(ref items) if items.len() == 1 => items[0].fmt(f),
@@ -102,6 +83,36 @@ impl fmt::Display for ErrorKind {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(in crate::error) enum UnknownValuePosition {
+    Field,
+    Value,
+}
+
+impl AsRef<str> for UnknownValuePosition {
+    fn as_ref(&self) -> &str {
+        match self {
+            UnknownValuePosition::Field => "field",
+            UnknownValuePosition::Value => "value",
+        }
+    }
+}
+
+impl fmt::Display for UnknownValuePosition {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_ref())
+    }
+}
+
+impl From<ErrorUnknownValue> for ErrorKind {
+    fn from(value: ErrorUnknownValue) -> Self {
+        match value.noun {
+            UnknownValuePosition::Field => Self::UnknownField(Box::new(value)),
+            UnknownValuePosition::Value => Self::UnknownValue(Box::new(value)),
+        }
+    }
+}
+
 /// An error where an unknown value was seen in a given position,
 /// with a possible "did-you-mean" suggestion to get the user back on the right track.
 #[derive(Clone, Debug)]
@@ -110,7 +121,7 @@ impl fmt::Display for ErrorKind {
 #[cfg_attr(test, derive(PartialEq))]
 pub(in crate::error) struct ErrorUnknownValue {
     /// The thing whose value is unknown.
-    noun: &'static str,
+    noun: UnknownValuePosition,
 
     value: String,
     /// The best suggestion of what field the caller could have meant, along with
@@ -125,7 +136,7 @@ pub(in crate::error) struct ErrorUnknownValue {
 }
 
 impl ErrorUnknownValue {
-    pub fn new<I: Into<String>>(noun: &'static str, value: I) -> Self {
+    pub fn new<I: Into<String>>(noun: UnknownValuePosition, value: I) -> Self {
         ErrorUnknownValue {
             noun,
             value: value.into(),
@@ -134,7 +145,7 @@ impl ErrorUnknownValue {
         }
     }
 
-    pub fn with_alts<'a, T, I>(noun: &'static str, value: &str, alternates: I) -> Self
+    pub fn with_alts<'a, T, I>(noun: UnknownValuePosition, value: &str, alternates: I) -> Self
     where
         T: AsRef<str> + 'a,
         I: IntoIterator<Item = &'a T>,
@@ -245,19 +256,23 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::ErrorUnknownValue;
+    use super::{ErrorUnknownValue, UnknownValuePosition};
 
     /// Make sure that an unknown field error with no alts or suggestions has
     /// only the relevant information and no fragments of other sentences.
     #[test]
     fn present_no_alts() {
-        let err = ErrorUnknownValue::new("field", "hello");
+        let err = ErrorUnknownValue::new(UnknownValuePosition::Field, "hello");
         assert_eq!(&err.to_string(), "Unknown field: `hello`");
     }
 
     #[test]
     fn present_few_alts() {
-        let err = ErrorUnknownValue::with_alts("field", "hello", &["world", "friend"]);
+        let err = ErrorUnknownValue::with_alts(
+            UnknownValuePosition::Field,
+            "hello",
+            &["world", "friend"],
+        );
         assert!(err.to_string().contains("`friend`"));
     }
 }
