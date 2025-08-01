@@ -125,15 +125,11 @@ pub(in crate::error) struct ErrorUnknownValue {
 }
 
 impl ErrorUnknownValue {
-    pub fn new<I: Into<String>>(
-        noun: &'static str,
-        value: I,
-        did_you_mean: Option<(f64, String)>,
-    ) -> Self {
+    pub fn new<I: Into<String>>(noun: &'static str, value: I) -> Self {
         ErrorUnknownValue {
             noun,
             value: value.into(),
-            did_you_mean,
+            did_you_mean: None,
             alts: BTreeSet::new(),
         }
     }
@@ -255,7 +251,7 @@ mod tests {
     /// only the relevant information and no fragments of other sentences.
     #[test]
     fn present_no_alts() {
-        let err = ErrorUnknownValue::new("field", "hello", None);
+        let err = ErrorUnknownValue::new("field", "hello");
         assert_eq!(&err.to_string(), "Unknown field: `hello`");
     }
 
