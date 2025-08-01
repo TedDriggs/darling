@@ -107,7 +107,7 @@ impl Error {
     /// to a known field.
     pub fn unknown_field(name: &str) -> Self {
         Error::new(ErrorKind::UnknownField(ErrorUnknownValue::new(
-            "field", name, None,
+            "field", name,
         )))
     }
 
