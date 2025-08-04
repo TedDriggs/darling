@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.21.1 (August 4, 2025)
 
 -  Track all alternate field names, and show them in error message if there aren't too many. [#325](https://github.com/TedDriggs/darling/issues/325)
 -  Track all alternate values for enum variants, and show them in error messages if there aren't too many. [#362](https://github.com/TedDriggs/darling/issues/362)
