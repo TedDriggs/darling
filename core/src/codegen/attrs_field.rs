@@ -37,8 +37,8 @@ impl ForwardAttrs<'_> {
     }
 
     /// Get the field initializer for use when building the deriving struct.
-    pub fn as_initializer(&self) -> Option<Initializer<'_>> {
-        self.field.map(Initializer)
+    pub fn as_initializer<'a>(&'a self) -> Option<impl 'a + ToTokens> {
+        self.field.map(|f| f.as_initializer())
     }
 }
 
@@ -64,15 +64,6 @@ impl ToTokens for ValuePopulator<'_> {
             None => quote!(::darling::export::Some(__fwd_attrs)),
         };
         tokens.append_all(quote!(#ident = #initializer_expr;));
-    }
-}
-
-pub struct Initializer<'a>(pub &'a ForwardedField);
-
-impl ToTokens for Initializer<'_> {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let ident = &self.0.ident;
-        tokens.append_all(quote!(#ident: #ident.expect("Errors were already checked"),));
     }
 }
 
