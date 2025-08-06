@@ -16,7 +16,7 @@ pub struct FdiOptions {
     pub vis: Option<Ident>,
 
     /// The field on the target struct which should receive the type generics, if any.
-    pub generics: Option<Ident>,
+    pub generics: Option<ForwardedField>,
 
     /// The field on the target struct which should receive the derive input body, if any.
     pub data: Option<ForwardedField>,
@@ -65,7 +65,7 @@ impl ParseData for FdiOptions {
                 Ok(())
             }
             Some("generics") => {
-                self.generics.clone_from(&field.ident);
+                self.generics = ForwardedField::from_field(field).map(Some)?;
                 Ok(())
             }
             _ => self.base.parse_field(field),

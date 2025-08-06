@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+-  Keep parsing the body and type params even if there are errors from parsing attributes. [#7](https://github.com/TedDriggs/darling/issues/325)
+-  Support `#[darling(with = ...)]` on the `generics` field when deriving `FromDeriveInput`.
+
+
 ## v0.21.1 (August 4, 2025)
 
 -  Track all alternate field names, and show them in error message if there aren't too many. [#325](https://github.com/TedDriggs/darling/issues/325)
