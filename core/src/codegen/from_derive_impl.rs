@@ -13,7 +13,7 @@ use super::ForwardAttrs;
 
 pub struct FromDeriveInputImpl<'a> {
     pub ident: Option<&'a Ident>,
-    pub generics: Option<&'a Ident>,
+    pub generics: Option<&'a ForwardedField>,
     pub vis: Option<&'a Ident>,
     pub data: Option<&'a ForwardedField>,
     pub base: TraitImpl<'a>,
@@ -53,17 +53,17 @@ impl ToTokens for FromDeriveInputImpl<'_> {
         let passed_vis = self.vis.as_ref().map(|i| quote!(#i: #input.vis.clone(),));
         let passed_attrs = self.forward_attrs.as_initializer();
 
-        let read_generics = self.generics.map(|_| {
+        let read_generics = self.generics.map(|generics| {
+            let ident = &generics.ident;
+            let with = generics.with.as_ref().map(|p| quote!(#p)).unwrap_or_else(
+                || quote_spanned!(ident.span()=>::darling::FromGenerics::from_generics),
+            );
             quote! {
-                let __generics = __errors.handle(::darling::FromGenerics::from_generics(&#input.generics));
+                let #ident = __errors.handle(#with(&#input.generics));
             }
         });
 
-        let pass_generics_to_receiver = self.generics.map(|generics| {
-            quote! {
-                #generics: __generics.expect("Parsing succeeded"),
-            }
-        });
+        let pass_generics_to_receiver = self.generics.map(|g| g.as_initializer());
 
         let check_shape = self
             .supports
@@ -80,17 +80,20 @@ impl ToTokens for FromDeriveInputImpl<'_> {
             .unwrap_or_else(|| quote!(::darling::export::Ok));
 
         let supports = self.supports;
-        let validate_and_read_data = quote! {
-            #supports
-            let __data = __errors.handle(#check_shape(&#input.data).and_then(#read_data));
+        let validate_and_read_data = {
+            // If the caller wants `data` read into a field, we can use `data` as the local variable name
+            // because we know there are no other fields of that name.
+            let let_binding = self.data.map(|d| {
+                let ident = &d.ident;
+                quote!(let #ident = )
+            });
+            quote! {
+                #supports
+                #let_binding __errors.handle(#check_shape(&#input.data).and_then(#read_data));
+            }
         };
 
-        let pass_data_to_receiver = self.data.map(|data| {
-            let data_ident = &data.ident;
-            quote! {
-                #data_ident: __data.expect("Data parsed successfully"),
-            }
-        });
+        let pass_data_to_receiver = self.data.map(|f| f.as_initializer());
 
         let inits = self.base.initializers();
         let default = if self.from_ident {
