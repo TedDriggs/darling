@@ -71,7 +71,7 @@ fn rejected_in_unit_enum_variants() {
                                 .to_string(),
                         )
                         .map_err(|e| e.with_span(path)),
-                        Meta::List(list) => Choice::from_list(&[item.clone()])
+                        Meta::List(list) => Choice::from_list(std::slice::from_ref(item))
                             .map_err(|e| e.with_span(&list.span())),
                         Meta::NameValue(n) => Err(darling::Error::custom(
                             "choice options are not set as name-value, use parentheses",
