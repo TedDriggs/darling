@@ -115,7 +115,16 @@ impl ToTokens for DeriveInputShapeSet {
 
                             struct_check.check(struct_data).and(::darling::export::Ok(__body))
                         }
-                        ::darling::export::syn::Data::Union(_) => unreachable!(),
+                        ::darling::export::syn::Data::Union(_) => {
+                            let expected = if enum_check.is_empty() {
+                                format!("struct with {}", struct_check)
+                            } else if struct_check.is_empty() {
+                                format!("enum with {}", enum_check)
+                            } else {
+                                format!("struct with {} or enum with {}", struct_check, enum_check)
+                            };
+                            ::darling::export::Err(::darling::Error::unsupported_shape_with_expected("union", &expected))
+                        },
                     }
                 }
             }
