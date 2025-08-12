@@ -17,6 +17,8 @@ pub struct FromMetaOptions {
     from_word: Option<Callable>,
     /// Override for the default [`FromMeta::from_none`] method.
     from_none: Option<Callable>,
+    /// Override for the default [`FromMeta::from_expr`] method.
+    from_expr: Option<Callable>,
     /// Whether or not to derive [`syn::parse::Parse`] in addition to deriving [`FromMeta`].
     derive_syn_parse: Option<bool>,
 }
@@ -27,6 +29,7 @@ impl FromMetaOptions {
             base: Core::start(di)?,
             from_word: None,
             from_none: None,
+            from_expr: None,
             derive_syn_parse: None,
         })
         .parse_attributes(&di.attrs)?
@@ -78,6 +81,12 @@ impl ParseAttribute for FromMetaOptions {
             }
 
             self.from_none = FromMeta::from_meta(mi).map(Some)?;
+        } else if path.is_ident("from_expr") {
+            if self.from_expr.is_some() {
+                return Err(Error::duplicate_field_path(path).with_span(path));
+            }
+
+            self.from_expr = FromMeta::from_meta(mi).map(Some)?;
         } else if path.is_ident("derive_syn_parse") {
             if self.derive_syn_parse.is_some() {
                 return Err(Error::duplicate_field_path(path).with_span(path));
@@ -113,6 +122,12 @@ impl ParseData for FromMetaOptions {
                         errors.push(Error::custom("`from_word` cannot be used on newtype structs because the implementation is entirely delegated to the inner type").with_span(from_word));
                     }
                 }
+
+                if let Some(from_expr) = &self.from_expr {
+                    if data.is_newtype() {
+                        errors.push(Error::custom("`from_expr` cannot be used on newtype structs because the implementation is entirely delegated to the inner type").with_span(from_expr));
+                    }
+                }
             }
             Data::Enum(ref data) => {
                 let word_variants: Vec<_> = data
@@ -140,6 +155,15 @@ impl ParseData for FromMetaOptions {
                         );
                     }
                 }
+
+                if let Some(from_expr) = &self.from_expr {
+                    if data.iter().any(|v| v.is_unit_variant()) {
+                        errors.push(
+                            Error::custom("`from_expr` cannot be used on enums with unit variants because it conflicts with the generated impl")
+                                .with_span(from_expr),
+                        );
+                    }
+                }
             }
         }
     }
@@ -151,6 +175,7 @@ impl<'a> From<&'a FromMetaOptions> for FromMetaImpl<'a> {
             base: (&v.base).into(),
             from_word: v.from_word(),
             from_none: v.from_none.as_ref(),
+            from_expr: v.from_expr.as_ref(),
             derive_syn_parse: v.derive_syn_parse.unwrap_or_default(),
         }
     }

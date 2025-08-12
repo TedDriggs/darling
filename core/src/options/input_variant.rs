@@ -20,6 +20,10 @@ pub struct InputVariant {
 }
 
 impl InputVariant {
+    pub fn is_unit_variant(&self) -> bool {
+        self.data.is_unit()
+    }
+
     pub fn as_codegen_variant<'a>(&'a self, ty_ident: &'a syn::Ident) -> codegen::Variant<'a> {
         codegen::Variant {
             ty_ident,
