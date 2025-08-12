@@ -24,6 +24,10 @@ impl InputVariant {
         self.data.is_unit()
     }
 
+    pub fn is_skipped(&self) -> bool {
+        self.skip.unwrap_or_default()
+    }
+
     pub fn as_codegen_variant<'a>(&'a self, ty_ident: &'a syn::Ident) -> codegen::Variant<'a> {
         codegen::Variant {
             ty_ident,
@@ -33,7 +37,7 @@ impl InputVariant {
                 .as_deref()
                 .map_or_else(|| Cow::Owned(self.ident.to_string()), Cow::Borrowed),
             data: self.data.as_ref().map(InputField::as_codegen_field),
-            skip: self.skip.unwrap_or_default(),
+            skip: self.is_skipped(),
             allow_unknown_fields: self.allow_unknown_fields.unwrap_or_default(),
         }
     }

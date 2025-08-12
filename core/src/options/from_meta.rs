@@ -157,9 +157,9 @@ impl ParseData for FromMetaOptions {
                 }
 
                 if let Some(from_expr) = &self.from_expr {
-                    if data.iter().any(|v| v.is_unit_variant()) {
+                    if data.iter().any(|v| v.is_unit_variant() && !v.is_skipped()) {
                         errors.push(
-                            Error::custom("`from_expr` cannot be used on enums with unit variants because it conflicts with the generated impl")
+                            Error::custom("`from_expr` cannot be used on enums with non-skipped unit variants because it conflicts with the generated impl")
                                 .with_span(from_expr),
                         );
                     }
