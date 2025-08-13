@@ -12,6 +12,7 @@ pub struct FromMetaImpl<'a> {
     pub base: TraitImpl<'a>,
     pub from_word: Option<Cow<'a, Callable>>,
     pub from_none: Option<&'a Callable>,
+    pub from_expr: Option<&'a Callable>,
     pub derive_syn_parse: bool,
 }
 
@@ -31,6 +32,14 @@ impl ToTokens for FromMetaImpl<'_> {
             quote_spanned! {body.span()=>
                 fn from_none() -> ::darling::export::Option<Self> {
                     ::darling::export::identity::<fn() -> ::darling::export::Option<Self>>(#body)()
+                }
+            }
+        });
+
+        let from_expr = self.from_expr.map(|body| {
+            quote_spanned! {body.span()=>
+                fn from_expr(expr: &::darling::export::syn::Expr) -> ::darling::Result<Self> {
+                    ::darling::export::identity::<fn(&::darling::export::syn::Expr) -> ::darling::Result<Self>>(#body)(expr)
                 }
             }
         });
@@ -81,6 +90,8 @@ impl ToTokens for FromMetaImpl<'_> {
                     #from_word
 
                     #from_none
+
+                    #from_expr
 
                     fn from_list(__items: &[::darling::export::NestedMeta]) -> ::darling::Result<Self> {
 
@@ -157,6 +168,8 @@ impl ToTokens for FromMetaImpl<'_> {
                     #from_word
 
                     #from_none
+
+                    #from_expr
                 )
             }
         };
