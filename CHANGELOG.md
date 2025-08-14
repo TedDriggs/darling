@@ -4,6 +4,7 @@
 
 -  Keep parsing the body and type params even if there are errors from parsing attributes. [#7](https://github.com/TedDriggs/darling/issues/325)
 -  Support `#[darling(with = ...)]` on the `generics` field when deriving `FromDeriveInput`.
+-  Return an error, rather than panicking, when doing shape validation on a `union`. [#365](https://github.com/TedDriggs/darling/issues/365)
 -  Add `#[darling(from_expr = ...)]` when deriving `FromMeta` to support overriding the key-value form [#369](https://github.com/TedDriggs/darling/issues/369)
 
 
