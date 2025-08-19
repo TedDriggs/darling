@@ -149,6 +149,10 @@ impl<T: FromMeta> FromMeta for Override<T> {
         Ok(Explicit(FromMeta::from_value(lit)?))
     }
 
+    fn from_expr(expr: &syn::Expr) -> Result<Self> {
+        Ok(Explicit(FromMeta::from_expr(expr)?))
+    }
+
     fn from_char(value: char) -> Result<Self> {
         Ok(Explicit(FromMeta::from_char(value)?))
     }
