@@ -1,16 +1,16 @@
 //! This is a regression test for issue [#371](https://github.com/TedDriggs/darling/issues/371).
 
 use darling::util::{Callable, Override};
-use darling::FromAttributes;
+use darling::FromDeriveInput;
 
-#[derive(FromAttributes)]
+#[derive(FromDeriveInput)]
 #[darling(attributes(test))]
-#[allow(dead_code)]
 struct Test1 {
+    #[allow(dead_code)]
     func: Callable,
 }
 
-#[derive(FromAttributes)]
+#[derive(FromDeriveInput)]
 #[darling(attributes(test))]
 struct Test2 {
     func: Override<Callable>,
@@ -18,24 +18,33 @@ struct Test2 {
 
 #[test]
 fn test_explicit_closure() {
-    let attrs = [syn::parse_quote!(#[test(func = || 1 + 1)])];
-    assert!(Test1::from_attributes(&attrs).is_ok());
-    assert!(Test2::from_attributes(&attrs).is_ok());
+    let input = syn::parse_quote! {
+        #[test(func = || 1 + 1)]
+        struct Foo;
+    };
+    assert!(Test1::from_derive_input(&input).is_ok());
+    assert!(Test2::from_derive_input(&input).is_ok());
 }
 
 #[test]
 fn test_explicit_path() {
-    let attrs = [syn::parse_quote!(#[test(func = foo::bar)])];
-    assert!(Test1::from_attributes(&attrs).is_ok());
-    assert!(Test2::from_attributes(&attrs).is_ok());
+    let input = syn::parse_quote! {
+        #[test(func = foo::bar)]
+        struct Foo;
+    };
+    assert!(Test1::from_derive_input(&input).is_ok());
+    assert!(Test2::from_derive_input(&input).is_ok());
 }
 
 #[test]
 fn test_inherit() {
-    let attrs = [syn::parse_quote!(#[test(func)])];
-    assert!(Test1::from_attributes(&attrs).is_err());
+    let input = syn::parse_quote! {
+        #[test(func)]
+        struct Foo;
+    };
+    assert!(Test1::from_derive_input(&input).is_err());
     assert!(matches!(
-        Test2::from_attributes(&attrs).unwrap().func,
+        Test2::from_derive_input(&input).unwrap().func,
         Override::Inherit
     ));
 }
