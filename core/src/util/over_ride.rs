@@ -137,6 +137,13 @@ impl<T: fmt::Display> fmt::Display for Override<T> {
 /// Parses a `Meta`. A bare word will produce `Override::Inherit`, while
 /// any value will be forwarded to `T::from_meta`.
 impl<T: FromMeta> FromMeta for Override<T> {
+    fn from_meta(item: &syn::Meta) -> Result<Self> {
+        match item {
+            syn::Meta::Path(_) => Self::from_word(),
+            _ => FromMeta::from_meta(item).map(Explicit),
+        }
+    }
+
     fn from_word() -> Result<Self> {
         Ok(Inherit)
     }
