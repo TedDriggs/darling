@@ -1,6 +1,6 @@
 [package]
 name = "darling_macro"
-version = "0.21.2"
+version = "0.21.3"
 authors = ["Ted Driggs <ted.driggs@outlook.com>"]
 repository = "https://github.com/TedDriggs/darling"
 description = """
@@ -14,7 +14,7 @@ rust-version = "1.56"
 [dependencies]
 quote = "1.0.18"
 syn = "2.0.15"
-darling_core = { version = "=0.21.2", path = "../core" }
+darling_core = { version = "=0.21.3", path = "../core" }
 
 [lib]
 proc-macro = true

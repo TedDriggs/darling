@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.21.3 (August 22, 2025)
+
+-  Fix: Forward `Override::<T>::from_expr` to `T::from_expr` [#371](https://github.com/TedDriggs/darling/issues/371)
+
 ## v0.21.2 (August 14, 2025)
 
 -  Add `#[darling(from_expr = ...)]` when deriving `FromMeta` to support overriding the key-value form [#369](https://github.com/TedDriggs/darling/issues/369)
