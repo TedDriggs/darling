@@ -1,14 +1,15 @@
-use fnv::FnvHashSet;
+use std::collections::HashSet;
+
 use syn::punctuated::Punctuated;
 use syn::{Lifetime, Type};
 
 use crate::usage::Options;
 
 /// A set of lifetimes.
-pub type LifetimeSet = FnvHashSet<Lifetime>;
+pub type LifetimeSet = HashSet<Lifetime>;
 
 /// A set of references to lifetimes.
-pub type LifetimeRefSet<'a> = FnvHashSet<&'a Lifetime>;
+pub type LifetimeRefSet<'a> = HashSet<&'a Lifetime>;
 
 /// Searcher for finding lifetimes in a syntax tree.
 /// This can be used to determine which lifetimes must be emitted in generated code.
