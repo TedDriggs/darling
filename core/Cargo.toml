@@ -21,7 +21,6 @@ proc-macro2 = "1.0.86"
 quote = "1.0.18"
 serde = { version = "1.0.210", optional = true }
 syn = { version = "2.0.15", features = ["full", "extra-traits"] }
-fnv = "1.0.7"
 strsim = { version = "0.11.1", optional = true }
 
 [dev-dependencies]
