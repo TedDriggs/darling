@@ -19,7 +19,8 @@
 //!   You can also use `#[darling(rename_all="...")]` at the struct or enum level to apply a casing rule to all fields or variants.
 //! * **Map function**: You can use `#[darling(map="path::to::function")]` to run code on a field before its stored in the struct.
 //! * **Default values**: You can use `#[darling(default)]` at the type or field level to use that type's default value to fill
-//!   in values not specified by the caller.
+//!   in values not specified by the caller. You can also set a custom default value by passing in a function path or a closure:
+//!   `#[darling(default = "path::to::function")]` or `#[darling(default = || get_default())]`.
 //! * **Skipped fields**: You can skip a variant or field using `#[darling(skip)]`. Fields marked with this will fall back to
 //!   `Default::default()` for their value, but you can override that with an explicit default or a value from the type-level default.
 //! * **Custom shorthand**: Use `#[darling(from_word = ...)]` on a struct or enum to override how a simple word is interpreted.
