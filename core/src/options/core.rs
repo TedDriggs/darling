@@ -66,7 +66,9 @@ impl Core {
 
     fn as_codegen_default(&self) -> Option<codegen::DefaultExpression<'_>> {
         self.default.as_ref().map(|expr| match *expr {
-            DefaultExpression::Explicit(ref path) => codegen::DefaultExpression::Explicit(path),
+            DefaultExpression::Explicit(ref callable) => {
+                codegen::DefaultExpression::Explicit(callable)
+            }
             DefaultExpression::Inherit => {
                 // It should be impossible for any input to get here,
                 // so panic rather than returning an error or pretending
