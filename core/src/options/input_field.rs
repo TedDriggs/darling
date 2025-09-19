@@ -53,7 +53,12 @@ impl InputField {
     /// in the `Inherit` case.
     fn as_codegen_default(&self) -> Option<codegen::DefaultExpression<'_>> {
         self.default.as_ref().map(|expr| match *expr {
-            DefaultExpression::Explicit(ref path) => codegen::DefaultExpression::Explicit(path),
+            DefaultExpression::ExplicitPath(ref path) => {
+                codegen::DefaultExpression::ExplicitPath(path)
+            }
+            DefaultExpression::ExplicitClosure(ref closure) => {
+                codegen::DefaultExpression::ExplicitClosure(closure)
+            }
             DefaultExpression::Inherit => codegen::DefaultExpression::Inherit(&self.ident),
             DefaultExpression::Trait { span } => codegen::DefaultExpression::Trait { span },
         })

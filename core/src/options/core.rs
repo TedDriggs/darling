@@ -66,7 +66,12 @@ impl Core {
 
     fn as_codegen_default(&self) -> Option<codegen::DefaultExpression<'_>> {
         self.default.as_ref().map(|expr| match *expr {
-            DefaultExpression::Explicit(ref path) => codegen::DefaultExpression::Explicit(path),
+            DefaultExpression::ExplicitPath(ref path) => {
+                codegen::DefaultExpression::ExplicitPath(path)
+            }
+            DefaultExpression::ExplicitClosure(ref closure) => {
+                codegen::DefaultExpression::ExplicitClosure(closure)
+            }
             DefaultExpression::Inherit => {
                 // It should be impossible for any input to get here,
                 // so panic rather than returning an error or pretending
@@ -145,7 +150,9 @@ impl ParseData for Core {
         match self.data {
             Data::Struct(Fields {
                 style: Style::Unit, ..
-            }) => panic!("Core::parse_field should not be called on unit"),
+            }) => {
+                panic!("Core::parse_field should not be called on unit")
+            }
             Data::Struct(Fields { ref mut fields, .. }) => {
                 fields.push(f);
                 Ok(())

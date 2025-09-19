@@ -450,6 +450,7 @@ macro_rules! from_syn_expr_type {
 }
 
 from_syn_expr_type!(syn::ExprArray, Array);
+from_syn_expr_type!(syn::ExprClosure, Closure);
 from_syn_expr_type!(syn::ExprPath, Path);
 from_syn_expr_type!(syn::ExprRange, Range);
 

@@ -1,6 +1,6 @@
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens, TokenStreamExt};
-use syn::{spanned::Spanned, Ident, Path};
+use syn::{spanned::Spanned, ExprClosure, Ident, Path};
 
 /// This will be in scope during struct initialization after option parsing.
 const DEFAULT_STRUCT_NAME: &str = "__default";
@@ -11,7 +11,10 @@ pub enum DefaultExpression<'a> {
     /// Only valid on fields, `Inherit` indicates that the value should be taken from a pre-constructed
     /// fallback object. The value in the variant is the ident of the field.
     Inherit(&'a Ident),
-    Explicit(&'a Path),
+    /// `default = path::to::function` or `default = "path::to::function"`.
+    ExplicitPath(&'a Path),
+    /// `default = || default_val()` or `default = "|| default_val()"`.
+    ExplicitClosure(&'a ExprClosure),
     Trait {
         span: Span,
     },
@@ -30,9 +33,12 @@ impl ToTokens for DefaultExpression<'_> {
                 let dsn = Ident::new(DEFAULT_STRUCT_NAME, ::proc_macro2::Span::call_site());
                 quote!(#dsn.#ident)
             }
-            DefaultExpression::Explicit(path) => {
+            DefaultExpression::ExplicitPath(path) => {
                 // Use quote_spanned to properly set the span of the parentheses
                 quote_spanned!(path.span()=>#path())
+            }
+            DefaultExpression::ExplicitClosure(closure) => {
+                quote_spanned!(closure.span()=> (#closure)())
             }
             DefaultExpression::Trait { span } => {
                 quote_spanned!(span=> ::darling::export::Default::default())

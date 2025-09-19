@@ -12,8 +12,17 @@ mod foo {
 #[derive(FromDeriveInput)]
 #[darling(attributes(speak))]
 pub struct SpeakerOpts {
+    // path support
     #[darling(default = foo::bar::init)]
     first_word: String,
+    #[darling(default = "foo::bar::init")]
+    first_word_lit: String,
+
+    // closure support
+    #[darling(default = || "world".to_owned())]
+    second_word: String,
+    #[darling(default = r#"|| "world".to_owned()"#)]
+    second_word_lit: String,
 }
 
 #[test]
@@ -24,6 +33,9 @@ fn path_default() {
     .expect("Unit struct with no attrs should parse");
 
     assert_eq!(speaker.first_word, "hello");
+    assert_eq!(speaker.first_word_lit, "hello");
+    assert_eq!(speaker.second_word, "world");
+    assert_eq!(speaker.second_word_lit, "world");
 }
 
 /// Tests in this module capture the somewhat-confusing behavior observed when defaults

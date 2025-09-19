@@ -39,7 +39,10 @@ pub enum DefaultExpression {
     /// The value should be taken from the `default` instance of the containing struct.
     /// This is not valid in container options.
     Inherit,
-    Explicit(syn::Path),
+    /// `default = path::to::function` or `default = "path::to::function"`.
+    ExplicitPath(syn::Path),
+    /// `default = || default_val()` or `default = "|| default_val()"`.
+    ExplicitClosure(syn::ExprClosure),
     Trait {
         /// The input span that is responsible for the use of `Default::default`.
         span: Span,
@@ -59,11 +62,17 @@ impl FromMeta for DefaultExpression {
     }
 
     fn from_expr(expr: &syn::Expr) -> Result<Self> {
-        syn::Path::from_expr(expr).map(DefaultExpression::Explicit)
+        if let Ok(path) = syn::Path::from_expr(expr) {
+            return Ok(Self::ExplicitPath(path));
+        }
+        if let Ok(closure) = syn::ExprClosure::from_expr(expr) {
+            return Ok(Self::ExplicitClosure(closure));
+        }
+        Err(Error::unexpected_expr_type(expr))
     }
 
     fn from_value(value: &syn::Lit) -> Result<Self> {
-        syn::Path::from_value(value).map(DefaultExpression::Explicit)
+        syn::Path::from_value(value).map(DefaultExpression::ExplicitPath)
     }
 }
 
