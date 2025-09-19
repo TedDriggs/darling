@@ -150,9 +150,7 @@ impl ParseData for Core {
         match self.data {
             Data::Struct(Fields {
                 style: Style::Unit, ..
-            }) => {
-                panic!("Core::parse_field should not be called on unit")
-            }
+            }) => panic!("Core::parse_field should not be called on unit"),
             Data::Struct(Fields { ref mut fields, .. }) => {
                 fields.push(f);
                 Ok(())
