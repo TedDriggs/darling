@@ -63,10 +63,10 @@ impl FromMeta for Callable {
             Expr::Path(_) | Expr::Closure(_) => Ok(Self { call: expr.clone() }),
             Expr::Lit(ExprLit {
                 lit: Lit::Str(s), ..
-            }) => syn::parse_str::<Path>(&s.value())
+            }) => s
+                .parse::<Path>()
                 .map_err(|e| {
-                    Error::custom(format!("`with` must be a path if it's a string: {}", e))
-                        .with_span(s)
+                    Error::custom(format!("must be a path if it's a string: {}", e)).with_span(s)
                 })
                 .map(Self::from),
             _ => Err(Error::unexpected_expr_type(expr)),
