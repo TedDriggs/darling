@@ -86,7 +86,7 @@ pub trait FromMeta: Sized {
     /// and users who add a `String` field to their `FromMeta`-deriving struct would be surprised
     /// if they get back `""` instead of a missing field error when that field is omitted.
     ///
-    /// The primary use-case for this is `Option<T>` fields gracefully handlling absence without
+    /// The primary use-case for this is `Option<T>` fields gracefully handling absence without
     /// needing `#[darling(default)]`.
     fn from_none() -> Option<Self> {
         None
