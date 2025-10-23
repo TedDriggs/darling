@@ -115,7 +115,7 @@ pub struct ShapeSet {
 impl ShapeSet {
     /// Create a new `ShapeSet` which includes the specified items.
     ///
-    /// # Exampe
+    /// # Example
     /// ```rust
     /// # use darling_core::util::{Shape, ShapeSet};
     /// let shape_set = ShapeSet::new(vec![Shape::Named, Shape::Newtype]);
