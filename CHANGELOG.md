@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.22.0 (December 2, 2025)
+
+-  **BREAKING:** Remove `fnv` dependency, as runtime performance gain does not justify additional dependency. This was exposed to users of `darling::usage`, so it may be breaking for them [#373](https://github.com/TedDriggs/darling/pull/373)
+-  Add `#[darling(default = || expr(val))]` support, allowing a closure where a path was previously required [#380](https://github.com/TedDriggs/darling/pull/380)
+-  Preserve span information for paths given to `darling::util::Callable` as literal strings
+-  Fix some documentation typos
+
 ## v0.21.3 (August 22, 2025)
 
 -  Fix: Forward `Override::<T>::from_expr` to `T::from_expr` [#371](https://github.com/TedDriggs/darling/issues/371)
