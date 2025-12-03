@@ -23,7 +23,7 @@ darling_macro = { version = "=0.22.0", path = "macro" }
 
 [dev-dependencies]
 proc-macro2 = "1.0.86"
-quote = "=1.0.40"      # 1.0.41 bumped MSRV to 1.60.0
+quote = "1.0.18"
 syn = "2.0.15"
 
 [target.'cfg(compiletests)'.dev-dependencies]

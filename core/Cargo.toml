@@ -18,7 +18,7 @@ suggestions = ["strsim"]
 [dependencies]
 ident_case = "1.0.1"
 proc-macro2 = "1.0.86"
-quote = "=1.0.40"                                                 # 1.0.41 bumped MSRV to 1.60.0
+quote = "1.0.18"
 serde = { version = "1.0.210", optional = true }
 syn = { version = "2.0.15", features = ["full", "extra-traits"] }
 strsim = { version = "0.11.1", optional = true }
