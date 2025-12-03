@@ -1,1 +1,1 @@
-RUSTFLAGS="--cfg=compiletests" cargo +1.77.0 test --test compiletests
+RUSTFLAGS="--cfg=compiletests" cargo +1.88.0 test --test compiletests

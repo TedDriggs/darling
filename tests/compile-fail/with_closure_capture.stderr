@@ -25,6 +25,6 @@ help: the return type of this call is `{closure@$DIR/tests/compile-fail/with_clo
 13 | |             String::from_meta(m)?.to_uppercase()
 14 | |             + example1.1.as_ref().map(|s| s.as_str()).unwrap_or("")
 15 | |         ),
-   | |_________- this argument influences the return type of `{{root}}`
+   | |_________- this argument influences the return type of `identity`
 note: function defined here
   --> $RUST/core/src/convert/mod.rs

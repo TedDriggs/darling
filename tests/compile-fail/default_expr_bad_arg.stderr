@@ -90,7 +90,7 @@ help: the return type of this call is `fn(usize) -> String {String::with_capacit
 41 |     #[darling(default = String::with_capacity)]
    |                         ^^^^^^---------------
    |                         |
-   |                         this argument influences the return type of `{{root}}`
+   |                         this argument influences the return type of `identity`
 note: function defined here
   --> $RUST/core/src/convert/mod.rs
 
@@ -109,7 +109,7 @@ help: the return type of this call is `fn(usize) -> String {String::with_capacit
   --> tests/compile-fail/default_expr_bad_arg.rs:44:25
    |
 44 |     #[darling(default = "String::with_capacity")]
-   |                         ^^^^^^^^^^^^^^^^^^^^^^^ this argument influences the return type of `{{root}}`
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^ this argument influences the return type of `identity`
 note: function defined here
   --> $RUST/core/src/convert/mod.rs
 
