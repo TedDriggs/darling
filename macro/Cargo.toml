@@ -9,7 +9,7 @@ implementing custom derives. Use https://crates.io/crates/darling in your code.
 """
 license = "MIT"
 edition = "2021"
-rust-version = "1.56.0"
+rust-version = "1.88.0"
 
 [dependencies]
 quote = "1.0.18"

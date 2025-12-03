@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.23.0 (December 3, 2025)
+
+-  Bump MSRV to 1.88.0; there have been no code changes that caused this, but due to dependency issues CI no longer works on 1.56.0 [#357](https://github.com/TedDriggs/darling/issues/357)
+
 ## v0.22.0 (December 2, 2025)
 
 -  **BREAKING:** Remove `fnv` dependency, as runtime performance gain does not justify additional dependency. This was exposed to users of `darling::usage`, so it may be breaking for them [#373](https://github.com/TedDriggs/darling/pull/373)
