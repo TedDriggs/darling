@@ -25,7 +25,7 @@ use crate::util::path_to_string;
 use self::kind::{ErrorKind, ErrorUnknownValue, UnknownValuePosition};
 
 /// An alias of `Result` specific to attribute parsing.
-pub type Result<T> = ::std::result::Result<T, Error>;
+pub type Result<T, E = Error> = ::std::result::Result<T, E>;
 
 /// An error encountered during attribute parsing.
 ///
