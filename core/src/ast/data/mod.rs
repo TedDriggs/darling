@@ -143,6 +143,14 @@ impl<V: FromVariant, F: FromField> Data<V, F> {
     }
 }
 
+impl<'a, V: FromVariant, F: FromField> TryFrom<&'a syn::Data> for Data<V, F> {
+    type Error = Error;
+
+    fn try_from(value: &'a syn::Data) -> Result<Self> {
+        Data::try_from(value)
+    }
+}
+
 impl<V: UsesTypeParams, F: UsesTypeParams> UsesTypeParams for Data<V, F> {
     fn uses_type_params<'a>(
         &self,

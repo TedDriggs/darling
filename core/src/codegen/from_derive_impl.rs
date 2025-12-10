@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
-use syn::Ident;
+use syn::{spanned::Spanned, Ident};
 
 use crate::{
     ast::Data,
@@ -75,7 +75,7 @@ impl ToTokens for FromDeriveInputImpl<'_> {
             .as_ref()
             .map(|i| match &i.with {
                 Some(p) => quote!(#p),
-                None => quote_spanned!(i.ident.span()=> ::darling::ast::Data::try_from),
+                None => quote_spanned!(i.ty.span()=> ::darling::export::TryFrom::try_from),
             })
             .unwrap_or_else(|| quote!(::darling::export::Ok));
 

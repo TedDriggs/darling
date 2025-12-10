@@ -58,7 +58,7 @@ pub struct ValuePopulator<'a>(pub &'a ForwardedField);
 
 impl ToTokens for ValuePopulator<'_> {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let ForwardedField { ident, with } = self.0;
+        let ForwardedField { ident, with, .. } = self.0;
         let initializer_expr = match with {
             Some(with) => quote_spanned!(with.span()=> __errors.handle(#with(__fwd_attrs))),
             None => quote!(::darling::export::Some(__fwd_attrs)),
