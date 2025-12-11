@@ -10,7 +10,7 @@ pub struct ErrorDeclaration {
 impl ToTokens for ErrorDeclaration {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         tokens.append_all(quote! {
-            let mut __errors = ::darling::Error::accumulator();
+            let mut __errors = _darling::Error::accumulator();
         })
     }
 }

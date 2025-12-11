@@ -12,7 +12,7 @@ use crate::util::Callable;
 use crate::{Error, FromMeta, Result};
 
 pub struct FromMetaOptions {
-    base: Core,
+    pub base: Core,
     /// Override for the default [`FromMeta::from_word`] method.
     from_word: Option<Callable>,
     /// Override for the default [`FromMeta::from_none`] method.
@@ -55,7 +55,7 @@ impl FromMetaOptions {
                     .find(|v| v.word.map(|x| *x).unwrap_or_default())?;
                 let variant_ident = &variant.ident;
                 let closure: syn::ExprClosure = parse_quote! {
-                    || ::darling::export::Ok(Self::#variant_ident)
+                    || _darling::export::Ok(Self::#variant_ident)
                 };
                 Some(Cow::Owned(Callable::from(closure)))
             } else {

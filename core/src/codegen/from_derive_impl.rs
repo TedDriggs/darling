@@ -33,9 +33,9 @@ impl ToTokens for FromDeriveInputImpl<'_> {
             if data.is_newtype() {
                 self.wrap(
                     quote!{
-                        fn from_derive_input(#input: &::darling::export::syn::DeriveInput) -> ::darling::Result<Self> {
-                            ::darling::export::Ok(
-                                #ty_ident(::darling::FromDeriveInput::from_derive_input(#input)?)
+                        fn from_derive_input(#input: &_darling::export::syn::DeriveInput) -> _darling::Result<Self> {
+                            _darling::export::Ok(
+                                #ty_ident(_darling::FromDeriveInput::from_derive_input(#input)?)
                             ) #post_transform
                         }
                     },
@@ -56,7 +56,7 @@ impl ToTokens for FromDeriveInputImpl<'_> {
         let read_generics = self.generics.map(|generics| {
             let ident = &generics.ident;
             let with = generics.with.as_ref().map(|p| quote!(#p)).unwrap_or_else(
-                || quote_spanned!(ident.span()=>::darling::FromGenerics::from_generics),
+                || quote_spanned!(ident.span()=>_darling::FromGenerics::from_generics),
             );
             quote! {
                 let #ident = __errors.handle(#with(&#input.generics));
@@ -68,16 +68,16 @@ impl ToTokens for FromDeriveInputImpl<'_> {
         let check_shape = self
             .supports
             .map(|s| s.validator_path().into_token_stream())
-            .unwrap_or_else(|| quote!(::darling::export::Ok));
+            .unwrap_or_else(|| quote!(_darling::export::Ok));
 
         let read_data = self
             .data
             .as_ref()
             .map(|i| match &i.with {
                 Some(p) => quote!(#p),
-                None => quote_spanned!(i.ident.span()=> ::darling::ast::Data::try_from),
+                None => quote_spanned!(i.ident.span()=> _darling::ast::Data::try_from),
             })
-            .unwrap_or_else(|| quote!(::darling::export::Ok));
+            .unwrap_or_else(|| quote!(_darling::export::Ok));
 
         let supports = self.supports;
         let validate_and_read_data = {
@@ -97,7 +97,7 @@ impl ToTokens for FromDeriveInputImpl<'_> {
 
         let inits = self.base.initializers();
         let default = if self.from_ident {
-            quote!(let __default: Self = ::darling::export::From::from(#input.ident.clone());)
+            quote!(let __default: Self = _darling::export::From::from(#input.ident.clone());)
         } else {
             self.base.fallback_decl()
         };
@@ -110,7 +110,7 @@ impl ToTokens for FromDeriveInputImpl<'_> {
 
         self.wrap(
             quote! {
-                fn from_derive_input(#input: &::darling::export::syn::DeriveInput) -> ::darling::Result<Self> {
+                fn from_derive_input(#input: &_darling::export::syn::DeriveInput) -> _darling::Result<Self> {
                     #declare_errors
 
                     #grab_attrs
@@ -125,7 +125,7 @@ impl ToTokens for FromDeriveInputImpl<'_> {
 
                     #default
 
-                    ::darling::export::Ok(#ty_ident {
+                    _darling::export::Ok(#ty_ident {
                         #passed_ident
                         #pass_generics_to_receiver
                         #passed_vis
@@ -164,11 +164,11 @@ impl ExtractAttribute for FromDeriveInputImpl<'_> {
 
 impl<'a> OuterFromImpl<'a> for FromDeriveInputImpl<'a> {
     fn trait_path(&self) -> syn::Path {
-        path!(::darling::FromDeriveInput)
+        path!(_darling::FromDeriveInput)
     }
 
     fn trait_bound(&self) -> syn::Path {
-        path!(::darling::FromMeta)
+        path!(_darling::FromMeta)
     }
 
     fn base(&'a self) -> &'a TraitImpl<'a> {
