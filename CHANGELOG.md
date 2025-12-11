@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+-  Allow `data` magic field for `FromDeriveInput` to be any type that implements `TryFrom<&syn::Data, Error = darling::Error>` without needing to use `#[darling(with = ...)]` syntax [#391](https://github.com/TedDriggs/darling/issues/391)
+
 ## v0.23.0 (December 3, 2025)
 
 -  Bump MSRV to 1.88.0; there have been no code changes that caused this, but due to dependency issues CI no longer works on 1.56.0 [#357](https://github.com/TedDriggs/darling/issues/357)

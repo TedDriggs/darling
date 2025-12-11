@@ -1,6 +1,8 @@
+use std::borrow::Cow;
+
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
-use syn::Ident;
+use syn::{parse_quote, parse_quote_spanned, spanned::Spanned, Ident};
 
 use crate::{
     ast::Data,
@@ -55,10 +57,19 @@ impl ToTokens for FromDeriveInputImpl<'_> {
 
         let read_generics = self.generics.map(|generics| {
             let ident = &generics.ident;
-            let with = generics.with.as_ref().map(|p| quote!(#p)).unwrap_or_else(
-                || quote_spanned!(ident.span()=>_darling::FromGenerics::from_generics),
-            );
-            quote! {
+            let with = generics
+                .with
+                .as_ref()
+                .map(Cow::Borrowed)
+                .unwrap_or_else(|| {
+                    Cow::Owned(
+                        parse_quote_spanned!(generics.ty.span()=> _darling::FromGenerics::from_generics),
+                    )
+                });
+
+            // Note: This whole call has to be spanned, since setting the span on the `with` alone is not
+            // sufficient to get rustc to point to the `with` path or magic field type in case of an error.`
+            quote_spanned! {with.span()=>
                 let #ident = __errors.handle(#with(&#input.generics));
             }
         });
@@ -67,17 +78,17 @@ impl ToTokens for FromDeriveInputImpl<'_> {
 
         let check_shape = self
             .supports
-            .map(|s| s.validator_path().into_token_stream())
-            .unwrap_or_else(|| quote!(_darling::export::Ok));
+            .map(|s| s.validator_path())
+            .unwrap_or_else(|| parse_quote!(_darling::export::Ok));
 
         let read_data = self
             .data
             .as_ref()
             .map(|i| match &i.with {
-                Some(p) => quote!(#p),
-                None => quote_spanned!(i.ident.span()=> _darling::ast::Data::try_from),
+                Some(p) => p.clone(),
+                None => parse_quote_spanned!(i.ty.span()=> ::darling::export::TryFrom::try_from),
             })
-            .unwrap_or_else(|| quote!(_darling::export::Ok));
+            .unwrap_or_else(|| parse_quote!(_darling::export::Ok));
 
         let supports = self.supports;
         let validate_and_read_data = {

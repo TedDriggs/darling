@@ -1,0 +1,30 @@
+error[E0271]: type mismatch resolving `<Vec<String> as TryFrom<&Data>>::Error == Error`
+ --> tests/compile-fail/data_missing_tryfrom.rs:5:11
+  |
+1 | #[derive(darling::FromDeriveInput)]
+  |          ------------------------ required by a bound introduced by this call
+...
+5 |     data: Vec<String>,
+  |           ^^^ expected `Error`, found `Infallible`
+  |
+note: required by a bound in `Result::<T, E>::and_then`
+ --> $RUST/core/src/result.rs
+
+error[E0277]: the trait bound `Vec<String>: TryFrom<&syn::derive::Data>` is not satisfied
+ --> tests/compile-fail/data_missing_tryfrom.rs:5:11
+  |
+5 |     data: Vec<String>,
+  |           ^^^ the trait `From<&syn::derive::Data>` is not implemented for `Vec<String>`
+  |
+  = help: the following other types implement trait `From<T>`:
+            `Vec<T, A>` implements `From<BinaryHeap<T, A>>`
+            `Vec<T, A>` implements `From<VecDeque<T, A>>`
+            `Vec<T, A>` implements `From<std::boxed::Box<[T], A>>`
+            `Vec<T>` implements `From<&[T; N]>`
+            `Vec<T>` implements `From<&[T]>`
+            `Vec<T>` implements `From<&mut [T; N]>`
+            `Vec<T>` implements `From<&mut [T]>`
+            `Vec<T>` implements `From<Cow<'_, [T]>>`
+          and $N others
+  = note: required for `&syn::derive::Data` to implement `Into<Vec<String>>`
+  = note: required for `Vec<String>` to implement `TryFrom<&syn::derive::Data>`
