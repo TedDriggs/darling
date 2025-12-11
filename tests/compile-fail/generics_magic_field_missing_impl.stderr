@@ -1,0 +1,14 @@
+error[E0277]: the trait bound `Vec<String>: FromGenerics` is not satisfied
+ --> tests/compile-fail/generics_magic_field_missing_impl.rs:5:15
+  |
+5 |     generics: Vec<String>,
+  |               ^^^ the trait `FromGenerics` is not implemented for `Vec<String>`
+  |
+  = help: the following other types implement trait `FromGenerics`:
+            ()
+            Ignored
+            Result<T, darling::Error>
+            SpannedValue<T>
+            WithOriginal<T, syn::generics::Generics>
+            darling::ast::Generics<P>
+            syn::generics::Generics

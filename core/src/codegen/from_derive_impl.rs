@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{parse_quote, parse_quote_spanned, spanned::Spanned, Ident};
@@ -55,10 +57,19 @@ impl ToTokens for FromDeriveInputImpl<'_> {
 
         let read_generics = self.generics.map(|generics| {
             let ident = &generics.ident;
-            let with = generics.with.as_ref().map(|p| quote!(#p)).unwrap_or_else(
-                || quote_spanned!(ident.span()=>::darling::FromGenerics::from_generics),
-            );
-            quote! {
+            let with = generics
+                .with
+                .as_ref()
+                .map(Cow::Borrowed)
+                .unwrap_or_else(|| {
+                    Cow::Owned(
+                        parse_quote_spanned!(generics.ty.span()=>::darling::FromGenerics::from_generics),
+                    )
+                });
+
+            // Note: This whole call has to be spanned, since setting the span on the `with` alone is not
+            // sufficient to get rustc to point to the `with` path or magic field type in case of an error.`
+            quote_spanned! {with.span()=>
                 let #ident = __errors.handle(#with(&#input.generics));
             }
         });
