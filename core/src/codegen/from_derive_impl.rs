@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
-use syn::{spanned::Spanned, Ident};
+use syn::{parse_quote, parse_quote_spanned, spanned::Spanned, Ident};
 
 use crate::{
     ast::Data,
@@ -67,17 +67,17 @@ impl ToTokens for FromDeriveInputImpl<'_> {
 
         let check_shape = self
             .supports
-            .map(|s| s.validator_path().into_token_stream())
-            .unwrap_or_else(|| quote!(::darling::export::Ok));
+            .map(|s| s.validator_path())
+            .unwrap_or_else(|| parse_quote!(::darling::export::Ok));
 
         let read_data = self
             .data
             .as_ref()
             .map(|i| match &i.with {
-                Some(p) => quote!(#p),
-                None => quote_spanned!(i.ty.span()=> ::darling::export::TryFrom::try_from),
+                Some(p) => p.clone(),
+                None => parse_quote_spanned!(i.ty.span()=> ::darling::export::TryFrom::try_from),
             })
-            .unwrap_or_else(|| quote!(::darling::export::Ok));
+            .unwrap_or_else(|| parse_quote!(::darling::export::Ok));
 
         let supports = self.supports;
         let validate_and_read_data = {
