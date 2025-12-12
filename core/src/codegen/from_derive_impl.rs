@@ -8,13 +8,13 @@ use crate::{
     ast::Data,
     codegen::{ExtractAttribute, OuterFromImpl, TraitImpl},
     options::{DeriveInputShapeSet, ForwardedField},
-    util::PathList,
+    util::{IdentField, PathList},
 };
 
 use super::ForwardAttrs;
 
 pub struct FromDeriveInputImpl<'a> {
-    pub ident: Option<&'a Ident>,
+    pub ident: Option<&'a IdentField>,
     pub generics: Option<&'a ForwardedField>,
     pub vis: Option<&'a Ident>,
     pub data: Option<&'a ForwardedField>,
@@ -51,7 +51,7 @@ impl ToTokens for FromDeriveInputImpl<'_> {
         let passed_ident = self
             .ident
             .as_ref()
-            .map(|i| quote!(#i: #input.ident.clone(),));
+            .map(|i| i.create_field(&quote!(#input.ident.clone())));
         let passed_vis = self.vis.as_ref().map(|i| quote!(#i: #input.vis.clone(),));
         let passed_attrs = self.forward_attrs.as_initializer();
 

@@ -2,6 +2,7 @@
 
 mod callable;
 mod flag;
+mod ident_field;
 mod ident_string;
 mod ignored;
 mod over_ride;
@@ -16,6 +17,7 @@ mod with_original;
 
 pub use self::callable::Callable;
 pub use self::flag::Flag;
+pub use self::ident_field::require_ident;
 pub use self::ident_string::IdentString;
 pub use self::ignored::Ignored;
 pub use self::over_ride::Override;
@@ -26,3 +28,5 @@ pub use self::preserved_str_expr::PreservedStrExpr;
 pub use self::shape::{AsShape, Shape, ShapeSet};
 pub use self::spanned_value::SpannedValue;
 pub use self::with_original::WithOriginal;
+
+pub(crate) use self::ident_field::IdentField;

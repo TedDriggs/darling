@@ -4,7 +4,7 @@ use syn::Ident;
 
 use crate::codegen::{ExtractAttribute, ForwardAttrs, OuterFromImpl, TraitImpl};
 use crate::options::DataShape;
-use crate::util::PathList;
+use crate::util::{IdentField, PathList};
 
 pub struct FromVariantImpl<'a> {
     pub base: TraitImpl<'a>,
@@ -13,7 +13,7 @@ pub struct FromVariantImpl<'a> {
     /// This is one of `darling`'s "magic fields", which allow a type deriving a `darling`
     /// trait to get fields from the input `syn` element added to the deriving struct
     /// automatically.
-    pub ident: Option<&'a Ident>,
+    pub ident: Option<&'a IdentField>,
     /// If set, the ident of the field into which the transformed output of the input
     /// variant's fields should be placed.
     ///
@@ -38,7 +38,7 @@ impl ToTokens for FromVariantImpl<'_> {
         let passed_ident = self
             .ident
             .as_ref()
-            .map(|i| quote!(#i: #input.ident.clone(),));
+            .map(|i| i.create_field(&quote!(#input.ident.clone())));
         let passed_discriminant = self
             .discriminant
             .as_ref()

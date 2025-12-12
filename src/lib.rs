@@ -45,7 +45,7 @@
 //! ### `FromDeriveInput`
 //! |Field name|Type|Meaning|
 //! |---|---|---|
-//! |`ident`|`syn::Ident`|The identifier of the passed-in type|
+//! |`ident`|`syn::Ident` (or anything, using `#[darling(with = ...)]`)|The identifier of the passed-in type|
 //! |`vis`|`syn::Visibility`|The visibility of the passed-in type|
 //! |`generics`|`T: darling::FromGenerics`|The generics of the passed-in type. This can be `syn::Generics`, `darling::ast::Generics`, or any compatible type.|
 //! |`data`|`darling::ast::Data` (or anything that implements `TryFrom<&syn::Data, Error=darling::Error>`, or anything using `#[darling(with = ...)]`)|The body of the passed-in type|
@@ -54,7 +54,7 @@
 //! ### `FromField`
 //! |Field name|Type|Meaning|
 //! |---|---|---|
-//! |`ident`|`Option<syn::Ident>`|The identifier of the passed-in field, or `None` for tuple fields|
+//! |`ident`|`Option<syn::Ident>` (or anything, using `#[darling(with = ...)]`)|The identifier of the passed-in field, or `None` for tuple fields|
 //! |`vis`|`syn::Visibility`|The visibility of the passed-in field|
 //! |`ty`|`syn::Type`|The type of the passed-in field|
 //! |`attrs`|`Vec<syn::Attribute>` (or anything, using `#[darling(with = ...)]`)|The forwarded attributes from the passed in field. These are controlled using the `forward_attrs` attribute.|
@@ -62,7 +62,7 @@
 //! ### `FromTypeParam`
 //! |Field name|Type|Meaning|
 //! |---|---|---|
-//! |`ident`|`syn::Ident`|The identifier of the passed-in type param|
+//! |`ident`|`syn::Ident` (or anything, using `#[darling(with = ...)]`)|The identifier of the passed-in type param|
 //! |`bounds`|`Vec<syn::TypeParamBound>`|The bounds applied to the type param|
 //! |`default`|`Option<syn::Type>`|The default type of the parameter, if one exists|
 //! |`attrs`|`Vec<syn::Attribute>` (or anything, using `#[darling(with = ...)]`)|The forwarded attributes from the passed in type param. These are controlled using the `forward_attrs` attribute.|
@@ -70,7 +70,7 @@
 //! ### `FromVariant`
 //! |Field name|Type|Meaning|
 //! |---|---|---|
-//! |`ident`|`syn::Ident`|The identifier of the passed-in variant|
+//! |`ident`|`syn::Ident` (or anything, using `#[darling(with = ...)]`)|The identifier of the passed-in variant|
 //! |`discriminant`|`Option<syn::Expr>`|For a variant such as `Example = 2`, the `2`|
 //! |`fields`|`darling::ast::Fields<T> where T: FromField`|The fields associated with the variant|
 //! |`attrs`|`Vec<syn::Attribute>` (or anything, using `#[darling(with = ...)]`)|The forwarded attributes from the passed in variant. These are controlled using the `forward_attrs` attribute.|
