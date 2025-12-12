@@ -2,8 +2,8 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::Ident;
 
-use crate::codegen::{ExtractAttribute, ForwardAttrs, OuterFromImpl, TraitImpl};
-use crate::options::DataShape;
+use crate::codegen::{ident_field, ExtractAttribute, ForwardAttrs, OuterFromImpl, TraitImpl};
+use crate::options::{DataShape, ForwardedField};
 use crate::util::PathList;
 
 pub struct FromVariantImpl<'a> {
@@ -13,7 +13,7 @@ pub struct FromVariantImpl<'a> {
     /// This is one of `darling`'s "magic fields", which allow a type deriving a `darling`
     /// trait to get fields from the input `syn` element added to the deriving struct
     /// automatically.
-    pub ident: Option<&'a Ident>,
+    pub ident: Option<&'a ForwardedField>,
     /// If set, the ident of the field into which the transformed output of the input
     /// variant's fields should be placed.
     ///
@@ -35,10 +35,10 @@ impl ToTokens for FromVariantImpl<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let input = self.param_name();
         let extractor = self.extractor();
-        let passed_ident = self
-            .ident
-            .as_ref()
-            .map(|i| quote!(#i: #input.ident.clone(),));
+        let passed_ident = self.ident.as_ref().map(|i| {
+            let field = ident_field::create(i, &input);
+            quote! { #field, }
+        });
         let passed_discriminant = self
             .discriminant
             .as_ref()

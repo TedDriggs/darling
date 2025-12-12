@@ -1,0 +1,18 @@
+error[E0308]: mismatched types
+ --> tests/compile-fail/ident_with_wrong_param_type.rs:7:22
+  |
+7 |     #[darling(with = wrong)]
+  |                      ^^^^^
+  |                      |
+  |                      expected fn pointer, found fn item
+  |                      arguments to this function are incorrect
+  |
+  = note: expected fn pointer `fn(Option<proc_macro2::Ident>) -> Result<(), darling::Error>`
+                found fn item `fn(proc_macro2::Ident) -> Result<(), darling::Error> {wrong}`
+help: the return type of this call is `fn(proc_macro2::Ident) -> Result<(), darling::Error> {wrong}` due to the type of the argument passed
+ --> tests/compile-fail/ident_with_wrong_param_type.rs:7:22
+  |
+7 |     #[darling(with = wrong)]
+  |                      ^^^^^ this argument influences the return type of `identity`
+note: function defined here
+ --> $RUST/core/src/convert/mod.rs
