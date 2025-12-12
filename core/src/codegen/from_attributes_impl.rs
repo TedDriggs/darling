@@ -25,9 +25,9 @@ impl ToTokens for FromAttributesImpl<'_> {
             if data.is_newtype() {
                 self.wrap(
                     quote! {
-                        fn from_attributes(#input: &[::darling::export::syn::Attribute]) -> ::darling::Result<Self> {
-                            ::darling::export::Ok(
-                                #ty_ident(::darling::FromAttributes::from_attributes(#input)?)
+                        fn from_attributes(#input: &[_darling::export::syn::Attribute]) -> _darling::Result<Self> {
+                            _darling::export::Ok(
+                                #ty_ident(_darling::FromAttributes::from_attributes(#input)?)
                             ) #post_transform
                         }
                     },
@@ -50,7 +50,7 @@ impl ToTokens for FromAttributesImpl<'_> {
 
         self.wrap(
             quote! {
-                fn from_attributes(#input: &[::darling::export::syn::Attribute]) -> ::darling::Result<Self> {
+                fn from_attributes(#input: &[_darling::export::syn::Attribute]) -> _darling::Result<Self> {
                     #declare_errors
 
                     #grab_attrs
@@ -61,7 +61,7 @@ impl ToTokens for FromAttributesImpl<'_> {
 
                     #default
 
-                    ::darling::export::Ok(#ty_ident {
+                    _darling::export::Ok(#ty_ident {
                         #passed_attrs
                         #inits
                     }) #post_transform
@@ -100,11 +100,11 @@ impl ExtractAttribute for FromAttributesImpl<'_> {
 
 impl<'a> OuterFromImpl<'a> for FromAttributesImpl<'a> {
     fn trait_path(&self) -> syn::Path {
-        path!(::darling::FromAttributes)
+        path!(_darling::FromAttributes)
     }
 
     fn trait_bound(&self) -> syn::Path {
-        path!(::darling::FromMeta)
+        path!(_darling::FromMeta)
     }
 
     fn base(&'a self) -> &'a TraitImpl<'a> {

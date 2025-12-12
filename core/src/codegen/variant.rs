@@ -69,9 +69,9 @@ impl ToTokens for UnitMatchArm<'_> {
         let name_in_attr = &val.name_in_attr;
 
         let unsupported_format_error = || {
-            quote!(::darling::export::Err(
-                ::darling::Error::unsupported_format("literal")
-            ))
+            quote!(_darling::export::Err(_darling::Error::unsupported_format(
+                "literal"
+            )))
         };
 
         if val.data.is_unit() {
@@ -79,7 +79,7 @@ impl ToTokens for UnitMatchArm<'_> {
             let ty_ident = val.ty_ident;
 
             tokens.append_all(quote!(
-                #name_in_attr => ::darling::export::Ok(#ty_ident::#variant_ident),
+                #name_in_attr => _darling::export::Ok(#ty_ident::#variant_ident),
             ));
         } else if val.data.is_newtype() {
             let field = val
@@ -94,9 +94,9 @@ impl ToTokens for UnitMatchArm<'_> {
 
             tokens.append_all(quote!{
                 #name_in_attr => {
-                    match <#field_ty as ::darling::FromMeta>::from_none() {
-                        ::darling::export::Some(__value) => ::darling::export::Ok(#ty_ident::#variant_ident(__value)),
-                        ::darling::export::None => #unsupported_format,
+                    match <#field_ty as _darling::FromMeta>::from_none() {
+                        _darling::export::Some(__value) => _darling::export::Ok(#ty_ident::#variant_ident(__value)),
+                        _darling::export::None => #unsupported_format,
                     }
                 }
             })
@@ -131,10 +131,10 @@ impl ToTokens for DataMatchArm<'_> {
             // value, e.g. `volume(shout)` is allowed.
             tokens.append_all(quote!(
                 #name_in_attr => {
-                    if let ::darling::export::syn::Meta::Path(_) = *__nested {
-                        ::darling::export::Ok(#ty_ident::#variant_ident)
+                    if let _darling::export::syn::Meta::Path(_) = *__nested {
+                        _darling::export::Ok(#ty_ident::#variant_ident)
                     } else {
-                        ::darling::export::Err(::darling::Error::unsupported_format("non-path"))
+                        _darling::export::Err(_darling::Error::unsupported_format("non-path"))
                     }
                 },
             ));
@@ -154,8 +154,8 @@ impl ToTokens for DataMatchArm<'_> {
 
             tokens.append_all(quote!(
                 #name_in_attr => {
-                    if let ::darling::export::syn::Meta::List(ref __data) = *__nested {
-                        let __items = ::darling::export::NestedMeta::parse_meta_list(__data.tokens.clone())?;
+                    if let _darling::export::syn::Meta::List(ref __data) = *__nested {
+                        let __items = _darling::export::NestedMeta::parse_meta_list(__data.tokens.clone())?;
                         let __items = &__items;
 
                         #declare_errors
@@ -168,20 +168,20 @@ impl ToTokens for DataMatchArm<'_> {
 
                         #check_errors
 
-                        ::darling::export::Ok(#ty_ident::#variant_ident {
+                        _darling::export::Ok(#ty_ident::#variant_ident {
                             #inits
                         })
                     } else {
-                        ::darling::export::Err(::darling::Error::unsupported_format("non-list"))
+                        _darling::export::Err(_darling::Error::unsupported_format("non-list"))
                     }
                 }
             ));
         } else if val.data.is_newtype() {
             tokens.append_all(quote!(
                 #name_in_attr => {
-                    ::darling::export::Ok(
+                    _darling::export::Ok(
                         #ty_ident::#variant_ident(
-                            ::darling::FromMeta::from_meta(__nested)
+                            _darling::FromMeta::from_meta(__nested)
                                 .map_err(|e| e.at(#name_in_attr))?)
                     )
                 }

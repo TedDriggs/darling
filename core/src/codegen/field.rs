@@ -95,9 +95,9 @@ impl ToTokens for Declaration<'_> {
 
         tokens.append_all(if field.multiple {
             // This is NOT mutable, as it will be declared mutable only temporarily.
-            quote!(let mut #ident: #ty = ::darling::export::Default::default();)
+            quote!(let mut #ident: #ty = _darling::export::Default::default();)
         } else {
-            quote!(let mut #ident: (bool, ::darling::export::Option<#ty>) = (false, None);)
+            quote!(let mut #ident: (bool, _darling::export::Option<#ty>) = (false, None);)
         });
 
         // The flatten field additionally needs a place to buffer meta items
@@ -107,7 +107,7 @@ impl ToTokens for Declaration<'_> {
         // be possible for this to shadow another declaration.
         if field.flatten {
             tokens.append_all(quote! {
-                let mut __flatten: Vec<::darling::ast::NestedMeta> = vec![];
+                let mut __flatten: Vec<_darling::ast::NestedMeta> = vec![];
             });
         }
     }
@@ -137,7 +137,7 @@ impl ToTokens for FlattenInitializer<'_> {
         tokens.append_all(quote! {
             #ident = (true,
                 __errors.handle(
-                    ::darling::FromMeta::from_list(&__flatten) #add_parent_fields
+                    _darling::FromMeta::from_list(&__flatten) #add_parent_fields
                     )
                 );
         });
@@ -183,7 +183,7 @@ impl ToTokens for MatchArm<'_> {
         // even-more-specific span, our attempt here will not overwrite that and will only cost
         // us one `if` check.
         let extractor = quote_spanned!(with_callable.span()=>
-        ::darling::export::identity::<fn(&::darling::export::syn::Meta) -> ::darling::Result<_>>(#with_callable)(__inner)
+        _darling::export::identity::<fn(&_darling::export::syn::Meta) -> _darling::Result<_>>(#with_callable)(__inner)
             #post_transform
             .map_err(|e| e.with_span(&__inner).at(#location))
         );
@@ -194,7 +194,7 @@ impl ToTokens for MatchArm<'_> {
                         // Store the index of the name we're assessing in case we need
                         // it for error reporting.
                         let __len = #ident.len();
-                        if let ::darling::export::Some(__val) = __errors.handle(#extractor) {
+                        if let _darling::export::Some(__val) = __errors.handle(#extractor) {
                             #ident.push(__val)
                         }
                     }
@@ -205,7 +205,7 @@ impl ToTokens for MatchArm<'_> {
                         if !#ident.0 {
                             #ident = (true, __errors.handle(#extractor));
                         } else {
-                            __errors.push(::darling::Error::duplicate_field(#name_str).with_span(&__inner));
+                            __errors.push(_darling::Error::duplicate_field(#name_str).with_span(&__inner));
                         }
                     }
                 )
@@ -255,16 +255,16 @@ impl ToTokens for CheckMissing<'_> {
             // If `ty` does not impl FromMeta, the compiler error should point
             // at the offending type rather than at the derive-macro call site.
             let from_none_call =
-                quote_spanned!(ty.span()=> <#ty as ::darling::FromMeta>::from_none());
+                quote_spanned!(ty.span()=> <#ty as _darling::FromMeta>::from_none());
 
             tokens.append_all(quote! {
                 if !#ident.0 {
                     match #from_none_call {
-                        ::darling::export::Some(__type_fallback) => {
-                            #ident.1 = ::darling::export::Some(__type_fallback);
+                        _darling::export::Some(__type_fallback) => {
+                            #ident.1 = _darling::export::Some(__type_fallback);
                         }
-                        ::darling::export::None => {
-                            __errors.push(::darling::Error::missing_field(#name_in_attr))
+                        _darling::export::None => {
+                            __errors.push(_darling::Error::missing_field(#name_in_attr))
                         }
                     }
                 }

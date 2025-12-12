@@ -25,7 +25,7 @@ impl ToTokens for FromTypeParamImpl<'_> {
         let error_check = self.base.check_errors();
 
         let default = if self.from_ident {
-            quote!(let __default: Self = ::darling::export::From::from(#input.ident.clone());)
+            quote!(let __default: Self = _darling::export::From::from(#input.ident.clone());)
         } else {
             self.base.fallback_decl()
         };
@@ -49,7 +49,7 @@ impl ToTokens for FromTypeParamImpl<'_> {
 
         self.wrap(
             quote! {
-                fn from_type_param(#input: &::darling::export::syn::TypeParam) -> ::darling::Result<Self> {
+                fn from_type_param(#input: &_darling::export::syn::TypeParam) -> _darling::Result<Self> {
                     #error_declaration
 
                     #grab_attrs
@@ -60,7 +60,7 @@ impl ToTokens for FromTypeParamImpl<'_> {
 
                     #default
 
-                    ::darling::export::Ok(Self {
+                    _darling::export::Ok(Self {
                         #passed_ident
                         #passed_bounds
                         #passed_default
@@ -98,11 +98,11 @@ impl ExtractAttribute for FromTypeParamImpl<'_> {
 
 impl<'a> OuterFromImpl<'a> for FromTypeParamImpl<'a> {
     fn trait_path(&self) -> syn::Path {
-        path!(::darling::FromTypeParam)
+        path!(_darling::FromTypeParam)
     }
 
     fn trait_bound(&self) -> syn::Path {
-        path!(::darling::FromMeta)
+        path!(_darling::FromMeta)
     }
 
     fn base(&'a self) -> &'a TraitImpl<'a> {

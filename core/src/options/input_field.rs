@@ -35,11 +35,7 @@ impl InputField {
             ty: &self.ty,
             default_expression: self.as_codegen_default(),
             with_callable: self.with.as_ref().map(|w| w.as_ref()).map_or_else(
-                || {
-                    Cow::Owned(
-                        parse_quote_spanned!(self.ty.span()=> ::darling::FromMeta::from_meta),
-                    )
-                },
+                || Cow::Owned(parse_quote_spanned!(self.ty.span()=> _darling::FromMeta::from_meta)),
                 Cow::Borrowed,
             ),
             skip: *self.skip.unwrap_or_default(),
@@ -112,7 +108,7 @@ impl InputField {
             (_, false, true) => Some(DefaultExpression::Inherit),
 
             // If we're skipping the field and no defaults have been expressed then we should
-            // use the ::darling::export::Default trait, and set the span to the skip keyword
+            // use the _darling::export::Default trait, and set the span to the skip keyword
             // so that an error caused by the skipped field's type not implementing `Default`
             // will correctly identify why darling is trying to use `Default`.
             (Some(v), false, false) if **v => Some(DefaultExpression::Trait { span: v.span() }),
