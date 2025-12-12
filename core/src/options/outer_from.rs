@@ -1,6 +1,6 @@
 use quote::ToTokens;
 use syn::spanned::Spanned;
-use syn::{Field, Ident, Meta};
+use syn::{Field, Meta};
 
 use crate::ast::Data;
 use crate::codegen::ForwardAttrs;
@@ -15,7 +15,7 @@ use crate::{Error, FromField, FromMeta, Result};
 #[derive(Debug, Clone)]
 pub struct OuterFrom {
     /// The field on the target struct which should receive the type identifier, if any.
-    pub ident: Option<Ident>,
+    pub ident: Option<ForwardedField>,
 
     /// The field on the target struct which should receive the type attributes, if any.
     pub attrs: Option<ForwardedField>,
@@ -80,7 +80,7 @@ impl ParseData for OuterFrom {
     fn parse_field(&mut self, field: &Field) -> Result<()> {
         match field.ident.as_ref().map(|v| v.to_string()).as_deref() {
             Some("ident") => {
-                self.ident.clone_from(&field.ident);
+                self.ident = ForwardedField::from_field(field).map(Some)?;
                 Ok(())
             }
             Some("attrs") => {
