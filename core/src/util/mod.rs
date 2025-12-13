@@ -1,6 +1,7 @@
 //! Utility types for attribute parsing.
 
 mod callable;
+pub mod extract_option;
 mod flag;
 mod ident_string;
 mod ignored;
