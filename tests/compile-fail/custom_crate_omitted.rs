@@ -1,7 +1,9 @@
+use ::darling as not_darling;
+
 mod darling {}
 
-#[derive(darling::FromDeriveInput)]
-// forgot to specify #[darling(crate = darling)]
+#[derive(not_darling::FromDeriveInput)]
+// forgot to specify #[darling(crate = not_darling)]
 pub struct Example {
     ident: Option<syn::Ident>,
 }
