@@ -1,5 +1,6 @@
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{quote, quote_spanned, ToTokens};
+use syn::spanned::Spanned;
 
 /// Wraps all output inside of an anonymous `const` block
 ///
@@ -16,12 +17,15 @@ use quote::{quote, ToTokens};
 /// - `tokens`: The trait implementations to wrap inside of `const` block
 /// - `krate`: Path to the darling crate, which defaults to `darling`
 pub fn wrap_in_const<T: ToTokens>(tokens: &T, krate: Option<&syn::Path>) -> TokenStream {
-    let darling_path = krate.map_or_else(|| quote! { ::darling }, |krate| krate.to_token_stream());
+    let use_darling = krate.map_or_else(
+        || quote! { use ::darling as _darling; },
+        |krate| quote_spanned! { krate.span() => use #krate as _darling; },
+    );
 
     quote! {
         #[doc(hidden)]
         const _: () = {
-            use #darling_path as _darling;
+            #use_darling
 
             #tokens
         };
