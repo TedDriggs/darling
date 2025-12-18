@@ -25,8 +25,7 @@ pub trait OuterFromImpl<'a> {
         let used = base.used_type_params();
         let generics = compute_impl_bounds(self.trait_bound(), base.generics.clone(), &used);
         let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-
-        tokens.append_all(quote!(
+        let impl_ = quote! {
             #[automatically_derived]
             #[allow(clippy::manual_unwrap_or_default)]
             impl #impl_generics #trayt for #ty_ident #ty_generics
@@ -34,7 +33,9 @@ pub trait OuterFromImpl<'a> {
             {
                 #body
             }
-        ));
+        };
+
+        tokens.append_all(crate::codegen::wrap_in_const(&impl_, base.krate));
     }
 }
 
