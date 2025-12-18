@@ -34,7 +34,7 @@
 //! * **Generate `syn::parse::Parse` impl**: When deriving `FromMeta`, add `#[darling(derive_syn_parse)]` to also generate an impl
 //!   of the `Parse` trait.
 //! * **Renamed crate**: You can use `#[darling(crate = ...)]` to specify a path to the `darling` crate
-//!   instance to use when referring to Darling APIs from generated code.
+//!   instance to use when referring to `darling` from generated code.
 //!
 //! ## Forwarded Fields
 //! All derivable traits except `FromMeta` support forwarding some fields from the input AST to the derived struct.
