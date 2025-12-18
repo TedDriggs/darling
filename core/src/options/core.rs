@@ -54,7 +54,7 @@ impl Core {
             generics: di.generics.clone(),
             data: Data::try_empty_from(&di.data)?,
             default: Default::default(),
-            krate: None,
+            krate: Default::default(),
             // See https://github.com/TedDriggs/darling/issues/10: We default to snake_case
             // for enums to help authors produce more idiomatic APIs.
             rename_rule: if let syn::Data::Enum(_) = di.data {
