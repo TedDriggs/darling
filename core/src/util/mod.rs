@@ -13,7 +13,6 @@ mod preserved_str_expr;
 mod shape;
 mod spanned_value;
 mod with_original;
-mod wrap_in_const;
 
 pub use self::callable::Callable;
 pub use self::flag::Flag;
@@ -27,4 +26,3 @@ pub use self::preserved_str_expr::PreservedStrExpr;
 pub use self::shape::{AsShape, Shape, ShapeSet};
 pub use self::spanned_value::SpannedValue;
 pub use self::with_original::WithOriginal;
-pub use self::wrap_in_const::wrap_in_const;
