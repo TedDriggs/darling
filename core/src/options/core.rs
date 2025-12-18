@@ -204,6 +204,7 @@ impl<'a> From<&'a Core> for codegen::TraitImpl<'a> {
             default: v.as_codegen_default(),
             post_transform: v.post_transform.as_ref(),
             allow_unknown_fields: v.allow_unknown_fields.unwrap_or_default(),
+            krate: v.krate.as_ref(),
         }
     }
 }

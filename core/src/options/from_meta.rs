@@ -12,7 +12,7 @@ use crate::util::Callable;
 use crate::{Error, FromMeta, Result};
 
 pub struct FromMetaOptions {
-    pub base: Core,
+    base: Core,
     /// Override for the default [`FromMeta::from_word`] method.
     from_word: Option<Callable>,
     /// Override for the default [`FromMeta::from_none`] method.

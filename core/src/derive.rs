@@ -22,8 +22,10 @@ macro_rules! emit_impl_or_error {
 /// the input cannot produce a valid impl, the returned tokens will contain
 /// compile errors instead.
 pub fn from_meta(input: &DeriveInput) -> TokenStream {
-    emit_impl_or_error!(options::FromMetaOptions::new(input)
-        .map(|opts| wrap_in_const(&opts, opts.base.krate.as_ref())))
+    emit_impl_or_error!(options::FromMetaOptions::new(input).map(|opts| {
+        let fmi: crate::codegen::FromMetaImpl<'_> = (&opts).into();
+        wrap_in_const(&opts, fmi.base.krate)
+    }))
 }
 
 /// Create tokens for a `darling::FromAttributes` impl from a `DeriveInput`. If
