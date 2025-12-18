@@ -32,6 +32,7 @@ use syn::{spanned::Spanned, Type};
 /// # Example
 ///
 /// ```
+/// # use darling_core as darling;
 /// use darling::util::extract_option;
 /// use quote::ToTokens;
 /// use syn::Type;
@@ -94,6 +95,7 @@ pub fn from_owned(ty: Type) -> Result<Type> {
 /// # Example
 ///
 /// ```
+/// # use darling_core as darling;
 /// use darling::util::extract_option;
 /// use quote::ToTokens;
 /// use syn::Type;
@@ -156,6 +158,7 @@ pub fn from_mut(ty: &mut Type) -> Result<&mut Type> {
 /// # Example
 ///
 /// ```
+/// # use darling_core as darling;
 /// use darling::util::extract_option;
 /// use quote::ToTokens;
 /// use syn::Type;
