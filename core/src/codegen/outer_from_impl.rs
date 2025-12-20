@@ -28,6 +28,7 @@ pub trait OuterFromImpl<'a> {
         let impl_ = quote! {
             #[automatically_derived]
             #[allow(clippy::manual_unwrap_or_default)]
+            #[allow(clippy::needless_continue)]
             impl #impl_generics #trayt for #ty_ident #ty_generics
                 #where_clause
             {
