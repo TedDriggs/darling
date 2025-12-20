@@ -29,6 +29,7 @@ pub trait OuterFromImpl<'a> {
         tokens.append_all(quote!(
             #[automatically_derived]
             #[allow(clippy::manual_unwrap_or_default)]
+            #[allow(clippy::needless_continue)]
             impl #impl_generics #trayt for #ty_ident #ty_generics
                 #where_clause
             {
