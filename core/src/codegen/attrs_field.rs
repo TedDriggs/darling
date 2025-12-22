@@ -48,8 +48,8 @@ impl ToTokens for Declaration<'_> {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let ident = &self.0.ident;
         tokens.append_all(quote! {
-            let mut __fwd_attrs: _darling::export::Vec<_darling::export::syn::Attribute> = vec![];
-            let mut #ident: _darling::export::Option<_> = None;
+            let mut __fwd_attrs = _darling::export::Vec::<_darling::export::syn::Attribute>::new();
+            let mut #ident: _darling::export::Option<_> = _darling::export::None;
         });
     }
 }

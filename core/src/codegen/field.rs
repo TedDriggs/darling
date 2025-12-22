@@ -107,7 +107,7 @@ impl ToTokens for Declaration<'_> {
         // be possible for this to shadow another declaration.
         if field.flatten {
             tokens.append_all(quote! {
-                let mut __flatten: Vec<_darling::ast::NestedMeta> = vec![];
+                let mut __flatten = _darling::export::Vec::<_darling::ast::NestedMeta>::new();
             });
         }
     }
