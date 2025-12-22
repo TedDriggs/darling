@@ -48,8 +48,8 @@ impl ToTokens for Declaration<'_> {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let ident = &self.0.ident;
         tokens.append_all(quote! {
-            let mut __fwd_attrs: ::darling::export::Vec<::darling::export::syn::Attribute> = vec![];
-            let mut #ident: ::darling::export::Option<_> = None;
+            let mut __fwd_attrs: _darling::export::Vec<_darling::export::syn::Attribute> = vec![];
+            let mut #ident: _darling::export::Option<_> = None;
         });
     }
 }
@@ -61,7 +61,7 @@ impl ToTokens for ValuePopulator<'_> {
         let ForwardedField { ident, with, .. } = self.0;
         let initializer_expr = match with {
             Some(with) => quote_spanned!(with.span()=> __errors.handle(#with(__fwd_attrs))),
-            None => quote!(::darling::export::Some(__fwd_attrs)),
+            None => quote!(_darling::export::Some(__fwd_attrs)),
         };
         tokens.append_all(quote!(#ident = #initializer_expr;));
     }

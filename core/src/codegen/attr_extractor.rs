@@ -57,17 +57,17 @@ pub trait ExtractAttribute {
             let core_loop = self.core_loop();
             quote!(
                 #(#attr_names)|* => {
-                    match ::darling::util::parse_attribute_to_meta_list(__attr) {
-                        ::darling::export::Ok(__data) => {
-                            match ::darling::export::NestedMeta::parse_meta_list(__data.tokens) {
-                                ::darling::export::Ok(ref __items) => {
+                    match _darling::util::parse_attribute_to_meta_list(__attr) {
+                        _darling::export::Ok(__data) => {
+                            match _darling::export::NestedMeta::parse_meta_list(__data.tokens) {
+                                _darling::export::Ok(ref __items) => {
                                     if __items.is_empty() {
                                         continue;
                                     }
 
                                     #core_loop
                                 }
-                                ::darling::export::Err(__err) => {
+                                _darling::export::Err(__err) => {
                                     __errors.push(__err.into());
                                 }
                             }
@@ -76,7 +76,7 @@ pub trait ExtractAttribute {
                         // isn't one that darling can work with. This either indicates a typing error
                         // or some misunderstanding of the meta attribute syntax; in either case, the
                         // caller should get a useful error.
-                        ::darling::export::Err(__err) => {
+                        _darling::export::Err(__err) => {
                             __errors.push(__err);
                         }
                     }
@@ -94,11 +94,11 @@ pub trait ExtractAttribute {
 
         quote!(
             #declarations
-            use ::darling::ToTokens;
+            use _darling::ToTokens;
 
             for __attr in #attrs_accessor {
                 // Filter attributes based on name
-                match ::darling::export::ToString::to_string(&__attr.path().clone().into_token_stream()).as_str() {
+                match _darling::export::ToString::to_string(&__attr.path().clone().into_token_stream()).as_str() {
                     #parse_handled
                     #forward_unhandled
                 }

@@ -25,6 +25,9 @@ pub struct Core {
     /// The rule that should be used to rename all fields/variants in the container.
     pub rename_rule: RenameRule,
 
+    /// The crate name to use for darling
+    pub krate: Option<syn::Path>,
+
     /// A transform which will be called on `darling::Result<Self>`. It must either be
     /// an `FnOnce(T) -> T` when `map` is used, or `FnOnce(T) -> darling::Result<T>` when
     /// `and_then` is used.
@@ -51,6 +54,7 @@ impl Core {
             generics: di.generics.clone(),
             data: Data::try_empty_from(&di.data)?,
             default: Default::default(),
+            krate: Default::default(),
             // See https://github.com/TedDriggs/darling/issues/10: We default to snake_case
             // for enums to help authors produce more idiomatic APIs.
             rename_rule: if let syn::Data::Enum(_) = di.data {
@@ -120,6 +124,12 @@ impl ParseAttribute for Core {
             }
 
             self.allow_unknown_fields = FromMeta::from_meta(mi)?;
+        } else if path.is_ident("crate") {
+            if self.krate.is_some() {
+                return Err(Error::duplicate_field("crate").with_span(mi));
+            }
+
+            self.krate = FromMeta::from_meta(mi)?;
         } else {
             return Err(Error::unknown_field_path(path).with_span(mi));
         }
@@ -194,6 +204,7 @@ impl<'a> From<&'a Core> for codegen::TraitImpl<'a> {
             default: v.as_codegen_default(),
             post_transform: v.post_transform.as_ref(),
             allow_unknown_fields: v.allow_unknown_fields.unwrap_or_default(),
+            krate: v.krate.as_ref(),
         }
     }
 }

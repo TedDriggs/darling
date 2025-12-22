@@ -47,13 +47,13 @@ impl ToTokens for FromVariantImpl<'_> {
         let passed_fields = self
             .fields
             .as_ref()
-            .map(|i| quote!(#i: ::darling::ast::Fields::try_from(&#input.fields)?,));
+            .map(|i| quote!(#i: _darling::ast::Fields::try_from(&#input.fields)?,));
 
         let inits = self.base.initializers();
         let post_transform = self.base.post_transform_call();
 
         let default = if self.from_ident {
-            quote!(let __default: Self = ::darling::export::From::from(#input.ident.clone());)
+            quote!(let __default: Self = _darling::export::From::from(#input.ident.clone());)
         } else {
             self.base.fallback_decl()
         };
@@ -70,7 +70,7 @@ impl ToTokens for FromVariantImpl<'_> {
 
         self.wrap(
             quote!(
-                fn from_variant(#input: &::darling::export::syn::Variant) -> ::darling::Result<Self> {
+                fn from_variant(#input: &_darling::export::syn::Variant) -> _darling::Result<Self> {
                     #error_declaration
 
                     #extractor
@@ -83,7 +83,7 @@ impl ToTokens for FromVariantImpl<'_> {
 
                     #default
 
-                    ::darling::export::Ok(Self {
+                    _darling::export::Ok(Self {
                         #passed_ident
                         #passed_discriminant
                         #passed_attrs
@@ -121,11 +121,11 @@ impl ExtractAttribute for FromVariantImpl<'_> {
 
 impl<'a> OuterFromImpl<'a> for FromVariantImpl<'a> {
     fn trait_path(&self) -> syn::Path {
-        path!(::darling::FromVariant)
+        path!(_darling::FromVariant)
     }
 
     fn trait_bound(&self) -> syn::Path {
-        path!(::darling::FromMeta)
+        path!(_darling::FromMeta)
     }
 
     fn base(&'a self) -> &'a TraitImpl<'a> {

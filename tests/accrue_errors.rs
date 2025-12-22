@@ -34,7 +34,7 @@ fn bad_type_and_missing_fields() {
         }
     };
 
-    let s_result: ::darling::Error = Lorem::from_derive_input(&input).unwrap_err();
+    let s_result: darling::Error = Lorem::from_derive_input(&input).unwrap_err();
     let err = s_result.flatten();
     println!("{}", err);
     //   3  errors from the struct-level `accrue` attribute

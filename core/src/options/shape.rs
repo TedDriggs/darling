@@ -29,7 +29,7 @@ impl DeriveInputShapeSet {
 
     pub fn validator_path(&self) -> syn::Path {
         if self.any {
-            parse_quote!(::darling::export::Ok)
+            parse_quote!(_darling::export::Ok)
         } else {
             self.validator_fn_ident().into()
         }
@@ -92,30 +92,30 @@ impl ToTokens for DeriveInputShapeSet {
                     let enum_check = #en;
 
                     match *__body {
-                        ::darling::export::syn::Data::Enum(ref data) => {
+                        _darling::export::syn::Data::Enum(ref data) => {
                             if enum_check.is_empty() {
-                                return ::darling::export::Err(
-                                    ::darling::Error::unsupported_shape_with_expected("enum", &format!("struct with {}", struct_check))
+                                return _darling::export::Err(
+                                    _darling::Error::unsupported_shape_with_expected("enum", &format!("struct with {}", struct_check))
                                 );
                             }
 
-                            let mut variant_errors = ::darling::Error::accumulator();
+                            let mut variant_errors = _darling::Error::accumulator();
                             for variant in &data.variants {
                                 variant_errors.handle(enum_check.check(variant));
                             }
 
                             variant_errors.finish_with(__body)
                         }
-                        ::darling::export::syn::Data::Struct(ref struct_data) => {
+                        _darling::export::syn::Data::Struct(ref struct_data) => {
                             if struct_check.is_empty() {
-                                return ::darling::export::Err(
-                                    ::darling::Error::unsupported_shape_with_expected("struct", &format!("enum with {}", enum_check))
+                                return _darling::export::Err(
+                                    _darling::Error::unsupported_shape_with_expected("struct", &format!("enum with {}", enum_check))
                                 );
                             }
 
-                            struct_check.check(struct_data).and(::darling::export::Ok(__body))
+                            struct_check.check(struct_data).and(_darling::export::Ok(__body))
                         }
-                        ::darling::export::syn::Data::Union(_) => {
+                        _darling::export::syn::Data::Union(_) => {
                             let expected = if enum_check.is_empty() {
                                 format!("struct with {}", struct_check)
                             } else if struct_check.is_empty() {
@@ -123,7 +123,7 @@ impl ToTokens for DeriveInputShapeSet {
                             } else {
                                 format!("struct with {} or enum with {}", struct_check, enum_check)
                             };
-                            ::darling::export::Err(::darling::Error::unsupported_shape_with_expected("union", &expected))
+                            _darling::export::Err(_darling::Error::unsupported_shape_with_expected("union", &expected))
                         },
                     }
                 }
@@ -133,7 +133,7 @@ impl ToTokens for DeriveInputShapeSet {
         let fn_ident = self.validator_fn_ident();
 
         tokens.append_all(quote! {
-            fn #fn_ident(__body: &::darling::export::syn::Data) -> ::darling::Result<&::darling::export::syn::Data> {
+            fn #fn_ident(__body: &_darling::export::syn::Data) -> _darling::Result<&_darling::export::syn::Data> {
                 #fn_body
             }
         });
@@ -216,7 +216,7 @@ impl ToTokens for DataShape {
             ..
         } = *self;
 
-        let shape_path: syn::Path = parse_quote!(::darling::util::Shape);
+        let shape_path: syn::Path = parse_quote!(_darling::util::Shape);
 
         let mut shapes = vec![];
         if any || named {
@@ -236,7 +236,7 @@ impl ToTokens for DataShape {
         }
 
         tokens.append_all(quote! {
-            ::darling::util::ShapeSet::new(vec![#(#shapes),*])
+            _darling::util::ShapeSet::new(vec![#(#shapes),*])
         });
     }
 }

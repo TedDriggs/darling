@@ -36,11 +36,11 @@ impl ToTokens for DefaultExpression<'_> {
             DefaultExpression::Explicit(callable) => {
                 // Use quote_spanned to properly set the span of the parentheses
                 quote_spanned!(callable.span()=>
-                    ::darling::export::identity::<fn() -> _>(#callable)()
+                    _darling::export::identity::<fn() -> _>(#callable)()
                 )
             }
             DefaultExpression::Trait { span } => {
-                quote_spanned!(span=> ::darling::export::Default::default())
+                quote_spanned!(span=> _darling::export::Default::default())
             }
         });
     }

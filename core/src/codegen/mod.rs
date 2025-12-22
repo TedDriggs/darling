@@ -14,6 +14,7 @@ mod postfix_transform;
 mod trait_impl;
 mod variant;
 mod variant_data;
+mod wrap_in_const;
 
 pub(in crate::codegen) use self::attr_extractor::ExtractAttribute;
 pub use self::attrs_field::ForwardAttrs;
@@ -30,3 +31,4 @@ pub use self::postfix_transform::PostfixTransform;
 pub use self::trait_impl::TraitImpl;
 pub use self::variant::Variant;
 pub use self::variant_data::FieldsGen;
+pub use self::wrap_in_const::wrap_in_const;

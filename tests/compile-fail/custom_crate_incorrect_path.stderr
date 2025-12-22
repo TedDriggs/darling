@@ -1,0 +1,5 @@
+error[E0432]: unresolved import `not_darling`
+ --> tests/compile-fail/custom_crate_incorrect_path.rs:2:19
+  |
+2 | #[darling(crate = not_darling)]
+  |                   ^^^^^^^^^^^ no external crate `not_darling`
