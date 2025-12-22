@@ -1,5 +1,5 @@
 use quote::ToTokens;
-use syn::{Expr, ExprClosure, ExprLit, ExprPath, Lit, Path};
+use syn::{parse::Parse, Expr, ExprClosure, ExprLit, ExprPath, Lit, Path};
 
 use crate::{Error, FromMeta, Result};
 
@@ -48,6 +48,14 @@ impl From<ExprClosure> for Callable {
         Self {
             call: Expr::Closure(value),
         }
+    }
+}
+
+impl Parse for Callable {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        Ok(Self {
+            call: input.parse()?,
+        })
     }
 }
 

@@ -3,7 +3,8 @@ use quote::{quote, ToTokens};
 use syn::Ident;
 
 use crate::{
-    codegen::{ExtractAttribute, OuterFromImpl, TraitImpl},
+    codegen::{ident_field, ExtractAttribute, OuterFromImpl, TraitImpl},
+    options::ForwardedField,
     util::PathList,
 };
 
@@ -12,7 +13,7 @@ use super::ForwardAttrs;
 /// `impl FromField` generator. This is used for parsing an individual
 /// field and its attributes.
 pub struct FromFieldImpl<'a> {
-    pub ident: Option<&'a Ident>,
+    pub ident: Option<&'a ForwardedField>,
     pub vis: Option<&'a Ident>,
     pub ty: Option<&'a Ident>,
     pub base: TraitImpl<'a>,
@@ -40,7 +41,7 @@ impl ToTokens for FromFieldImpl<'_> {
         let passed_ident = self
             .ident
             .as_ref()
-            .map(|i| quote!(#i: #input.ident.clone(),));
+            .map(|i| ident_field::create_optional(i, &quote!(#input.ident.clone())));
         let passed_vis = self.vis.as_ref().map(|i| quote!(#i: #input.vis.clone(),));
         let passed_ty = self.ty.as_ref().map(|i| quote!(#i: #input.ty.clone(),));
         let passed_attrs = self.forward_attrs.as_initializer();

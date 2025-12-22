@@ -9,6 +9,7 @@ mod from_field;
 mod from_meta_impl;
 mod from_type_param;
 mod from_variant_impl;
+pub mod ident_field;
 mod outer_from_impl;
 mod postfix_transform;
 mod trait_impl;

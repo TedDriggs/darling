@@ -6,7 +6,7 @@ use syn::{parse_quote, parse_quote_spanned, spanned::Spanned, Ident};
 
 use crate::{
     ast::Data,
-    codegen::{ExtractAttribute, OuterFromImpl, TraitImpl},
+    codegen::{ident_field, ExtractAttribute, OuterFromImpl, TraitImpl},
     options::{DeriveInputShapeSet, ForwardedField},
     util::PathList,
 };
@@ -14,7 +14,7 @@ use crate::{
 use super::ForwardAttrs;
 
 pub struct FromDeriveInputImpl<'a> {
-    pub ident: Option<&'a Ident>,
+    pub ident: Option<&'a ForwardedField>,
     pub generics: Option<&'a ForwardedField>,
     pub vis: Option<&'a Ident>,
     pub data: Option<&'a ForwardedField>,
@@ -51,7 +51,7 @@ impl ToTokens for FromDeriveInputImpl<'_> {
         let passed_ident = self
             .ident
             .as_ref()
-            .map(|i| quote!(#i: #input.ident.clone(),));
+            .map(|i| ident_field::create(i, &quote!(#input.ident.clone())));
         let passed_vis = self.vis.as_ref().map(|i| quote!(#i: #input.vis.clone(),));
         let passed_attrs = self.forward_attrs.as_initializer();
 
@@ -86,7 +86,7 @@ impl ToTokens for FromDeriveInputImpl<'_> {
             .as_ref()
             .map(|i| match &i.with {
                 Some(p) => p.clone(),
-                None => parse_quote_spanned!(i.ty.span()=> ::darling::export::TryFrom::try_from),
+                None => parse_quote_spanned!(i.ty.span()=> _darling::export::TryFrom::try_from),
             })
             .unwrap_or_else(|| parse_quote!(_darling::export::Ok));
 

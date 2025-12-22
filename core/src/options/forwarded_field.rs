@@ -1,7 +1,7 @@
 use quote::{quote, ToTokens, TokenStreamExt};
-use syn::{Ident, Path, Type};
+use syn::{Ident, Type};
 
-use crate::{Error, FromField, FromMeta};
+use crate::{util::Callable, Error, FromField, FromMeta};
 
 use super::ParseAttribute;
 
@@ -14,7 +14,7 @@ pub struct ForwardedField {
     pub ty: Type,
     /// Path of the function that will be called to convert the forwarded value
     /// into the type expected by the field in `ident`.
-    pub with: Option<Path>,
+    pub with: Option<Callable>,
 }
 
 impl ForwardedField {
