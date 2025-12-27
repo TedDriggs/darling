@@ -86,7 +86,7 @@ impl ToTokens for FromDeriveInputImpl<'_> {
             .as_ref()
             .map(|i| match &i.with {
                 Some(p) => p.clone(),
-                None => parse_quote_spanned!(i.ty.span()=> ::darling::export::TryFrom::try_from),
+                None => parse_quote_spanned!(i.ty.span()=> _darling::export::TryFrom::try_from),
             })
             .unwrap_or_else(|| parse_quote!(_darling::export::Ok));
 
