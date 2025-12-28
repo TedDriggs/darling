@@ -4,7 +4,7 @@
 //!
 //! ## Design
 //! Darling takes considerable design inspiration from [`serde`](https://serde.rs). A data structure that can be
-//! read from any attribute implements `FromMeta` (or has an implementation automatically
+//! read from any attribute implements [`FromMeta`] (or has an implementation automatically
 //! generated using `derive`). Any crate can provide `FromMeta` implementations, even one not
 //! specifically geared towards proc-macro authors.
 //!
@@ -31,7 +31,7 @@
 //!   value, so a missing field error is generated. `Option<T: FromMeta>` uses this to make options optional without requiring
 //!   `#[darling(default)]` declarations, and structs and enums can use this themselves with `#[darling(from_none = ...)]`.
 //!   This takes either a path or a closure whose signature matches `FromMeta::from_none`.
-//! * **Generate `syn::parse::Parse` impl**: When deriving `FromMeta`, add `#[darling(derive_syn_parse)]` to also generate an impl
+//! * **Generate [`syn::parse::Parse`] impl**: When deriving `FromMeta`, add `#[darling(derive_syn_parse)]` to also generate an impl
 //!   of the `Parse` trait.
 //! * **Renamed crate**: You can use `#[darling(crate = ...)]` to specify a path to the `darling` crate
 //!   instance to use when referring to `darling` from generated code.
@@ -44,7 +44,7 @@
 //!
 //! A deriving struct is free to include or exclude any of the fields below.
 //!
-//! ### `FromDeriveInput`
+//! ### [`FromDeriveInput`]
 //! |Field name|Type|Meaning|
 //! |---|---|---|
 //! |`ident`|`syn::Ident`|The identifier of the passed-in type|
@@ -53,7 +53,7 @@
 //! |`data`|`darling::ast::Data` (or anything that implements `TryFrom<&syn::Data, Error=darling::Error>`, or anything using `#[darling(with = ...)]`)|The body of the passed-in type|
 //! |`attrs`|`Vec<syn::Attribute>` (or anything, using `#[darling(with = ...)]`)|The forwarded attributes from the passed in type. These are controlled using the `forward_attrs` attribute.|
 //!
-//! ### `FromField`
+//! ### [`FromField`]
 //! |Field name|Type|Meaning|
 //! |---|---|---|
 //! |`ident`|`Option<syn::Ident>`|The identifier of the passed-in field, or `None` for tuple fields|
@@ -61,7 +61,7 @@
 //! |`ty`|`syn::Type`|The type of the passed-in field|
 //! |`attrs`|`Vec<syn::Attribute>` (or anything, using `#[darling(with = ...)]`)|The forwarded attributes from the passed in field. These are controlled using the `forward_attrs` attribute.|
 //!
-//! ### `FromTypeParam`
+//! ### [`FromTypeParam`]
 //! |Field name|Type|Meaning|
 //! |---|---|---|
 //! |`ident`|`syn::Ident`|The identifier of the passed-in type param|
@@ -69,7 +69,7 @@
 //! |`default`|`Option<syn::Type>`|The default type of the parameter, if one exists|
 //! |`attrs`|`Vec<syn::Attribute>` (or anything, using `#[darling(with = ...)]`)|The forwarded attributes from the passed in type param. These are controlled using the `forward_attrs` attribute.|
 //!
-//! ### `FromVariant`
+//! ### [`FromVariant`]
 //! |Field name|Type|Meaning|
 //! |---|---|---|
 //! |`ident`|`syn::Ident`|The identifier of the passed-in variant|
