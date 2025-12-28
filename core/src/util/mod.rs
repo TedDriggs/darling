@@ -1,6 +1,7 @@
 //! Utility types for attribute parsing.
 
 mod callable;
+pub(crate) mod expr_verbatim;
 pub mod extract_option;
 mod flag;
 mod ident_string;
@@ -16,6 +17,8 @@ mod spanned_value;
 mod with_original;
 
 pub use self::callable::Callable;
+// Users shouldn't need to encode, but they might need to decode
+pub use self::expr_verbatim::decode as decode_expr_verbatim;
 pub use self::flag::Flag;
 pub use self::ident_string::IdentString;
 pub use self::ignored::Ignored;

@@ -2,12 +2,14 @@ use proc_macro2::{Delimiter, TokenStream, TokenTree};
 use quote::ToTokens;
 use syn::{
     ext::IdentExt,
-    parse::{discouraged::Speculative, ParseStream, Parser},
+    parse::{discouraged::Speculative, ParseStream, Parser, StepCursor},
     punctuated::Punctuated,
     token::{self, Brace, Bracket, Paren},
     Expr, ExprLit, Ident, Lit, MacroDelimiter, Meta, MetaList, MetaNameValue, Path, PathSegment,
     Token,
 };
+
+use crate::util::expr_verbatim;
 
 fn parse_meta_path<'a>(input: ParseStream<'a>) -> syn::Result<Path> {
     Ok(Path {
@@ -88,7 +90,50 @@ fn parse_meta_name_value_after_path<'a>(
     } else if input.peek(Token![#]) && input.peek2(token::Bracket) {
         return Err(input.error("unexpected attribute inside of attribute"));
     } else {
-        input.parse()?
+        // `input.parse()` advances the original parser, but we
+        // want to backtrack in case parsing into an `Expr` fails
+        let input_fork = input.fork();
+
+        match input.parse() {
+            Ok(expr) => expr,
+            // This isn't a valid expression, it might be something like `pub(in crate::module)`
+            // so we want to save that and let the user parse it (e.g. into a [`syn::Visibility`]).
+            //
+            // For more details, see docs of `darling::util::decode_if_verbatim`
+            Err(err) => {
+                let error = err.into_compile_error();
+
+                fn eat_until_comma<'c>(
+                    cursor: StepCursor<'c, '_>,
+                ) -> syn::Result<(TokenStream, syn::buffer::Cursor<'c>)> {
+                    let mut rest = *cursor;
+                    let mut ts = TokenStream::new();
+                    while let Some((tt, next)) = rest.token_tree() {
+                        match tt {
+                            TokenTree::Punct(punct) if punct.as_char() == ',' => {
+                                break;
+                            }
+                            tt => {
+                                ts.extend([tt]);
+                                rest = next
+                            }
+                        }
+                    }
+                    Ok((ts, rest))
+                }
+
+                // Eat everything from the start of the attribute, until the ',' token
+                // We'll then parse this into user's custom implementation of `FromMeta::from_verbatim`,
+                // if it exists.
+                let verbatim_input = input_fork.step(eat_until_comma)?;
+
+                // Advance the original parser past the ',' token, so the next
+                // attributes are properly parsed
+                input.step(eat_until_comma)?;
+
+                expr_verbatim::encode(verbatim_input, Some(error))
+            }
+        }
     };
     Ok(MetaNameValue {
         path,
