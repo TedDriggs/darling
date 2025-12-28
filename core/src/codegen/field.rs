@@ -251,11 +251,7 @@ impl ToTokens for CheckMissing<'_> {
             let ident = self.0.ident;
             let ty = self.0.ty;
             let name_in_attr = &self.0.name_in_attr;
-
-            // If `ty` does not impl FromMeta, the compiler error should point
-            // at the offending type rather than at the derive-macro call site.
-            let from_none_call =
-                quote_spanned!(ty.span()=> <#ty as _darling::FromMeta>::from_none());
+            let from_none_call = super::from_none_call(ty);
 
             tokens.append_all(quote! {
                 if !#ident.0 {

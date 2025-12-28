@@ -116,8 +116,14 @@ pub mod export {
     pub use std::string::ToString;
     pub use std::vec::Vec;
 
+    pub use std::marker::PhantomData;
+
     pub use crate::ast::NestedMeta;
 }
+
+// Specialization via autoref trick
+#[doc(hidden)]
+pub use darling_core::from_meta_spec;
 
 #[macro_use]
 mod macros_public;
