@@ -98,7 +98,7 @@ pub trait ExtractAttribute {
 
             for __attr in #attrs_accessor {
                 // Filter attributes based on name
-                match _darling::export::ToString::to_string(&__attr.path().clone().into_token_stream()).as_str() {
+                match _darling::util::path_to_string(__attr.path()).as_str() {
                     #parse_handled
                     #forward_unhandled
                 }
