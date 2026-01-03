@@ -97,7 +97,7 @@ fn parse_meta_name_value_after_path<'a>(
     })
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 // Addressing this would break many users of the crate.
 #[allow(clippy::large_enum_variant)]
 pub enum NestedMeta {
