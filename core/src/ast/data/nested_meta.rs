@@ -133,7 +133,9 @@ impl syn::parse::Parse for NestedMeta {
         //     3. `outer(crate(..))`
         if input.peek(syn::Lit) && !(input.peek(syn::LitBool) && input.peek2(syn::Token![=])) {
             input.parse().map(Self::Lit)
-        } else if input.peek(syn::Ident::peek_any) {
+        } else if input.peek(syn::Ident::peek_any)
+            || input.peek(Token![::]) && input.peek3(syn::Ident::peek_any)
+        {
             let path = parse_meta_path(input)?;
             parse_meta_after_path(path, input).map(Self::Meta)
         } else {
@@ -148,5 +150,24 @@ impl ToTokens for NestedMeta {
             NestedMeta::Meta(meta) => meta.to_tokens(tokens),
             NestedMeta::Lit(lit) => lit.to_tokens(tokens),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use syn::parse_quote;
+
+    use super::*;
+
+    /// Absolute paths (paths prefixed with `::`) were not recognized as valid
+    ///
+    /// Issue: <https://github.com/TedDriggs/darling/issues/394>
+    #[test]
+    fn absolute_path() {
+        let input: NestedMeta = parse_quote!(::prost::Message);
+        assert_eq!(
+            input,
+            NestedMeta::Meta(Meta::Path(parse_quote!(::prost::Message)))
+        );
     }
 }
