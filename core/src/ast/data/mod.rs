@@ -231,11 +231,6 @@ impl<T> Fields<T> {
         (self.style, self.fields)
     }
 
-    /// Returns true if this variant's data makes it a newtype.
-    pub fn is_newtype(&self) -> bool {
-        self.style == Style::Tuple && self.len() == 1
-    }
-
     pub fn is_unit(&self) -> bool {
         self.style.is_unit()
     }

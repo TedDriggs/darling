@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use crate::ast::Fields;
 use crate::codegen;
 use crate::options::{Core, InputField, ParseAttribute};
-use crate::util::SpannedValue;
+use crate::util::{Flag, SpannedValue};
 use crate::{Error, FromMeta, Result};
 
 #[derive(Debug, Clone)]
@@ -17,6 +17,7 @@ pub struct InputVariant {
     pub word: Option<SpannedValue<bool>>,
     /// Whether or not unknown fields are acceptable in this
     allow_unknown_fields: Option<bool>,
+    pub transparent: Flag,
 }
 
 impl InputVariant {
@@ -39,6 +40,7 @@ impl InputVariant {
             data: self.data.as_ref().map(InputField::as_codegen_field),
             skip: self.is_skipped(),
             allow_unknown_fields: self.allow_unknown_fields.unwrap_or_default(),
+            transparent: self.transparent.is_present(),
         }
     }
 
@@ -50,6 +52,7 @@ impl InputVariant {
             skip: Default::default(),
             word: Default::default(),
             allow_unknown_fields: None,
+            transparent: Flag::default(),
         })
         .parse_attributes(&v.attrs)?;
 
@@ -108,6 +111,12 @@ impl ParseAttribute for InputVariant {
             }
 
             self.skip = FromMeta::from_meta(mi)?;
+        } else if path.is_ident("transparent") {
+            if self.transparent.is_present() {
+                return Err(Error::duplicate_field_path(path).with_span(mi));
+            }
+
+            self.transparent = FromMeta::from_meta(mi)?;
         } else if path.is_ident("word") {
             if self.word.is_some() {
                 return Err(Error::duplicate_field_path(path).with_span(mi));

@@ -118,14 +118,18 @@ impl ParseData for FromMetaOptions {
                 if let Some(from_word) = &self.from_word {
                     if data.is_unit() {
                         errors.push(Error::custom("`from_word` cannot be used on unit structs because it conflicts with the generated impl").with_span(from_word));
-                    } else if data.is_newtype() {
-                        errors.push(Error::custom("`from_word` cannot be used on newtype structs because the implementation is entirely delegated to the inner type").with_span(from_word));
+                    } else if (data.len() == 1 && data.style.is_tuple())
+                        || (data.style.is_struct() && self.base.transparent.is_present())
+                    {
+                        errors.push(Error::custom("`from_word` cannot be used on transparent structs because the implementation is entirely delegated to the inner type").with_span(from_word));
                     }
                 }
 
                 if let Some(from_expr) = &self.from_expr {
-                    if data.is_newtype() {
-                        errors.push(Error::custom("`from_expr` cannot be used on newtype structs because the implementation is entirely delegated to the inner type").with_span(from_expr));
+                    if (data.len() == 1 && data.style.is_tuple())
+                        || (data.style.is_struct() && self.base.transparent.is_present())
+                    {
+                        errors.push(Error::custom("`from_expr` cannot be used on transparent structs because the implementation is entirely delegated to the inner type").with_span(from_expr));
                     }
                 }
             }

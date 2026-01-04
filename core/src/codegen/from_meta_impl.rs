@@ -44,6 +44,28 @@ impl ToTokens for FromMetaImpl<'_> {
             }
         });
 
+        // Transparent proxies to the sole value it contains
+        if let Some((member, _)) = base
+            .data
+            .as_struct()
+            .and_then(|fields| super::extract_transparent(fields, base.transparent))
+        {
+            let ty_ident = base.ident;
+            let impl_block = quote!(
+                fn from_meta(__item: &_darling::export::syn::Meta) -> _darling::Result<Self> {
+                    _darling::FromMeta::from_meta(__item)
+                        .map_err(|e| e.with_span(&__item))
+                        .map(|value| #ty_ident { #member: value })
+                }
+            );
+
+            self.wrap(impl_block, tokens);
+            if self.derive_syn_parse {
+                ParseImpl(self).to_tokens(tokens);
+            }
+            return;
+        }
+
         let impl_block = match base.data {
             // Unit structs allow empty bodies only.
             Data::Struct(ref vd) if vd.style.is_unit() => {
@@ -51,22 +73,6 @@ impl ToTokens for FromMetaImpl<'_> {
                 quote!(
                     fn from_word() -> _darling::Result<Self> {
                         _darling::export::Ok(#ty_ident)
-                    }
-                )
-            }
-
-            // Newtype structs proxy to the sole value they contain.
-            Data::Struct(Fields {
-                ref fields,
-                style: Style::Tuple,
-                ..
-            }) if fields.len() == 1 => {
-                let ty_ident = base.ident;
-                quote!(
-                    fn from_meta(__item: &_darling::export::syn::Meta) -> _darling::Result<Self> {
-                        _darling::FromMeta::from_meta(__item)
-                            .map_err(|e| e.with_span(&__item))
-                            .map(#ty_ident)
                     }
                 )
             }

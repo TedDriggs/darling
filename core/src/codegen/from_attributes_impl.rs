@@ -2,7 +2,6 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
 use crate::{
-    ast::Data,
     codegen::{ExtractAttribute, OuterFromImpl, TraitImpl},
     util::PathList,
 };
@@ -21,22 +20,25 @@ impl ToTokens for FromAttributesImpl<'_> {
         let input = self.param_name();
         let post_transform = self.base.post_transform_call();
 
-        if let Data::Struct(ref data) = self.base.data {
-            if data.is_newtype() {
-                self.wrap(
-                    quote! {
-                        fn from_attributes(#input: &[_darling::export::syn::Attribute]) -> _darling::Result<Self> {
-                            _darling::export::Ok(
-                                #ty_ident(_darling::FromAttributes::from_attributes(#input)?)
-                            ) #post_transform
-                        }
-                    },
-                    tokens,
-                );
+        if let Some((member, _)) = self
+            .base
+            .data
+            .as_struct()
+            .and_then(|fields| super::extract_transparent(fields, self.base.transparent))
+        {
+            self.wrap(
+                quote! {
+                    fn from_attributes(#input: &[_darling::export::syn::Attribute]) -> _darling::Result<Self> {
+                        _darling::export::Ok(
+                            #ty_ident { #member: _darling::FromAttributes::from_attributes(#input)? }
+                        ) #post_transform
+                    }
+                },
+                tokens,
+            );
 
-                return;
-            }
-        }
+            return;
+        };
 
         let passed_attrs = self.forward_attrs.as_initializer();
         let inits = self.base.initializers();

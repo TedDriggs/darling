@@ -4,7 +4,7 @@ error: `from_word` cannot be used on unit structs because it conflicts with the 
 7 | #[darling(from_word = || Ok(Unit))]
   |                       ^
 
-error: `from_word` cannot be used on newtype structs because the implementation is entirely delegated to the inner type
+error: `from_word` cannot be used on transparent structs because the implementation is entirely delegated to the inner type
   --> tests/compile-fail/from_word.rs:17:23
    |
 17 | #[darling(from_word = newtype_from_word)]
