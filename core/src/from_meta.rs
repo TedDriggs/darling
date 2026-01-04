@@ -889,8 +889,10 @@ map!(btree_map, syn::Ident, nested);
 /// # Usage
 ///
 /// ```ignore
-/// use _darling::from_meta_spec::SpecFromMeta as _;
-/// use _darling::from_meta_spec::SpecFromMetaAll as _;
+/// use _darling::autoref_specialization::{
+///     SpecFromMeta as _,
+///     SpecFromMetaAll as _
+/// };
 ///
 /// let x = (&_darling::export::PhantomData::<T>).tag().from_none()
 /// ```
@@ -907,7 +909,7 @@ map!(btree_map, syn::Ident, nested);
 /// must take `self`, but we don't have an instantiation of `T`, we just have the type. Usually
 /// auto-ref specialization works on concrete expressions.
 #[allow(clippy::wrong_self_convention)]
-pub mod spec {
+pub mod autoref_specialization {
     use super::FromMeta;
     use std::marker::PhantomData;
 
