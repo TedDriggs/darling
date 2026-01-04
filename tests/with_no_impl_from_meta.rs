@@ -15,7 +15,7 @@ fn parse_strings(_: String) -> Vec<String> {
     Vec::from(["x".to_string()])
 }
 
-#[derive(FromDeriveInput)]
+#[derive(FromDeriveInput, Debug)]
 #[darling(attributes(example))]
 pub struct Example {
     #[darling(with = demo)]
@@ -25,7 +25,7 @@ pub struct Example {
 }
 
 #[test]
-fn test() {
+fn pass() {
     let input = quote! {
         #[example(field, strings = "")]
         struct Example;
@@ -34,4 +34,20 @@ fn test() {
     let input = Example::from_derive_input(&input).unwrap();
     assert_eq!(input.field, Vec::from([4]));
     assert_eq!(input.strings, Vec::from(["x".to_string()]));
+}
+
+// "field" is missing, but it is required
+#[test]
+fn missing_field() {
+    let input = quote! {
+        #[example(strings = "")]
+        struct Example;
+    };
+    let input = syn::parse2::<DeriveInput>(input).unwrap();
+    let input = Example::from_derive_input(&input).unwrap_err();
+
+    assert!(input
+        .to_string()
+        .to_lowercase()
+        .contains("missing field `field`"));
 }
