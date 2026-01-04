@@ -9,12 +9,14 @@ pub fn from_none_call(ty: &syn::Type) -> proc_macro2::TokenStream {
         // Auto-ref specialization, described in detail in the doc
         // comments of the `autoref_specialization` module
 
-        // If `#ty` implements `FromMeta`, `SpecFromMeta::tag()` is used
         #[allow(unused)]
-        use _darling::autoref_specialization::SpecFromMeta as _;
-        // If it doesn't, `SpecFromMetaAll::tag()` is used
-        #[allow(unused)]
-        use _darling::autoref_specialization::SpecFromMetaAll as _;
+        use _darling::autoref_specialization::{
+            // If `#ty` implements `FromMeta`, `SpecFromMeta::tag()` is used
+            SpecFromMeta as _,
+            // If it doesn't, `SpecFromMetaAll::tag()` is used
+            SpecFromMetaAll as _
+        };
+
         (&_darling::export::PhantomData::<#ty>).tag().from_none()
     })
 }
