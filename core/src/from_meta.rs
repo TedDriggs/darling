@@ -9,7 +9,7 @@ use std::rc::Rc;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
-use syn::{Expr, Lit, Meta};
+use syn::{Expr, Ident, Lit, Meta, Path};
 
 use crate::ast::NestedMeta;
 use crate::util::path_to_string;
@@ -948,15 +948,100 @@ pub mod autoref_specialization {
     impl<T: FromMeta> SpecFromMeta<T> for &PhantomData<T> {}
 }
 
+impl FromMeta for Vec<Ident> {
+    fn from_list(nested: &[NestedMeta]) -> Result<Self> {
+        let items = nested.iter().map(|item| match *item {
+            NestedMeta::Meta(ref inner) => Ok(inner.require_path_only()?.require_ident()?),
+            NestedMeta::Lit(_) => Err(Error::unsupported_format("expression")),
+        });
+
+        let mut errors = Error::accumulator();
+
+        let list = items
+            .filter_map(|item| errors.handle(item))
+            .cloned()
+            .collect();
+
+        errors.finish_with(list)
+    }
+}
+
+impl FromMeta for Vec<Path> {
+    fn from_list(nested: &[NestedMeta]) -> Result<Self> {
+        let items = nested.iter().map(|item| match *item {
+            NestedMeta::Meta(ref inner) => Ok(inner.require_path_only()?),
+            NestedMeta::Lit(_) => Err(Error::unsupported_format("expression")),
+        });
+
+        let mut errors = Error::accumulator();
+
+        let list = items
+            .filter_map(|item| errors.handle(item))
+            .cloned()
+            .collect();
+
+        errors.finish_with(list)
+    }
+}
+
+impl FromMeta for HashSet<Ident> {
+    fn from_list(nested: &[NestedMeta]) -> Result<Self> {
+        let items = nested.iter().map(|item| match *item {
+            NestedMeta::Meta(ref inner) => Ok(inner.require_path_only()?.require_ident()?),
+            NestedMeta::Lit(_) => Err(Error::unsupported_format("expression")),
+        });
+
+        let mut errors = Error::accumulator();
+        let mut list = HashSet::with_capacity(nested.len());
+
+        for item in items {
+            let Some(item) = errors.handle(item) else {
+                continue;
+            };
+            if !list.insert(item.clone()) {
+                errors.push(Error::duplicate_field(&item.to_string()).with_span(item))
+            };
+        }
+
+        errors.finish_with(list)
+    }
+}
+
+impl FromMeta for HashSet<Path> {
+    fn from_list(nested: &[NestedMeta]) -> Result<Self> {
+        let items = nested.iter().map(|item| match *item {
+            NestedMeta::Meta(ref inner) => Ok(inner.require_path_only()?),
+            NestedMeta::Lit(_) => Err(Error::unsupported_format("expression")),
+        });
+
+        let mut errors = Error::accumulator();
+        let mut list = HashSet::with_capacity(nested.len());
+
+        for item in items {
+            let Some(item) = errors.handle(item) else {
+                continue;
+            };
+            if !list.insert(item.clone()) {
+                errors.push(Error::duplicate_field(&path_to_string(item)).with_span(item))
+            };
+        }
+
+        errors.finish_with(list)
+    }
+}
+
 /// Tests for `FromMeta` implementations. Wherever the word `ignore` appears in test input,
 /// it should not be considered by the parsing.
 #[cfg(test)]
 mod tests {
-    use std::num::{NonZeroU32, NonZeroU64};
+    use std::{
+        collections::HashSet,
+        num::{NonZeroU32, NonZeroU64},
+    };
 
     use proc_macro2::TokenStream;
     use quote::quote;
-    use syn::parse_quote;
+    use syn::{parse_quote, Ident, Path};
 
     use crate::{Error, FromMeta, Result};
 
@@ -1275,6 +1360,90 @@ mod tests {
             fm::<BTreeMap<String, syn::Expr>>(quote!(ignore(hello = 2 + 2, world = x.foo()))),
             comparison
         );
+    }
+
+    #[test]
+    fn vec_ident_succeeds() {
+        let input: Vec<Ident> = vec![
+            parse_quote!(hello),
+            parse_quote!(world),
+            parse_quote!(there),
+        ];
+
+        assert_eq!(fm::<Vec<Ident>>(quote!(ignore(hello, world, there))), input);
+    }
+
+    #[test]
+    fn vec_ident_allows_duplicates() {
+        let input: Vec<Ident> = vec![parse_quote!(hello), parse_quote!(hello)];
+
+        assert_eq!(fm::<Vec<Ident>>(quote!(ignore(hello, hello))), input);
+    }
+
+    #[test]
+    fn vec_ident_rejects_paths() {
+        let result: Result<Vec<Ident>> =
+            FromMeta::from_meta(&pm(quote!(ignore(the::world))).unwrap());
+
+        result.unwrap_err();
+    }
+
+    #[test]
+    fn vec_path_succeeds() {
+        let input = vec![parse_quote!(hello), parse_quote!(the::world)];
+
+        assert_eq!(
+            fm::<Vec<syn::Path>>(quote!(ignore(hello, the::world))),
+            input
+        );
+    }
+
+    #[test]
+    fn vec_path_allows_duplicates() {
+        let input = vec![parse_quote!(hello), parse_quote!(hello)];
+
+        assert_eq!(fm::<Vec<Path>>(quote!(ignore(hello, hello))), input);
+    }
+
+    #[test]
+    fn hash_set_ident_succeeds() {
+        let comparison: HashSet<Ident> = [parse_quote!(hello), parse_quote!(world)].into();
+
+        assert_eq!(
+            fm::<HashSet<Ident>>(quote!(ignore(hello, world))),
+            comparison
+        );
+    }
+
+    #[test]
+    fn hash_set_ident_duplicate() {
+        HashSet::<syn::Ident>::from_meta(&pm(quote!(ignore(hello, hello))).unwrap()).unwrap_err();
+    }
+
+    #[test]
+    fn hash_set_ident_multiple_errors() {
+        let err = HashSet::<syn::Ident>::from_meta(
+            &pm(quote!(ignore(hello, hello, the::world))).unwrap(),
+        )
+        .unwrap_err();
+
+        assert_eq!(err.len(), 2);
+    }
+
+    #[test]
+    fn hash_set_path_succeeds() {
+        let comparison: HashSet<_> = [parse_quote!(hello), parse_quote!(the::world)].into();
+
+        assert_eq!(
+            fm::<HashSet<syn::Path>>(quote!(ignore(hello, the::world))),
+            comparison
+        );
+    }
+
+    #[test]
+    fn hash_set_path_duplicate() {
+        HashSet::<syn::Path>::from_meta(&pm(quote!(ignore(the::world, the::world))).unwrap())
+            .unwrap_err();
     }
 
     /// Tests that fallible parsing will always produce an outer `Ok` (from `fm`),
