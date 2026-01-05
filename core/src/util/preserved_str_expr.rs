@@ -1,4 +1,4 @@
-use crate::{FromMeta, Result};
+use crate::{util::expr_verbatim, Error, FromMeta, Result};
 use syn::Expr;
 
 /// A wrapper around [`Expr`] that preserves the original expression
@@ -27,7 +27,11 @@ pub struct PreservedStrExpr(pub Expr);
 
 impl FromMeta for PreservedStrExpr {
     fn from_expr(expr: &Expr) -> Result<Self> {
-        Ok(Self(expr.clone()))
+        if let Some((_, err)) = expr_verbatim::decode(expr) {
+            Err(Error::from_syn_rendered(err.clone()))
+        } else {
+            Ok(Self(expr.clone()))
+        }
     }
 }
 

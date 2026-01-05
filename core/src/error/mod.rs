@@ -20,7 +20,7 @@ mod child;
 mod kind;
 mod util;
 
-use crate::util::path_to_string;
+use crate::util::{expr_verbatim, path_to_string};
 
 use self::kind::{ErrorKind, ErrorUnknownValue, UnknownValuePosition};
 
@@ -171,6 +171,10 @@ impl Error {
     }
 
     pub fn unexpected_expr_type(expr: &Expr) -> Self {
+        if let Some((_, err)) = expr_verbatim::decode(expr) {
+            return Error::from_syn_rendered(err.clone());
+        }
+
         Error::unexpected_type(match *expr {
             Expr::Array(_) => "array",
             Expr::Assign(_) => "assign",
@@ -309,6 +313,54 @@ impl Error {
     /// See [`Accumulator`] for details.
     pub fn accumulator() -> Accumulator {
         Default::default()
+    }
+
+    /// Creates `Self` from the `TokenStream` obtained via `syn::Error::into_token_stream()`
+    ///
+    /// You might only need this if you overwrite the [`FromMeta::from_expr`](crate::FromMeta::from_expr)
+    /// method when implementing it.
+    ///
+    /// See docs in [`util::decode_if_verbatim`](crate::util::decode_if_verbatim) for more info
+    pub fn from_syn_rendered(syn_rendered: TokenStream) -> Self {
+        // When `syn` renders a compile error via `.into_token_stream()` it
+        // outputs a bunch of tokens like this:
+        //
+        // ::core::compile_error! { "err 1" }
+        // ::core::compile_error! { "err 2" }
+        // ::core::compile_error! { "err 3" }
+        //
+        // Our goal is to convert all of that into a `darling::Error` via
+        // `darling::Error::multiple()`, so we extract every single inner string
+        // and their spans:
+        //
+        // ::core::compile_error! { "err 1" }
+        //                          ^^^^^^^
+        //
+        // The curly braces surrounding the string literal is always the 8th token.
+        // +1 because `.enumerate()` starts from 0, that means we'd want tokens with index
+        // 7, 15, 23 etc. +1 means we need 8, 16, 24
+        let errors = syn_rendered
+            .into_iter()
+            .enumerate()
+            .filter_map(|(i, tt)| {
+                let is_multiple_of_8 = (i + 1) % 8 == 0;
+                is_multiple_of_8.then(|| {
+                    // ::core::compile_error! { "err 1" }
+                    //                        ^^^^^^^^^^^
+                    let proc_macro2::TokenTree::Group(err_tts) = tt else {
+                        panic!("{tt}")
+                    };
+                    // ::core::compile_error! { "err 1" }
+                    //                          ^^^^^^^
+                    let err_lit = syn::parse2::<syn::LitStr>(err_tts.stream()).unwrap();
+                    // Important to set the span to the literal, so errors
+                    // show up in the correct place
+                    Error::custom(err_lit.value()).with_span(&err_lit.span())
+                })
+            })
+            .collect::<Vec<_>>();
+
+        Self::multiple(errors)
     }
 }
 
