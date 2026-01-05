@@ -866,6 +866,88 @@ map!(hash_map, syn::Path, nested);
 map!(btree_map, String, nested);
 map!(btree_map, syn::Ident, nested);
 
+#[doc(hidden)]
+/// Autoref specialization to allow using `.from_none()` on types `T` implementing
+/// `FromMeta` to get `Option<T>`,  and on other types always getting `None`
+///
+/// This is used inside the `#[derive(FromMeta)]` impl, see
+/// issue: <https://github.com/TedDriggs/darling/issues/305>
+///
+/// # How it works
+///
+/// When using method call syntax, if Rust can't find the method, then Rust will
+/// insert an extra reference `&` and try again.
+///
+/// This allows a form of "specialization", which can't be used in a generic context
+/// BUT it can be used with "concrete" types that are known at compile time.
+///
+/// This is only useful inside of macros.
+///
+/// This is known as "autoref specialization", more information can be found here:
+/// <https://github.com/dtolnay/case-studies/tree/master/autoref-specialization>
+///
+/// # Usage
+///
+/// ```ignore
+/// use _darling::autoref_specialization::{
+///     SpecFromMeta as _,
+///     SpecFromMetaAll as _
+/// };
+///
+/// let x = (&_darling::export::PhantomData::<T>).tag().from_none()
+/// ```
+///
+/// If `T` implements `FromMeta`, `x` will be `T::from_meta()` (an `Option<T>`)
+/// because `(&PhantomData::<T>).tag()` selects the `SpecFromMeta` trait impl, and evaluates to `FromMetaTag`,
+/// which then calls `FromMetaTag::<T>.from_none()` getting us the value of `T`.
+///
+/// Otherwise, if `T` does not implement `FromMeta`, `x` will always be `None` because
+/// `(&PhantomData::<T>).tag()` selects the `SpecFromMetaAll` trait impl, and evaluates to `FromMetaTagAll`,
+/// which then calls `FromMetaTagAll::<T>.from_none()` which always just returns `None`.
+///
+/// The `PhantomData` must be there because we must use exactly method call syntax, so the function
+/// must take `self`, but we don't have an instantiation of `T`, we just have the type. Usually
+/// auto-ref specialization works on concrete expressions.
+#[allow(clippy::wrong_self_convention)]
+pub mod autoref_specialization {
+    use super::FromMeta;
+    use std::marker::PhantomData;
+
+    pub struct FromMetaTag<T>(PhantomData<T>);
+    pub struct FromMetaTagAll<T>(PhantomData<T>);
+
+    impl<T: FromMeta> FromMetaTag<T> {
+        pub fn from_none(self) -> Option<T> {
+            T::from_none()
+        }
+    }
+
+    impl<T> FromMetaTagAll<T> {
+        pub fn from_none(self) -> Option<T> {
+            None
+        }
+    }
+
+    pub trait SpecFromMeta<T>: Sized {
+        fn tag(self) -> FromMetaTag<T> {
+            FromMetaTag(PhantomData)
+        }
+    }
+
+    pub trait SpecFromMetaAll<T>: Sized {
+        fn tag(self) -> FromMetaTagAll<T> {
+            FromMetaTagAll(PhantomData)
+        }
+    }
+
+    // Less specific than the next impl, so this will get
+    // selected if the next impl isn't because Rust will add a `&`
+    // and try again
+    impl<T> SpecFromMetaAll<T> for &&PhantomData<T> {}
+
+    impl<T: FromMeta> SpecFromMeta<T> for &PhantomData<T> {}
+}
+
 /// Tests for `FromMeta` implementations. Wherever the word `ignore` appears in test input,
 /// it should not be considered by the parsing.
 #[cfg(test)]

@@ -113,11 +113,15 @@ pub mod export {
     pub use core::option::Option::{self, None, Some};
     pub use core::result::Result::{self, Err, Ok};
     pub use darling_core::syn;
+    pub use std::marker::PhantomData;
     pub use std::string::ToString;
     pub use std::vec::Vec;
 
     pub use crate::ast::NestedMeta;
 }
+
+#[doc(hidden)]
+pub use darling_core::autoref_specialization;
 
 #[macro_use]
 mod macros_public;
