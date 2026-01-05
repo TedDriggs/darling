@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 /// Transform Rust paths to a readable and comparable string.
 ///
 /// # Limitations
@@ -13,9 +15,16 @@
 pub fn path_to_string(path: &syn::Path) -> String {
     path.segments
         .iter()
-        .map(|s| s.ident.to_string())
-        .collect::<Vec<String>>()
-        .join("::")
+        // like `.intersperse("::")`, but that's not stable yet
+        .enumerate()
+        .flat_map(|(i, s)| {
+            if i == 0 {
+                [Cow::Borrowed(""), s.ident.to_string().into()]
+            } else {
+                [Cow::Borrowed("::"), s.ident.to_string().into()]
+            }
+        })
+        .collect()
 }
 
 #[cfg(test)]

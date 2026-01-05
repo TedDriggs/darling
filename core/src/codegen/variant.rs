@@ -6,7 +6,7 @@ use syn::Ident;
 
 use crate::ast::Fields;
 use crate::codegen::error::{ErrorCheck, ErrorDeclaration};
-use crate::codegen::{Field, FieldsGen};
+use crate::codegen::{from_none_call, Field, FieldsGen};
 use crate::usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
 
 /// A variant of the enum which is deriving `FromMeta`.
@@ -89,13 +89,12 @@ impl ToTokens for UnitMatchArm<'_> {
             let ty_ident = val.ty_ident;
             let variant_ident = val.variant_ident;
             let unsupported_format = unsupported_format_error();
+            let from_none = from_none_call(field_ty);
 
             tokens.append_all(quote!{
                 #name_in_attr => {
-                    match <#field_ty as _darling::FromMeta>::from_none() {
-                        _darling::export::Some(__value) => _darling::export::Ok(#ty_ident::#variant_ident {
-                           #member: __value
-                        }),
+                    match #from_none {
+                        _darling::export::Some(__value) => _darling::export::Ok(#ty_ident::#variant_ident { #member: __value }),
                         _darling::export::None => #unsupported_format,
                     }
                 }

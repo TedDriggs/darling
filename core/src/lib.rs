@@ -36,6 +36,9 @@ pub use self::from_meta::FromMeta;
 pub use self::from_type_param::FromTypeParam;
 pub use self::from_variant::FromVariant;
 
+#[doc(hidden)]
+pub use self::from_meta::autoref_specialization;
+
 // Re-exports
 #[doc(hidden)]
 pub use quote::ToTokens;
