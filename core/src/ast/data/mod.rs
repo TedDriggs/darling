@@ -106,6 +106,22 @@ impl<V, F> Data<V, F> {
         }
     }
 
+    /// Returns the fields if `Data` is a struct.
+    pub fn as_struct(&self) -> Option<&Fields<F>> {
+        match self {
+            Data::Enum(_) => None,
+            Data::Struct(f) => Some(f),
+        }
+    }
+
+    /// Returns the variants if `Data` is an enum.
+    pub fn as_enum(&self) -> Option<&[V]> {
+        match self {
+            Data::Enum(v) => Some(v),
+            Data::Struct(_) => None,
+        }
+    }
+
     /// Returns `true` if this instance is `Data::Enum`.
     pub fn is_enum(&self) -> bool {
         match *self {
@@ -213,11 +229,6 @@ impl<T> Fields<T> {
     /// Returns an empty `Vec` for `Unit` data.
     pub fn split(self) -> (Style, Vec<T>) {
         (self.style, self.fields)
-    }
-
-    /// Returns true if this variant's data makes it a newtype.
-    pub fn is_newtype(&self) -> bool {
-        self.style == Style::Tuple && self.len() == 1
     }
 
     pub fn is_unit(&self) -> bool {

@@ -1,0 +1,5 @@
+error: `#[darling(transparent)]` can only be applied to structs with a single field
+ --> tests/compile-fail/transparent_extra.rs:5:11
+  |
+5 | #[darling(transparent)]
+  |           ^^^^^^^^^^^

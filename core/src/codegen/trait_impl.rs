@@ -17,6 +17,7 @@ pub struct TraitImpl<'a> {
     pub default: Option<DefaultExpression<'a>>,
     pub post_transform: Option<&'a PostfixTransform>,
     pub allow_unknown_fields: bool,
+    pub transparent: bool,
     pub krate: Option<&'a syn::Path>,
 }
 

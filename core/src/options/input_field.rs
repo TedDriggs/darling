@@ -191,7 +191,7 @@ impl ParseAttribute for InputField {
 
             self.multiple = FromMeta::from_meta(mi)?;
 
-            if self.multiple == Some(true) && self.flatten.is_present() {
+            if self.multiple.unwrap_or(false) && self.flatten.is_present() {
                 return Err(
                     Error::custom("`flatten` and `multiple` cannot be used together").with_span(mi),
                 );
@@ -205,7 +205,7 @@ impl ParseAttribute for InputField {
 
             let mut conflicts = Error::accumulator();
 
-            if self.multiple == Some(true) {
+            if self.multiple.unwrap_or(false) {
                 conflicts.push(
                     Error::custom("`flatten` and `multiple` cannot be used together").with_span(mi),
                 );

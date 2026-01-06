@@ -14,7 +14,11 @@ enum Volume {
 #[allow(dead_code)]
 enum Emphasis<T> {
     Constant(Volume),
-    Variable(darling::util::PathList),
+    // Parses same input as Variable(darling::util::PathList)
+    #[darling(transparent)]
+    Variable {
+        paths: darling::util::PathList,
+    },
     #[darling(skip)]
     PerPhoneme(Option<T>),
     Strided {

@@ -5,7 +5,6 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::{parse_quote, parse_quote_spanned, spanned::Spanned, Ident};
 
 use crate::{
-    ast::Data,
     codegen::{ExtractAttribute, OuterFromImpl, TraitImpl},
     options::{DeriveInputShapeSet, ForwardedField},
     util::PathList,
@@ -31,22 +30,25 @@ impl ToTokens for FromDeriveInputImpl<'_> {
         let input = self.param_name();
         let post_transform = self.base.post_transform_call();
 
-        if let Data::Struct(ref data) = self.base.data {
-            if data.is_newtype() {
-                self.wrap(
+        if let Some((member, _)) = self
+            .base
+            .data
+            .as_struct()
+            .and_then(|fields| super::extract_transparent(fields, self.base.transparent))
+        {
+            self.wrap(
                     quote!{
                         fn from_derive_input(#input: &_darling::export::syn::DeriveInput) -> _darling::Result<Self> {
                             _darling::export::Ok(
-                                #ty_ident(_darling::FromDeriveInput::from_derive_input(#input)?)
+                                #ty_ident { #member: _darling::FromDeriveInput::from_derive_input(#input)? }
                             ) #post_transform
                         }
                     },
                     tokens,
                 );
 
-                return;
-            }
-        }
+            return;
+        };
 
         let passed_ident = self
             .ident

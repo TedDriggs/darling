@@ -35,6 +35,9 @@
 //!   of the `Parse` trait.
 //! * **Renamed crate**: You can use `#[darling(crate = ...)]` to specify a path to the `darling` crate
 //!   instance to use when referring to `darling` from generated code.
+//! * **Transparency**: Tuple structs or tuple variants with a single field delegate trait implementations
+//!   to the inner type. If the field is named, you can use `#[darling(transparent)]` on the container for
+//!   the same effect
 //!
 //! ## Forwarded Fields
 //! All derivable traits except `FromMeta` support forwarding some fields from the input AST to the derived struct.

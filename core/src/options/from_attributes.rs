@@ -1,6 +1,6 @@
 use quote::ToTokens;
 
-use crate::{ast::Data, codegen::FromAttributesImpl, Error, Result};
+use crate::{codegen::FromAttributesImpl, Error, Result};
 
 use super::{OuterFrom, ParseAttribute, ParseData};
 
@@ -19,20 +19,23 @@ impl FromAttributesOptions {
         .parse_attributes(&di.attrs)?
         .parse_body(&di.data)?;
 
-        if !opts.is_newtype() && opts.base.attr_names.is_empty() {
+        let is_transparent = opts
+            .base
+            .container
+            .data
+            .as_struct()
+            .map(|fields| {
+                (fields.len() == 1 && fields.style.is_tuple())
+                    || fields.style.is_struct() && opts.base.container.transparent.is_present()
+            })
+            .unwrap_or(false);
+
+        if !is_transparent && opts.base.attr_names.is_empty() {
             Err(Error::custom(
                 "FromAttributes without attributes collects nothing",
             ))
         } else {
             Ok(opts)
-        }
-    }
-
-    fn is_newtype(&self) -> bool {
-        if let Data::Struct(ref data) = self.base.container.data {
-            data.is_newtype()
-        } else {
-            false
         }
     }
 }

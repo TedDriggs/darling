@@ -27,6 +27,8 @@ pub struct Variant<'a> {
     pub skip: bool,
 
     pub allow_unknown_fields: bool,
+
+    pub transparent: bool,
 }
 
 impl<'a> Variant<'a> {
@@ -81,12 +83,8 @@ impl ToTokens for UnitMatchArm<'_> {
             tokens.append_all(quote!(
                 #name_in_attr => _darling::export::Ok(#ty_ident::#variant_ident),
             ));
-        } else if val.data.is_newtype() {
-            let field = val
-                .data
-                .fields
-                .first()
-                .expect("Newtype should have exactly one field");
+        } else if let Some((member, field)) = super::extract_transparent(&val.data, val.transparent)
+        {
             let field_ty = field.ty;
             let ty_ident = val.ty_ident;
             let variant_ident = val.variant_ident;
@@ -96,7 +94,7 @@ impl ToTokens for UnitMatchArm<'_> {
             tokens.append_all(quote!{
                 #name_in_attr => {
                     match #from_none {
-                        _darling::export::Some(__value) => _darling::export::Ok(#ty_ident::#variant_ident(__value)),
+                        _darling::export::Some(__value) => _darling::export::Ok(#ty_ident::#variant_ident { #member: __value }),
                         _darling::export::None => #unsupported_format,
                     }
                 }
@@ -145,7 +143,18 @@ impl ToTokens for DataMatchArm<'_> {
 
         let vdg = FieldsGen::new(&val.data, val.allow_unknown_fields);
 
-        if val.data.is_struct() {
+        if let Some((member, _)) = super::extract_transparent(&val.data, val.transparent) {
+            tokens.append_all(quote!(
+                #name_in_attr => {
+                    _darling::export::Ok(
+                        #ty_ident::#variant_ident {
+                            #member: _darling::FromMeta::from_meta(__nested)
+                                .map_err(|e| e.at(#name_in_attr))?
+                        }
+                    )
+                }
+            ));
+        } else if val.data.is_struct() {
             let declare_errors = ErrorDeclaration::default();
             let check_errors = ErrorCheck::with_location(name_in_attr);
             let require_fields = vdg.require_fields();
@@ -175,16 +184,6 @@ impl ToTokens for DataMatchArm<'_> {
                     } else {
                         _darling::export::Err(_darling::Error::unsupported_format("non-list"))
                     }
-                }
-            ));
-        } else if val.data.is_newtype() {
-            tokens.append_all(quote!(
-                #name_in_attr => {
-                    _darling::export::Ok(
-                        #ty_ident::#variant_ident(
-                            _darling::FromMeta::from_meta(__nested)
-                                .map_err(|e| e.at(#name_in_attr))?)
-                    )
                 }
             ));
         } else {
