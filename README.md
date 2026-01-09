@@ -58,6 +58,8 @@ The above code will then be able to parse this input:
 pub struct ConsumingType;
 ```
 
+There is a larger [example](examples/serde.rs) that re-implements `serde`'s attribute parsing
+
 # Attribute Macros
 
 Non-derive attribute macros are supported.
