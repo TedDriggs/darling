@@ -8,11 +8,11 @@ pub struct Container {
     data: ast::Data<Variant, Panic>,
 }
 
-#[derive(Default, Debug, FromVariant)]
-#[darling(default, attributes(from_variants), supports(newtype, unit))]
+#[derive(Debug, FromVariant)]
+#[darling(attributes(from_variants), supports(newtype, unit))]
 pub struct Variant {
-    into: Option<bool>,
-    skip: Option<bool>,
+    // Having this field tests compilation when both `supports` and forwarding are in use.
+    fields: darling::ast::Fields<syn::Type>,
 }
 
 #[derive(Debug, FromDeriveInput)]
@@ -91,6 +91,12 @@ fn enum_newtype_or_unit() {
     // Should pass
     let container = Container::from_derive_input(&source::newtype_enum()).unwrap();
     assert!(container.data.is_enum());
+    let variants = container.data.take_enum().unwrap();
+    assert!(variants[0].fields.is_tuple() && variants[0].fields.len() == 1);
+    assert!(variants[1].fields.is_tuple() && variants[1].fields.len() == 1);
+
+    let empty = Container::from_derive_input(&source::empty_enum()).unwrap();
+    assert!(empty.data.is_enum());
 
     // Should error
     Container::from_derive_input(&source::named_field_enum()).unwrap_err();
