@@ -36,9 +36,11 @@ impl ForwardAttrs<'_> {
         self.field.map(ValuePopulator)
     }
 
-    /// Get the field initializer for use when building the deriving struct.
-    pub fn as_initializer<'a>(&'a self) -> Option<impl 'a + ToTokens> {
-        self.field.map(|f| f.as_initializer())
+    /// Returns the field value for use when building the deriving struct.
+    ///
+    /// See [`ForwardedField::to_field_value`] for assumptions made by the initializer.
+    pub fn to_field_value(&self) -> Option<syn::FieldValue> {
+        self.field.map(|f| f.to_field_value())
     }
 }
 

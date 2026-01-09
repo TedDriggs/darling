@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
-use syn::Ident;
+use syn::{parse_quote, Ident};
 
 use crate::{
     codegen::{ident_field, ExtractAttribute, OuterFromImpl, TraitImpl},
@@ -38,13 +38,20 @@ impl ToTokens for FromFieldImpl<'_> {
             self.base.fallback_decl()
         };
 
-        let passed_ident = self.ident.as_ref().map(|i| {
-            let field = ident_field::create_optional(i, &input);
-            quote! { #field, }
-        });
-        let passed_vis = self.vis.as_ref().map(|i| quote!(#i: #input.vis.clone(),));
-        let passed_ty = self.ty.as_ref().map(|i| quote!(#i: #input.ty.clone(),));
-        let passed_attrs = self.forward_attrs.as_initializer();
+        let forwarded_fields = vec![
+            self.ident
+                .as_ref()
+                .map(|i| ident_field::create_optional(i, &input)),
+            self.vis
+                .as_ref()
+                .map(|i| parse_quote!(#i: #input.vis.clone())),
+            self.ty
+                .as_ref()
+                .map(|i| parse_quote!(#i: #input.ty.clone())),
+            self.forward_attrs.to_field_value(),
+        ]
+        .into_iter()
+        .flatten();
 
         // Determine which attributes to forward (if any).
         let grab_attrs = self.extractor();
@@ -64,10 +71,7 @@ impl ToTokens for FromFieldImpl<'_> {
                     #default
 
                     _darling::export::Ok(Self {
-                        #passed_ident
-                        #passed_ty
-                        #passed_vis
-                        #passed_attrs
+                        #(#forwarded_fields,)*
                         #initializers
                     }) #post_transform
 
