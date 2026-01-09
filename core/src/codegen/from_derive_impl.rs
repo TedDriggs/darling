@@ -50,12 +50,17 @@ impl ToTokens for FromDeriveInputImpl<'_> {
             return;
         };
 
-        let passed_ident = self.ident.as_ref().map(|i| {
-            let field = ident_field::create(i, &input);
-            quote! { #field, }
-        });
-        let passed_vis = self.vis.as_ref().map(|i| quote!(#i: #input.vis.clone(),));
-        let passed_attrs = self.forward_attrs.as_initializer();
+        let forwarded_fields = vec![
+            self.ident.as_ref().map(|i| ident_field::create(i, &input)),
+            self.vis
+                .as_ref()
+                .map(|i| parse_quote!(#i: #input.vis.clone())),
+            self.forward_attrs.to_field_value(),
+            self.generics.map(|g| g.to_field_value()),
+            self.data.map(|f| f.to_field_value()),
+        ]
+        .into_iter()
+        .flatten();
 
         let read_generics = self.generics.map(|generics| {
             let ident = &generics.ident;
@@ -75,8 +80,6 @@ impl ToTokens for FromDeriveInputImpl<'_> {
                 let #ident = __errors.handle(#with(&#input.generics));
             }
         });
-
-        let pass_generics_to_receiver = self.generics.map(|g| g.as_initializer());
 
         let check_shape = self
             .supports
@@ -105,8 +108,6 @@ impl ToTokens for FromDeriveInputImpl<'_> {
                 #let_binding __errors.handle(#check_shape(&#input.data).and_then(#read_data));
             }
         };
-
-        let pass_data_to_receiver = self.data.map(|f| f.as_initializer());
 
         let inits = self.base.initializers();
         let default = if self.from_ident {
@@ -139,11 +140,7 @@ impl ToTokens for FromDeriveInputImpl<'_> {
                     #default
 
                     _darling::export::Ok(#ty_ident {
-                        #passed_ident
-                        #pass_generics_to_receiver
-                        #passed_vis
-                        #passed_attrs
-                        #pass_data_to_receiver
+                        #(#forwarded_fields,)*
                         #inits
                     }) #post_transform
                 }

@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
-use syn::Ident;
+use syn::{parse_quote, Ident};
 
 use crate::codegen::{ident_field, ExtractAttribute, ForwardAttrs, OuterFromImpl, TraitImpl};
 use crate::options::{DataShape, ForwardedField};
@@ -35,19 +35,19 @@ impl ToTokens for FromVariantImpl<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let input = self.param_name();
         let extractor = self.extractor();
-        let passed_ident = self.ident.as_ref().map(|i| {
-            let field = ident_field::create(i, &input);
-            quote! { #field, }
-        });
-        let passed_discriminant = self
-            .discriminant
-            .as_ref()
-            .map(|i| quote!(#i: #input.discriminant.as_ref().map(|(_, expr)| expr.clone()),));
-        let passed_attrs = self.forward_attrs.as_initializer();
-        let passed_fields = self
-            .fields
-            .as_ref()
-            .map(|i| quote!(#i: _darling::ast::Fields::try_from(&#input.fields)?,));
+
+        let forwarded_fields = vec![
+            self.ident.as_ref().map(|i| ident_field::create(i, &input)),
+            self.discriminant.as_ref().map(
+                |i| parse_quote!(#i: #input.discriminant.as_ref().map(|(_, expr)| expr.clone())),
+            ),
+            self.forward_attrs.to_field_value(),
+            self.fields
+                .as_ref()
+                .map(|i| parse_quote!(#i: _darling::ast::Fields::try_from(&#input.fields)?)),
+        ]
+        .into_iter()
+        .flatten();
 
         let inits = self.base.initializers();
         let post_transform = self.base.post_transform_call();
@@ -84,10 +84,7 @@ impl ToTokens for FromVariantImpl<'_> {
                     #default
 
                     _darling::export::Ok(Self {
-                        #passed_ident
-                        #passed_discriminant
-                        #passed_attrs
-                        #passed_fields
+                        #(#forwarded_fields,)*
                         #inits
                     }) #post_transform
                 }

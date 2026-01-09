@@ -40,7 +40,10 @@ impl ToTokens for FromAttributesImpl<'_> {
             return;
         };
 
-        let passed_attrs = self.forward_attrs.as_initializer();
+        let forwarded_fields = vec![self.forward_attrs.to_field_value()]
+            .into_iter()
+            .flatten();
+
         let inits = self.base.initializers();
         let default = self.base.fallback_decl();
 
@@ -64,7 +67,7 @@ impl ToTokens for FromAttributesImpl<'_> {
                     #default
 
                     _darling::export::Ok(#ty_ident {
-                        #passed_attrs
+                        #(#forwarded_fields,)*
                         #inits
                     }) #post_transform
                 }
