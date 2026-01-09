@@ -1,6 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
-use syn::{parse_quote, Ident};
+use syn::spanned::Spanned;
+use syn::{parse_quote, parse_quote_spanned, Ident};
 
 use crate::codegen::{ident_field, ExtractAttribute, ForwardAttrs, OuterFromImpl, TraitImpl};
 use crate::options::{DataShape, ForwardedField};
@@ -18,7 +19,7 @@ pub struct FromVariantImpl<'a> {
     /// variant's fields should be placed.
     ///
     /// This is one of `darling`'s "magic fields".
-    pub fields: Option<&'a Ident>,
+    pub fields: Option<&'a ForwardedField>,
     /// If set, the ident of the field into which the discriminant of the input variant
     /// should be placed. The receiving field must be an `Option` as not all enums have
     /// discriminants.
@@ -42,9 +43,7 @@ impl ToTokens for FromVariantImpl<'_> {
                 |i| parse_quote!(#i: #input.discriminant.as_ref().map(|(_, expr)| expr.clone())),
             ),
             self.forward_attrs.to_field_value(),
-            self.fields
-                .as_ref()
-                .map(|i| parse_quote!(#i: _darling::ast::Fields::try_from(&#input.fields)?)),
+            self.fields.as_ref().map(|i| i.to_field_value()),
         ]
         .into_iter()
         .flatten();
@@ -58,11 +57,37 @@ impl ToTokens for FromVariantImpl<'_> {
             self.base.fallback_decl()
         };
 
-        let supports = self.supports.map(|i| {
+        let read_fields = self
+            .fields
+            .as_ref()
+            .map(|i| match &i.with {
+                Some(p) => p.clone(),
+                None => parse_quote_spanned!(i.ty.span()=> _darling::ast::Fields::try_from),
+            })
+            .unwrap_or_else(|| parse_quote!(_darling::export::Ok));
+
+        let supports = self
+            .supports
+            .map(|i| {
+                quote! {
+                    #i.check
+                }
+            })
+            .unwrap_or_else(|| quote!(_darling::export::Ok));
+        let validate_and_read_fields = {
+            // If the caller wants `fields` read into a field, we can use `fields` as the local variable name
+            // because we know there are no other fields of that name.
+            let let_binding = self.fields.map(|d| {
+                let ident = &d.ident;
+                quote!(let #ident = )
+            });
+
+            // The awkward `map` here is to work around the fact that `ShapeSet::check` returns `()`,
+            // but we need to return the fields for further processing.
             quote! {
-                __errors.handle(#i.check(&#input.fields));
+                #let_binding __errors.handle(#supports(&#input.fields).map(|_| &#input.fields).and_then(#read_fields));
             }
-        });
+        };
 
         let error_declaration = self.base.declare_errors();
         let require_fields = self.base.require_fields();
@@ -75,7 +100,7 @@ impl ToTokens for FromVariantImpl<'_> {
 
                     #extractor
 
-                    #supports
+                    #validate_and_read_fields
 
                     #require_fields
 

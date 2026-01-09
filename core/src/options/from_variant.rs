@@ -3,8 +3,8 @@ use quote::ToTokens;
 use syn::{DeriveInput, Field, Ident, Meta};
 
 use crate::codegen::FromVariantImpl;
-use crate::options::{DataShape, OuterFrom, ParseAttribute, ParseData};
-use crate::{FromMeta, Result};
+use crate::options::{DataShape, ForwardedField, OuterFrom, ParseAttribute, ParseData};
+use crate::{FromField, FromMeta, Result};
 
 #[derive(Debug, Clone)]
 pub struct FromVariantOptions {
@@ -12,7 +12,7 @@ pub struct FromVariantOptions {
     /// The field on the deriving struct into which the discriminant expression
     /// should be placed by the derived `FromVariant` impl.
     pub discriminant: Option<Ident>,
-    pub fields: Option<Ident>,
+    pub fields: Option<ForwardedField>,
     pub supports: Option<DataShape>,
 }
 
@@ -63,7 +63,7 @@ impl ParseData for FromVariantOptions {
                 Ok(())
             }
             Some("fields") => {
-                self.fields.clone_from(&field.ident);
+                self.fields = ForwardedField::from_field(field).map(Some)?;
                 Ok(())
             }
             _ => self.base.parse_field(field),
