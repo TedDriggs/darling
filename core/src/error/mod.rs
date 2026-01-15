@@ -828,12 +828,13 @@ impl Accumulator {
 
     /// Handles a possible error.
     ///
-    /// Returns a successful value as `Some`, or collects the error and returns `None`.
-    pub fn handle<T>(&mut self, result: Result<T>) -> Option<T> {
+    /// Returns a successful value as `Some`, or collects the error,
+    /// converts it to `darling::Error`, and returns `None`.
+    pub fn handle<T, E: Into<Error>>(&mut self, result: std::result::Result<T, E>) -> Option<T> {
         match result {
             Ok(y) => Some(y),
             Err(e) => {
-                self.push(e);
+                self.push(e.into());
                 None
             }
         }
