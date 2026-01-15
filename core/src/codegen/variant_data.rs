@@ -39,7 +39,7 @@ impl<'a> FieldsGen<'a> {
         // to the flatten function with all other unknown fields.
         let handle_unknown = if self.fields.iter().any(|f| f.flatten) {
             quote! {
-                __flatten.push(_darling::ast::NestedMeta::Meta(__inner.clone()));
+                __flatten.push(__item.clone());
             }
         }
         // If we're allowing unknown fields, then handling one is a no-op.
@@ -58,25 +58,27 @@ impl<'a> FieldsGen<'a> {
             };
 
             quote! {
-                __errors.push(_darling::Error::#err_fn.with_span(__inner));
+                __errors.push(_darling::Error::#err_fn.with_span(__item));
             }
         };
         let arms = arms.iter();
 
         quote!(
             for __item in __items {
-                match *__item {
-                    _darling::export::NestedMeta::Meta(ref __inner) => {
-                        let __name = _darling::util::path_to_string(__inner.path());
-                        match __name.as_str() {
-                            #(#arms)*
-                            __other => { #handle_unknown }
-                        }
-                    }
+                let __path = match *__item {
+                    _darling::export::NestedMeta::Meta(ref __inner) => __inner.path(),
+                    _darling::export::NestedMeta::NameValueInvalidExpr(ref __inner) => &__inner.path,
                     _darling::export::NestedMeta::Lit(ref __inner) => {
                         __errors.push(_darling::Error::unsupported_format("literal")
                             .with_span(__inner));
+                        continue;
                     }
+                };
+                let __name = _darling::util::path_to_string(__path);
+
+                match __name.as_str() {
+                    #(#arms)*
+                    __other => { #handle_unknown }
                 }
             }
         )

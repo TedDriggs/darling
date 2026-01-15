@@ -9,7 +9,7 @@ use crate::usage::{
 };
 use crate::{Error, FromField, FromVariant, Result};
 
-pub use nested_meta::NestedMeta;
+pub use nested_meta::{MetaNameValueInvalidExpr, NestedMeta};
 
 mod nested_meta;
 

@@ -182,10 +182,18 @@ impl ToTokens for MatchArm<'_> {
         // The behavior of `with_span` makes this safe to do; if the child applied an
         // even-more-specific span, our attempt here will not overwrite that and will only cost
         // us one `if` check.
-        let extractor = quote_spanned!(with_callable.span()=>
-        _darling::export::identity::<fn(&_darling::export::syn::Meta) -> _darling::Result<_>>(#with_callable)(__inner)
+        let extractor = quote_spanned!(with_callable.span() =>
+            match *__item {
+                _darling::export::NestedMeta::Meta(ref __inner) => {
+                    _darling::export::identity::<fn(&_darling::export::syn::Meta) -> _darling::Result<_>>(#with_callable)(__inner)
+                },
+                _darling::export::NestedMeta::NameValueInvalidExpr(ref __inner) => {
+                    _darling::FromMeta::from_invalid_expr(__inner)
+                },
+                _ => unreachable!()
+            }
             #post_transform
-            .map_err(|e| e.with_span(&__inner).at(#location))
+            .map_err(|e| e.with_span(&__item).at(#location))
         );
 
         tokens.append_all(if field.multiple {
@@ -205,7 +213,7 @@ impl ToTokens for MatchArm<'_> {
                         if !#ident.0 {
                             #ident = (true, __errors.handle(#extractor));
                         } else {
-                            __errors.push(_darling::Error::duplicate_field(#name_str).with_span(&__inner));
+                            __errors.push(_darling::Error::duplicate_field(#name_str).with_span(&__item));
                         }
                     }
                 )
