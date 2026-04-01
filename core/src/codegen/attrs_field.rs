@@ -74,7 +74,7 @@ pub struct MatchArms<'a>(&'a ForwardAttrs<'a>);
 impl ToTokens for MatchArms<'_> {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         if !self.0.will_forward_any() {
-            tokens.append_all(quote!(_ => continue));
+            tokens.append_all(quote!(_ => {}));
             return;
         }
 
@@ -91,7 +91,7 @@ impl ToTokens for MatchArms<'_> {
                     let names = idents.to_strings();
                     quote! {
                         #(#names)|* => #push_command,
-                        _ => continue,
+                        _ => {},
                     }
                 }
             },
