@@ -114,7 +114,7 @@ impl UsesLifetimes for Lifetime {
 
 uses_lifetimes!(syn::AngleBracketedGenericArguments, args);
 uses_lifetimes!(syn::AssocType, ty);
-uses_lifetimes!(syn::BareFnArg, ty);
+uses_lifetimes!(syn::NamedArg, ty);
 uses_lifetimes!(syn::BoundLifetimes, lifetimes);
 uses_lifetimes!(syn::ConstParam, ty);
 uses_lifetimes!(syn::Constraint, bounds);
@@ -132,7 +132,7 @@ uses_lifetimes!(syn::PredicateType, lifetimes, bounded_ty, bounds);
 uses_lifetimes!(syn::QSelf, ty);
 uses_lifetimes!(syn::TraitBound, path, lifetimes);
 uses_lifetimes!(syn::TypeArray, elem);
-uses_lifetimes!(syn::TypeBareFn, inputs, output);
+uses_lifetimes!(syn::TypeFnPtr, inputs, output);
 uses_lifetimes!(syn::TypeGroup, elem);
 uses_lifetimes!(syn::TypeImplTrait, bounds);
 uses_lifetimes!(syn::TypeParam, bounds);
@@ -169,7 +169,7 @@ impl UsesLifetimes for Type {
             Type::Array(ref v) => v.uses_lifetimes(options, lifetimes),
             Type::Ptr(ref v) => v.uses_lifetimes(options, lifetimes),
             Type::Reference(ref v) => v.uses_lifetimes(options, lifetimes),
-            Type::BareFn(ref v) => v.uses_lifetimes(options, lifetimes),
+            Type::FnPtr(ref v) => v.uses_lifetimes(options, lifetimes),
             Type::Tuple(ref v) => v.uses_lifetimes(options, lifetimes),
             Type::Path(ref v) => v.uses_lifetimes(options, lifetimes),
             Type::Paren(ref v) => v.uses_lifetimes(options, lifetimes),

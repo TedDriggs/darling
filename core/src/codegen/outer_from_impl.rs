@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens, TokenStreamExt};
-use syn::{GenericParam, Generics, Path, TraitBound, TraitBoundModifier, TypeParamBound};
+use syn::{GenericParam, Generics, Path, TraitBound, TraitBoundModifiers, TypeParamBound};
 
 use crate::codegen::TraitImpl;
 use crate::usage::IdentSet;
@@ -47,8 +47,9 @@ fn compute_impl_bounds(bound: Path, mut generics: Generics, applies_to: &IdentSe
 
     let added_bound = TypeParamBound::Trait(TraitBound {
         paren_token: None,
-        modifier: TraitBoundModifier::None,
         lifetimes: None,
+        modifiers: TraitBoundModifiers::default(),
+        maybe: None,
         path: bound,
     });
 

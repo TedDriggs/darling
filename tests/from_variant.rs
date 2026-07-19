@@ -1,5 +1,5 @@
 use darling::FromVariant;
-use syn::{spanned::Spanned, Expr, ExprLit, LitInt};
+use syn::{spanned::Spanned, Expr, ExprLit, Lit, LitInt};
 
 #[derive(FromVariant)]
 #[darling(from_ident, attributes(hello))]
@@ -48,7 +48,7 @@ fn discriminant() {
             lorem.discriminant,
             Some(Expr::Lit(ExprLit {
                 attrs: vec![],
-                lit: LitInt::new("1", span).into(),
+                lit: Lit::Int(LitInt::new("1", span)),
             }))
         )
     } else {

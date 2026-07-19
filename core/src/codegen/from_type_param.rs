@@ -39,7 +39,7 @@ impl ToTokens for FromTypeParamImpl<'_> {
                 .map(|i| parse_quote!(#i: #input.bounds.clone().into_iter().collect::<Vec<_>>())),
             self.default
                 .as_ref()
-                .map(|i| parse_quote!(#i: #input.default.clone())),
+                .map(|i| parse_quote!(#i: #input.default.as_ref().map(|(_, ty)| ty.clone()))),
         ]
         .into_iter()
         .flatten();

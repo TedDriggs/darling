@@ -13,7 +13,7 @@ rust-version = "1.88.0"
 
 [dependencies]
 quote = "1.0.18"
-syn = "2.0.15"
+syn = "3.0.0"
 darling_core = { version = "=0.23.0", path = "../core" }
 
 [lib]

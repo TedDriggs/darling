@@ -259,14 +259,13 @@ impl FromMeta for () {
                 NestedMeta::NameValueInvalidExpr(meta) => {
                     Error::unknown_field_path(&meta.path).with_span(&meta.path.span())
                 }
-                NestedMeta::Lit(lit) => Error::unexpected_expr_type(
-                    &(syn::ExprLit {
+                NestedMeta::Lit(lit) => {
+                    Error::unexpected_expr_type(&syn::Expr::Lit(syn::ExprLit {
                         attrs: vec![],
                         lit: lit.clone(),
-                    }
-                    .into()),
-                )
-                .with_span(lit),
+                    }))
+                    .with_span(lit)
+                }
             });
         }
 
@@ -586,7 +585,7 @@ macro_rules! from_syn_parse {
 
 from_syn_parse!(syn::Type);
 from_syn_parse!(syn::TypeArray);
-from_syn_parse!(syn::TypeBareFn);
+from_syn_parse!(syn::TypeFnPtr);
 from_syn_parse!(syn::TypeGroup);
 from_syn_parse!(syn::TypeImplTrait);
 from_syn_parse!(syn::TypeInfer);
@@ -609,6 +608,7 @@ impl FromMeta for syn::TypePath {
             Expr::Path(body) => {
                 if body.attrs.is_empty() {
                     Ok(syn::TypePath {
+                        attrs: vec![],
                         qself: body.qself.clone(),
                         path: body.path.clone(),
                     })
@@ -1162,7 +1162,7 @@ mod tests {
     use proc_macro2::TokenStream;
     use quote::quote;
     use syn::{
-        parse_quote, Ident, Path, Type, TypeArray, TypeBareFn, TypeImplTrait, TypeInfer, TypeNever,
+        parse_quote, Ident, Path, Type, TypeArray, TypeFnPtr, TypeImplTrait, TypeInfer, TypeNever,
         TypeParen, TypePtr, TypeReference, TypeSlice, TypeTraitObject, TypeTuple, Visibility,
         WhereClause,
     };
@@ -1757,7 +1757,7 @@ mod tests {
 
     #[test]
     fn test_type_bare_fn() {
-        test_type::<TypeBareFn>(quote!(fn(usize) -> bool), Type::BareFn);
+        test_type::<TypeFnPtr>(quote!(fn(usize) -> bool), Type::FnPtr);
     }
 
     #[test]

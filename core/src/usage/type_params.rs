@@ -88,7 +88,7 @@ impl<T: UsesTypeParams, U> UsesTypeParams for Punctuated<T, U> {
 
 uses_type_params!(syn::AngleBracketedGenericArguments, args);
 uses_type_params!(syn::AssocType, ty);
-uses_type_params!(syn::BareFnArg, ty);
+uses_type_params!(syn::NamedArg, ty);
 uses_type_params!(syn::Constraint, bounds);
 uses_type_params!(syn::DataEnum, variants);
 uses_type_params!(syn::DataStruct, fields);
@@ -100,7 +100,7 @@ uses_type_params!(syn::PredicateType, bounded_ty, bounds);
 uses_type_params!(syn::QSelf, ty);
 uses_type_params!(syn::TraitBound, path);
 uses_type_params!(syn::TypeArray, elem);
-uses_type_params!(syn::TypeBareFn, inputs, output);
+uses_type_params!(syn::TypeFnPtr, inputs, output);
 uses_type_params!(syn::TypeGroup, elem);
 uses_type_params!(syn::TypeImplTrait, bounds);
 uses_type_params!(syn::TypeParen, elem);
@@ -151,7 +151,7 @@ impl UsesTypeParams for Type {
             Type::Array(ref v) => v.uses_type_params(options, type_set),
             Type::Ptr(ref v) => v.uses_type_params(options, type_set),
             Type::Reference(ref v) => v.uses_type_params(options, type_set),
-            Type::BareFn(ref v) => v.uses_type_params(options, type_set),
+            Type::FnPtr(ref v) => v.uses_type_params(options, type_set),
             Type::Tuple(ref v) => v.uses_type_params(options, type_set),
             Type::Path(ref v) => v.uses_type_params(options, type_set),
             Type::Paren(ref v) => v.uses_type_params(options, type_set),
