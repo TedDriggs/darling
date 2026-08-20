@@ -4,7 +4,7 @@ use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens, TokenStreamExt};
 use syn::{spanned::Spanned, Ident, Type};
 
-use crate::codegen::{DefaultExpression, PostfixTransform};
+use crate::codegen::{DefaultExpression, OverrideableCallable, PostfixTransform};
 use crate::usage::{self, IdentRefSet, IdentSet, UsesTypeParams};
 
 /// Properties needed to generate code for a field in all the contexts
@@ -25,7 +25,7 @@ pub struct Field<'a> {
     /// An expression that will be wrapped in a call to [`core::convert::identity`] and
     /// then used for converting a provided value into the field value _before_ postfix
     /// transforms are called.
-    pub with_callable: Cow<'a, syn::Expr>,
+    pub with_callable: OverrideableCallable<'a>,
     pub post_transform: Option<&'a PostfixTransform>,
     pub skip: bool,
     pub multiple: bool,
@@ -162,6 +162,18 @@ impl ToTokens for MatchArm<'_> {
         let with_callable = &field.with_callable;
         let post_transform = field.post_transform.as_ref();
 
+        // A `with` callable only accepts a `syn::Meta`, and the field type is not required to
+        // impl `FromMeta` when using a custom `with`, so surface the stored parse error instead
+        // of going through `FromMeta::from_invalid_expr` if the caller provided their own `with`.
+        let from_invalid_expr = match with_callable {
+            OverrideableCallable::Custom(_) => {
+                quote_spanned!(with_callable.span() => _darling::export::Err(__inner.error.clone()))
+            }
+            OverrideableCallable::Default(_) => {
+                quote_spanned!(with_callable.span() => _darling::FromMeta::from_invalid_expr(__inner))
+            }
+        };
+
         // Errors include the location of the bad input, so we compute that here.
         // Fields that take multiple values add the index of the error for convenience,
         // while single-value fields only expose the name in the input attribute.
@@ -188,7 +200,7 @@ impl ToTokens for MatchArm<'_> {
                     _darling::export::identity::<fn(&_darling::export::syn::Meta) -> _darling::Result<_>>(#with_callable)(__inner)
                 },
                 _darling::export::NestedMeta::NameValueInvalidExpr(ref __inner) => {
-                    _darling::FromMeta::from_invalid_expr(__inner)
+                    #from_invalid_expr
                 },
                 _ => unreachable!()
             }

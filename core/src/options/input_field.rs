@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use syn::{parse_quote_spanned, spanned::Spanned};
 
-use crate::codegen;
+use crate::codegen::{self, OverrideableCallable};
 use crate::options::{Core, DefaultExpression, ParseAttribute};
 use crate::util::{Callable, Flag, SpannedValue};
 use crate::{Error, FromMeta, Result};
@@ -34,10 +34,15 @@ impl InputField {
                 .map_or_else(|| Cow::Owned(self.ident.to_string()), Cow::Borrowed),
             ty: &self.ty,
             default_expression: self.as_codegen_default(),
-            with_callable: self.with.as_ref().map(|w| w.as_ref()).map_or_else(
-                || Cow::Owned(parse_quote_spanned!(self.ty.span()=> _darling::FromMeta::from_meta)),
-                Cow::Borrowed,
-            ),
+            with_callable: self
+                .with
+                .as_ref()
+                .map(|w| OverrideableCallable::Custom(Cow::Borrowed(w)))
+                .unwrap_or_else(|| {
+                    OverrideableCallable::Default(Cow::Owned(
+                        parse_quote_spanned!(self.ty.span()=> _darling::FromMeta::from_meta),
+                    ))
+                }),
             skip: *self.skip.unwrap_or_default(),
             post_transform: self.post_transform.as_ref(),
             multiple: self.multiple.unwrap_or_default(),
