@@ -123,7 +123,7 @@ impl ToTokens for FromMetaImpl<'_> {
                 let unit_arms = variants.iter().map(Variant::as_unit_match_arm);
 
                 let (unknown_variant_err, unknown_unit_variant_err) = if !variants.is_empty() {
-                    let names = variants.iter().map(Variant::as_name);
+                    let names = variants.iter().filter(|v| !v.skip).map(Variant::as_name);
                     let names = quote!(&[#(#names),*]);
                     (
                         quote! {

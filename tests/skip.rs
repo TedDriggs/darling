@@ -1,5 +1,7 @@
 //! Test that skipped fields are not read into structs when they appear in input.
 
+use std::assert_eq;
+
 use darling::{FromDeriveInput, FromMeta};
 use syn::parse_quote;
 
@@ -71,4 +73,34 @@ fn verify_default_supersedes_from_none() {
         Defaulting::from_derive_input(&di).unwrap(),
         Defaulting { dolor: Some(2) }
     )
+}
+
+/// Verify skipping a variant also excludes that from "did you mean" suggestions.
+#[derive(Debug, FromMeta)]
+pub enum SkippedVariant {
+    Foo,
+    #[darling(skip)]
+    Boo,
+}
+
+#[test]
+fn skipped_variants_are_not_suggested() {
+    let err_msg = SkippedVariant::from_string("boo")
+        .expect_err("boo variant is not constructable by FromMeta")
+        .to_string();
+
+    // If `boo` was improperly considered for "did-you-mean", it will be the top match.
+    // At time of writing, only the top candidate was included in the error, so we check
+    // that the second-place suggestion was present in the message, and try to defend against
+    // a multi-suggestion future by also checking that `boo` only appears once in the error.
+    assert_eq!(
+        err_msg.split("`boo`").count(),
+        2,
+        "error message contained `boo` too many times, was: {err_msg}"
+    );
+
+    assert!(
+        err_msg.contains("`foo`"),
+        "error message did not suggest `foo`, was actually: {err_msg}",
+    );
 }
