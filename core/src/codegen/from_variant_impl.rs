@@ -64,7 +64,7 @@ impl ToTokens for FromVariantImpl<'_> {
                 Some(p) => p.clone(),
                 None => parse_quote_spanned!(i.ty.span()=> _darling::ast::Fields::try_from),
             })
-            .unwrap_or_else(|| parse_quote!(_darling::export::Ok));
+            .unwrap_or_else(|| parse_quote!(_darling::Result::Ok));
 
         let supports = self
             .supports
