@@ -759,6 +759,12 @@ impl FromMeta for Vec<syn::WherePredicate> {
     }
 }
 
+impl FromMeta for Vec<NestedMeta> {
+    fn from_list(items: &[NestedMeta]) -> Result<Self> {
+        Ok(items.to_vec())
+    }
+}
+
 impl FromMeta for ident_case::RenameRule {
     fn from_string(value: &str) -> Result<Self> {
         value.parse().map_err(|_| Error::unknown_value(value))
@@ -1167,7 +1173,7 @@ mod tests {
         WhereClause,
     };
 
-    use crate::{Error, FromMeta, Result};
+    use crate::{ast::NestedMeta, Error, FromMeta, Result};
 
     #[track_caller]
     fn test_type<T: FromMeta + PartialEq + Debug>(tokens: TokenStream, f: fn(T) -> Type) {
@@ -1763,5 +1769,23 @@ mod tests {
     #[test]
     fn test_type_paren() {
         test_type::<TypeParen>(quote!((u32)), Type::Paren);
+    }
+
+    #[test]
+    fn test_vec_nested_meta() {
+        assert_eq!(
+            fm::<Vec<NestedMeta>>(quote!(ignore(foo, bar = "boom", baz(quux), "foo"))),
+            vec![
+                NestedMeta::Meta(parse_quote!(foo)),
+                NestedMeta::Meta(parse_quote!(bar = "boom")),
+                NestedMeta::Meta(parse_quote!(baz(quux))),
+                NestedMeta::Lit(parse_quote!("foo")),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_vec_nested_meta_empty() {
+        assert_eq!(fm::<Vec<NestedMeta>>(quote!(ignore())), vec![]);
     }
 }
